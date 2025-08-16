@@ -2,13 +2,21 @@ package com.parana.dobleyfalta.cuentas
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
 
 import androidx.navigation.NavController
@@ -17,6 +25,8 @@ import androidx.navigation.NavController
 fun LoginScreen(navController: NavController) {
     val DarkBlue = Color(0xFF102B4E)
     val PrimaryOrange = Color(0xFFFF6600)
+    val DarkGrey = Color(0xFF1A375E)
+    val LightGrey = Color(0xFFA0B3C4)
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -33,6 +43,51 @@ fun LoginScreen(navController: NavController) {
             tint = Color.Unspecified,
             modifier = Modifier.size(96.dp)
         )
+        Text(
+            text = "Doble y Falta App",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Email", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange
+            )
+        )
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Contraseña", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange
+            )
+        )
+        Button(
+            onClick = { navController.navigate("principal") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
+        ) {
+            Text("Iniciar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -73,3 +128,28 @@ fun LoginScreen(navController: NavController) {
 
 //painter
 //Define qué imagen o icono mostrar. Aquí se usa painterResource(id = R.drawable.ic_basketball_ball) para cargar un recurso drawable.
+
+//OutlinedTextField
+//Es un composable que permite al usuario ingresar texto.
+//Tiene un borde visible (de ahí lo de "Outlined") y admite personalización de colores, forma, etc.
+
+//value
+//El texto actual que contiene el campo. Aquí está vacío "".
+
+//onValueChange
+//Funcion Lambda que se ejecuta cada vez que cambia el texto. Aquí está vacío {} pero normalmente actualizarías un state.
+//Es un parametro obligatorio
+
+//label
+//Texto que aparece dentro del borde como etiqueta. Se pasa como composable. Ej: { Text("Email", color = LightGrey) }.
+// Seria un placeholder "Email"
+
+//shape
+//Forma de los bordes. Ej: RoundedCornerShape(12.dp) hace esquinas redondeadas de 12 dp
+
+//colors	Personaliza colores del campo usando OutlinedTextFieldDefaults.colors(). Puedes cambiar:
+//focusedContainerColor → fondo cuando el campo está enfocado
+//unfocusedContainerColor → fondo cuando no está enfocado
+//focusedBorderColor → color del borde enfocado
+//unfocusedBorderColor → color del borde sin enfocar
+//cursorColor → color del cursor de escritura |
