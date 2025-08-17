@@ -21,11 +21,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PantallaPrincipal() {
-    Text(
-        text = "¡Hola Jetpack Compose!",
-        fontSize = 24.sp,
-        color = MaterialTheme.colorScheme.inversePrimary,
+fun PantallaPrincipal(navController: androidx.navigation.NavController) {
+    androidx.compose.material3.Button(
+        onClick = { navController.navigate("equipos") },
         modifier = Modifier.padding(16.dp)
-    )
+    ) {
+        Text("Ver Equipos")
+    }
 }
