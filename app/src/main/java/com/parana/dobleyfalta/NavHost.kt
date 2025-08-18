@@ -22,7 +22,6 @@ fun AppNavHost() {
         composable("equipos") {
             EquiposListScreen(navController)
         }
-        // ✅ Ruta con parámetro
         composable("detalles/{equipoId}") { backStackEntry ->
             val equipoId = backStackEntry.arguments?.getString("equipoId")?.toInt()
             if (equipoId != null) {

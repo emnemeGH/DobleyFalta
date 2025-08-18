@@ -32,6 +32,9 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version = "18.1.0" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version = "2.11.0" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

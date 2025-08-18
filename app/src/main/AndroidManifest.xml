@@ -13,6 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DobleYFalta"
         tools:targetApi="31">
+
+        <!-- 🔑 Agregar la API Key de Google Maps aquí -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDG4yzWInu2fowXqBEQPn0gAX2OR-w8U4c" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

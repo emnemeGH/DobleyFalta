@@ -47,6 +47,8 @@ android {
 
 dependencies {
 
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

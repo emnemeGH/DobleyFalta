@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.AppTopBar
 import com.parana.dobleyfalta.R
 
 // Modelo simple de Equipo
@@ -37,20 +39,36 @@ fun EquiposListScreen(navController: NavController) {
         Equipo(3, "CAE", R.drawable.escudo_cae)
     )
 
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .padding(top = 32.dp)
-    ) {
-        items(equipos) { equipo ->
-            EquipoItem(equipo) {
-                navController.navigate("detalles/${equipo.id}")
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Equipos",
+                onMenuClick = { route ->
+                    when (route) {
+                        "home" -> navController.navigate("home")
+                        "equipos" -> navController.navigate("equipos")
+                        "tabla" -> navController.navigate("tabla")
+                        "noticias" -> navController.navigate("noticias")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            items(equipos) { equipo ->
+                EquipoItem(equipo) {
+                    navController.navigate("detalles/${equipo.id}")
+                }
             }
         }
     }
 }
+
 
 // Elemento individual de la lista
 @Composable
