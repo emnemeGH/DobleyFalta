@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.parana.dobleyfalta.cuentas.LoginScreen
+import com.parana.dobleyfalta.cuentas.RegistroScreen
 import com.parana.dobleyfalta.equipos.EquiposListScreen
 import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 
@@ -12,9 +13,12 @@ import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 fun AppNavHost() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "equipos") {
+    NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LoginScreen(navController)
+        }
+        composable("registro") {
+            RegistroScreen(navController)
         }
         composable("principal") {
             PantallaPrincipal(navController)

@@ -1,7 +1,10 @@
 package com.parana.dobleyfalta.cuentas
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -10,9 +13,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,29 +29,37 @@ import androidx.navigation.NavController
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    val DarkBlue = Color(0xFF102B4E)
+    val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = Color(0xFFFF6600)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
+    val focusManager = LocalFocusManager.current
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
             //Aquí 32.dp convierte el número 32 en un valor Dp que padding() entiende. Es equivalente a: 32.toDp() (internamente).
-            .padding(32.dp),
+            .padding(32.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
         Icon(
             painter = painterResource(id = R.drawable.logo_transparent),
             contentDescription = "Logo",
             tint = Color.Unspecified,
-            modifier = Modifier.size(96.dp)
+            modifier = Modifier.size(150.dp)
         )
         Text(
             text = "Doble y Falta App",
             fontSize = 32.sp,
+            color = Color.White,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 32.dp)
         )
@@ -64,6 +78,10 @@ fun LoginScreen(navController: NavController) {
                 focusedBorderColor = PrimaryOrange,
                 cursorColor = PrimaryOrange
             )
+        )
+//        Spacer sirve para aplicar margenes
+        Spacer(
+            modifier = Modifier.height(5.dp)
         )
         OutlinedTextField(
             value = "",
@@ -88,6 +106,13 @@ fun LoginScreen(navController: NavController) {
         ) {
             Text("Iniciar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
         }
+        Text(
+            text = "¿No tienes cuenta? Regístrate aquí",
+            color = PrimaryOrange,
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .clickable { navController.navigate("registro") }
+        )
     }
 }
 
@@ -110,6 +135,9 @@ fun LoginScreen(navController: NavController) {
 //navController.navigate("HomeScreen")
 //Eso cambiaría de pantalla al HomeScreen.
 
+//LocalFocusManager.current → es una variable especial de Compose que te da acceso al administrador de foco de la pantalla.
+//Ese focusManager sirve para manejar qué componente (ej: un TextField) tiene el foco.
+
 //Column
 //En Compose, Column es un composable que organiza sus elementos hijos uno debajo del otro, en forma de columna (vertical).
 //Es el equivalente a un LinearLayout con orientación vertical en XML.
@@ -119,6 +147,25 @@ fun LoginScreen(navController: NavController) {
 
 //.fillMaxSize() es una función de Modifier que le dice al composable que ocupe todo el espacio disponible
 // tanto en ancho como en alto dentro de su contenedor padre.
+
+//.clickable(...) { ... }
+//Es un modifier de Compose.
+//Se lo aplicás a cualquier componente (ej: Column, Box, etc.) para que responda a un clic.
+//Lo que pongas en las llaves { ... } es la acción que se ejecuta al hacer clic.
+
+//indication = null
+//Normalmente, .clickable muestra una animación
+//Con indication = null, desactivás ese efecto visual.
+//Sirve para que parezca que “no pasa nada”, aunque igual se ejecute el código.
+
+//interactionSource = remember { MutableInteractionSource() }
+//clickable necesita una interactionSource para manejar estados como “presionado”, “enfocado”, etc.
+//En este caso se crea una fuente vacía (MutableInteractionSource()) y se guarda con remember para que no se regenere en cada render.
+//Es necesario cuando usás indication = null, porque Compose pide igual un interactionSource.
+
+//clearFocus()
+// quita el foco de donde esté (ej: el OutlinedTextField), lo cual hace que se desmarque el borde naranja
+// y, si hay teclado abierto, también se oculte.
 
 //horizontalAlignment → Alinea a los hijos horizontalmente (izquierda, centro, derecha).
 //Valores comunes: Alignment.Start (izquierda) Alignment.CenterHorizontally (centro) Alignment.End (derecha)
