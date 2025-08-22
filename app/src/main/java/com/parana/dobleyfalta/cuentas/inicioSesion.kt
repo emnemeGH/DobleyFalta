@@ -30,7 +30,7 @@ import androidx.navigation.NavController
 @Composable
 fun LoginScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
-    val PrimaryOrange = Color(0xFFFF6600)
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current

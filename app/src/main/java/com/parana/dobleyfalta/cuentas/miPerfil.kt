@@ -1,0 +1,214 @@
+package com.parana.dobleyfalta.cuentas
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.HorizontalDivider
+import com.parana.dobleyfalta.R
+
+@Composable
+fun ProfileScreen(navController: NavController) {
+    val DarkBlue = colorResource(id = R.color.darkBlue)
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
+    val DarkGrey = Color(0xFF1A375E)
+    val LightGrey = Color(0xFFA0B3C4)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBlue)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            //SpaceBetween
+            //El primer hijo va al inicio (izquierda)
+            //El último hijo va al final (derecha).
+            //Si hay más de dos hijos, el espacio se reparte entre los elementos (pero no antes del primero ni después del último).
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Mi Perfil",
+                fontSize = 22.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { navController.navigate("login") }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.logout),
+                    contentDescription = "Cerrar sesión",
+                    modifier = Modifier.size(25.dp),
+                    tint = LightGrey
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.user),
+                contentDescription = "User Avatar",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, PrimaryOrange, CircleShape)
+                    .padding(15.dp)
+            )
+            Spacer(modifier = Modifier.width(25.dp))
+            Column {
+                Text(
+                    "Usuario Registrado",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Text(
+                    "usuario@example.com",
+                    color = LightGrey,
+                    fontSize = 14.sp
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .background(Color.Blue, RoundedCornerShape(50))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text("Usuario", color = Color.White, fontSize = 12.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = DarkGrey),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Equipo Favorito", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(
+                    "Suscríbete para recibir notificaciones de tu equipo.",
+                    color = LightGrey,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 12.dp, top = 2.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF2C405A), RoundedCornerShape(12.dp))
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_transparent),
+                        contentDescription = "Team Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                    )
+                    Text(
+                        "Club Estudiantes",
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(end = 65.dp)
+                    )
+                    TextButton(onClick = { navController.navigate("login") }) {
+                        Text("Cambiar", color = PrimaryOrange, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = DarkGrey),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    "Configuración de la cuenta",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 14.dp)
+                )
+
+                OpcionPerfil("Editar Perfil") { navController.navigate("login") }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
+                    thickness = 1.dp,
+                    color = Color.Gray
+                )
+                OpcionPerfil("Cambiar Contraseña") { navController.navigate("login") }
+            }
+        }
+    }
+}
+
+@Composable
+//onClick es un parámetro de tipo función:
+//() -> Unit significa:
+//() → no recibe parámetros.
+//Unit __ no devuelve nada (es como void en otros lenguajes).
+fun OpcionPerfil(text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            //clickable() hace que el row reaccione a clicks
+            //Recibe un bloque de código { en este caso es la funcion que le pasemos por parametro}
+            // que se ejecuta cuando el usuario toca ese componente
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text, color = Color.White, fontSize = 14.sp)
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Color.Gray
+        )
+    }
+}
+
+//GLOSARIO
+
+//.clip(CircleShape)
+//El modifier .clip(...) recorta el contenido de un Composable según una forma geométrica (shape).
+//(todo lo que “dibuja” algo en la pantalla es un Composable)
+//En este caso, CircleShape → un círculo perfecto.

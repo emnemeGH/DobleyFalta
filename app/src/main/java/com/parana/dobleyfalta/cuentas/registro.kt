@@ -33,7 +33,7 @@ import com.parana.dobleyfalta.R
 @Composable
 fun RegistroScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
-    val PrimaryOrange = Color(0xFFFF6600)
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
@@ -143,5 +143,33 @@ fun RegistroScreen(navController: NavController) {
 
 //GLOSARIO
 
-//colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+//colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
+//Los botones en Compose permiten configurar sus colores.
+//ButtonDefaults es un objeto de ayuda que trae valores por defecto para los Button.
+//La función buttonColors() devuelve un objeto que define los colores para varios estados del botón (normal, presionado, deshabilitado, etc.).
+
+//colors = ButtonDefaults.buttonColors(
+//    containerColor = PrimaryOrange, // Fondo del botón
+//    contentColor = Color.White,     // Color del texto o iconos dentro del botón
+//    disabledContainerColor = Color.Gray, // Fondo si está deshabilitado
+//    disabledContentColor = Color.DarkGray // Texto si está deshabilitado
+//)
+//No hace falta pasar todos los parámetros:
+//vos solo sobreescribís lo que te interesa (containerColor en tu caso) y los demás quedan con los valores por defecto de Material Design.
+//Un botón deshabilitado es aquel que no se puede presionar (por ejemplo, cuando el formulario está incompleto).
+
+
 // elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+//La elevación es la “sombra” que proyecta el botón para dar sensación de profundidad.
+//ButtonDefaults.buttonElevation() crea un objeto que indica cuánto se eleva el botón en distintos estados.
+//Parámetros comunes:
+//defaultElevation: cuando está en reposo.
+//pressedElevation: cuando está siendo presionado.
+//disabledElevation: cuando está deshabilitado.
+
+//Ejemplo:
+//elevation = ButtonDefaults.buttonElevation(
+//    defaultElevation = 8.dp,   // sombra normal
+//    pressedElevation = 2.dp,   // sombra más pequeña al presionar
+//    disabledElevation = 0.dp   // sin sombra si está deshabilitado
+//)
