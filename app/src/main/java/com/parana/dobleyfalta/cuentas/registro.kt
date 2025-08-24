@@ -120,7 +120,7 @@ fun RegistroScreen(navController: NavController) {
             )
         )
         Button(
-            onClick = { navController.navigate("principal") },
+            onClick = { navController.navigate("miperfil") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),

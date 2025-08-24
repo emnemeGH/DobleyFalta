@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.parana.dobleyfalta.cuentas.LoginScreen
 import com.parana.dobleyfalta.cuentas.ProfileScreen
 import com.parana.dobleyfalta.cuentas.RegistroScreen
+import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.ChangePasswordScreen
 import com.parana.dobleyfalta.equipos.EquiposListScreen
 import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 
@@ -29,6 +30,9 @@ fun AppNavHost() {
         }
         composable("miperfil") {
             ProfileScreen(navController)
+        }
+        composable("cambiar_contraseña") {
+            ChangePasswordScreen(navController)
         }
         composable("detalles/{equipoId}") { backStackEntry ->
             val equipoId = backStackEntry.arguments?.getString("equipoId")?.toInt()

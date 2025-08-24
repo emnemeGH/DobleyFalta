@@ -174,7 +174,7 @@ fun ProfileScreen(navController: NavController) {
                     thickness = 1.dp,
                     color = Color.Gray
                 )
-                OpcionPerfil("Cambiar Contraseña") { navController.navigate("login") }
+                OpcionPerfil("Cambiar Contraseña") { navController.navigate("cambiar_contraseña") }
             }
         }
     }
