@@ -3,20 +3,20 @@ package com.parana.dobleyfalta.equipos
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,14 +30,19 @@ data class Equipo(
     val escudoUrl: Int
 )
 
-// Pantalla de listado de equipos (requiere NavController en la app real)
 @Composable
 fun EquiposListScreen(navController: NavController) {
+    val DarkBlue = colorResource(id = R.color.darkBlue)
+    val CardBackground = Color(0xFF1A375E)
+    val TextWhite = Color(0xFFFFFFFF)
+
     val equipos = listOf(
         Equipo(1, "Paracao", R.drawable.escudo_paracao),
         Equipo(2, "Rowing", R.drawable.escudo_rowing),
-        Equipo(3, "CAE", R.drawable.escudo_cae)
-    )
+        Equipo(3, "CAE", R.drawable.escudo_cae),
+        Equipo(4, "Ciclista", R.drawable.escudo_cae),
+        Equipo(5, "Quique", R.drawable.escudo_rowing)
+    ).sortedBy { it.nombre } // orden alfabético
 
     Scaffold(
         topBar = {
@@ -47,21 +52,29 @@ fun EquiposListScreen(navController: NavController) {
                     when (route) {
                         "home" -> navController.navigate("home")
                         "equipos" -> navController.navigate("equipos")
-                        "tabla" -> navController.navigate("tabla")
                         "noticias" -> navController.navigate("noticias")
+                        "jornadas" -> navController.navigate("jornadas")
                     }
                 }
             )
-        }
+        },
+        containerColor = DarkBlue
     ) { innerPadding ->
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2), // dos columnas fijas
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(equipos) { equipo ->
-                EquipoItem(equipo) {
+                EquipoItem(
+                    equipo = equipo,
+                    cardBackground = CardBackground,
+                    textColor = TextWhite
+                ) {
                     navController.navigate("detalles/${equipo.id}")
                 }
             }
@@ -69,36 +82,41 @@ fun EquiposListScreen(navController: NavController) {
     }
 }
 
-
-// Elemento individual de la lista
 @Composable
-fun EquipoItem(equipo: Equipo, onClick: () -> Unit) {
+fun EquipoItem(
+    equipo: Equipo,
+    cardBackground: Color,
+    textColor: Color,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF2E2C1) // Cream/Beige
+            containerColor = cardBackground
         ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(12.dp)
-        ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        )  {
             Image(
                 painter = painterResource(id = equipo.escudoUrl),
                 contentDescription = "Escudo de ${equipo.nombre}",
                 modifier = Modifier
-                    .size(60.dp)
-                    .padding(end = 12.dp)
+                    .size(80.dp)
+                    .padding(bottom = 8.dp)
             )
             Text(
                 text = equipo.nombre,
-                fontSize = 22.sp,
-                color = Color.Black // Nombres en negro
+                fontSize = 20.sp,
+                color = textColor
             )
         }
     }

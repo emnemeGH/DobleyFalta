@@ -1,21 +1,26 @@
 package com.parana.dobleyfalta.equipos
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,36 +45,35 @@ data class DetallesEquiposScreen(
 
 @Composable
 fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
+    val DarkBlue = colorResource(id = R.color.darkBlue)
+    val CardBackground = Color(0xFF1A375E)
+    val PrimaryOrange = Color(0xFFFF6600)
+    val TextWhite = Color.White
+
     val detalles = listOf(
         DetallesEquiposScreen(
             "Paracao",
             R.drawable.escudo_paracao,
             "En el club están comenzando todas las actividades. Ahora en febrero comenzaron todos y ya el fin de semana tenemos Liguilla de básquet femenino y masculino. El sábado tenemos una velada de boxeo, donde hay dos peleas profesionales y seis amateurs. Invitamos a todos que se acerquen, que es un espectáculo muy bonito. La idea es hacerlo al aire libre, esperemos que el tiempo nos ayude. Sino lo haremos en el gimnasio, donde tenemos espacio suficiente”, detalló sobre lo que sucederá en los próximos días.",
-            "parana 1234",
+            "Paraná 1234",
             1,
-            -31.7700219,-60.5329188
+            -31.7700219, -60.5329188
         ),
-
         DetallesEquiposScreen(
             "Rowing",
             R.drawable.escudo_rowing,
-            "El Paraná Rowing Club es un club deportivo ubicado en la Ciudad de Paraná, capital de la provincia de Entre Ríos, en Argentina.\n" +
-                    "\n" +
-                    "Fue fundado en 1917 con el fin de practicar remo y natación, pero luego amplió sus actividades a otros deportes como rugby, básquet, hockey Sobre césped, pelota paleta, vóley, esgrima y tenis, entre otros.",
-            "parana 4567",
+            "El Paraná Rowing Club es un club deportivo ubicado en la Ciudad de Paraná, capital de la provincia de Entre Ríos, en Argentina.Fue fundado en 1917 con el fin de practicar remo y natación, pero luego amplió sus actividades a otros deportes como rugby, básquet, hockey Sobre césped, pelota paleta, vóley, esgrima y tenis, entre otros.",
+            "Paraná 4567",
             2,
-            -31.718204,-60.5320849
+            -31.718204, -60.5320849
         ),
-
         DetallesEquiposScreen(
             "CAE",
             R.drawable.escudo_cae,
-            "El Club Atlético Estudiantes es una institución deportiva de la ciudad Argentina de Paraná en la Provincia de Entre Ríos.\n" +
-                    "\n" +
-                    "El Club Atlético Estudiantes (CAE) fue fundado el 5 de mayo de 1905. El club nació para jugar al fútbol y su primer nombre fue “Estudiantes Football Club”, hasta mediados de la década del 30 que se dejó de practicar dicho deporte y por ende el club fue renombrado como en la actualidad y su principal deporte actualmente es el rugby, por el cual es reconocido nacionalmente",
-            "parana 7890",
+            "El Club Atlético Estudiantes es una institución deportiva de la ciudad Argentina de Paraná en la Provincia de Entre Ríos.El Club Atlético Estudiantes (CAE) fue fundado el 5 de mayo de 1905. El club nació para jugar al fútbol y su primer nombre fue “Estudiantes Football Club”, hasta mediados de la década del 30 que se dejó de practicar dicho deporte y por ende el club fue renombrado como en la actualidad y su principal deporte actualmente es el rugby, por el cual es reconocido nacionalmente",
+            "Paraná 7890",
             3,
-            -31.7199324,-60.5372966
+            -31.7199324, -60.5372966
         )
     )
 
@@ -88,73 +92,99 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                     }
                 }
             )
-        }
+        },
+        containerColor = DarkBlue
     ) { innerPadding ->
         equipo?.let {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(DarkBlue)
                     .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                DetallesEquiposItem(it)
+                DetallesEquiposItem(
+                    detalles = it,
+                    cardBackground = CardBackground,
+                    textColor = TextWhite,
+                    accentColor = PrimaryOrange
+                )
             }
         }
     }
 }
 
-
 @Composable
 fun DetallesEquiposItem(
     detalles: DetallesEquiposScreen,
+    cardBackground: Color,
+    textColor: Color,
+    accentColor: Color,
     onClick: (() -> Unit)? = null
-){
+) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable { onClick?.invoke() }
-            .padding(16.dp),
+            .fillMaxWidth()
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Escudo
         Image(
             painter = painterResource(id = detalles.escudoUrl),
             contentDescription = "Escudo de ${detalles.nombre}",
-            modifier = Modifier.size(250.dp)
+            modifier = Modifier.size(180.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Nombre
         Text(
             text = detalles.nombre,
-            fontSize = 40.sp,
-            color = MaterialTheme.colorScheme.primary
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = accentColor
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = detalles.descripcion,
-            fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.primary
-        )
+        // Card solo para la descripción
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = cardBackground
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            onClick = { onClick?.invoke() }
+        ) {
+            Text(
+                text = detalles.descripcion,
+                fontSize = 16.sp,
+                color = textColor,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
+        // Ubicación
         Text(
             text = "Ubicación: ${detalles.ubicacion}",
-            fontSize = 24.sp,
-            color = MaterialTheme.colorScheme.primary
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = accentColor
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Mapa de Google
+        // Mapa
         GoogleMap(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp),
-            cameraPositionState = rememberCameraPositionState() {
+                .height(220.dp),
+            cameraPositionState = rememberCameraPositionState {
                 position = CameraPosition.fromLatLngZoom(
                     LatLng(detalles.lat, detalles.lng), 15f
                 )
