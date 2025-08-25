@@ -50,7 +50,7 @@ fun EquiposListScreen(navController: NavController) {
                 title = "Equipos",
                 onMenuClick = { route ->
                     when (route) {
-                        "home" -> navController.navigate("home")
+                        "login" -> navController.navigate("login")
                         "equipos" -> navController.navigate("equipos")
                         "noticias" -> navController.navigate("noticias")
                         "jornadas" -> navController.navigate("jornadas")

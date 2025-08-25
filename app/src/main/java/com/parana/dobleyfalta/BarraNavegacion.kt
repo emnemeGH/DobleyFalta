@@ -55,9 +55,9 @@ fun AppTopBar(
                     onDismissRequest = { menuExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Inicio") },
+                        text = { Text("Login") },
                         onClick = {
-                            onMenuClick("home")
+                            onMenuClick("login")
                             menuExpanded = false
                         }
                     )
