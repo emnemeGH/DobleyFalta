@@ -9,11 +9,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +25,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
@@ -34,6 +40,10 @@ fun LoginScreen(navController: NavController) {
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
+
+    var email by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("")}
+    var mostrarContraseña by remember { mutableStateOf(false) }
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -64,8 +74,8 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.padding(vertical = 32.dp)
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = email,
+            onValueChange = { email = it },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,7 +86,9 @@ fun LoginScreen(navController: NavController) {
                 unfocusedContainerColor = DarkGrey,
                 unfocusedBorderColor = DarkGrey,
                 focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             )
         )
 //        Spacer sirve para aplicar margenes
@@ -84,9 +96,21 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.height(5.dp)
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = contraseña,
+            onValueChange = { contraseña = it },
             label = { Text("Contraseña", color = LightGrey) },
+            visualTransformation = if (mostrarContraseña) VisualTransformation.None
+            else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { mostrarContraseña = !mostrarContraseña }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.eyebrow),
+                        contentDescription = "Mostrar/Ocultar",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Black
+                    )
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 32.dp),
@@ -96,7 +120,9 @@ fun LoginScreen(navController: NavController) {
                 unfocusedContainerColor = DarkGrey,
                 unfocusedBorderColor = DarkGrey,
                 focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             )
         )
         Button(

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.remember
 import com.parana.dobleyfalta.R
 
 @Composable
@@ -192,7 +194,10 @@ fun OpcionPerfil(text: String, onClick: () -> Unit) {
             //clickable() hace que el row reaccione a clicks
             //Recibe un bloque de código { en este caso es la funcion que le pasemos por parametro}
             // que se ejecuta cuando el usuario toca ese componente
-            .clickable { onClick() }
+            .clickable (
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ){ onClick() }
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

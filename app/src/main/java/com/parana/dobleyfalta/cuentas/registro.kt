@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -24,6 +25,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,11 @@ fun RegistroScreen(navController: NavController) {
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
+
+    var usuario by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
+    var mostrarContraseña by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -66,8 +74,8 @@ fun RegistroScreen(navController: NavController) {
             modifier = Modifier.padding(vertical = 32.dp)
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = usuario,
+            onValueChange = { usuario = it },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,8 +92,8 @@ fun RegistroScreen(navController: NavController) {
             )
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = email,
+            onValueChange = { email = it },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,9 +110,21 @@ fun RegistroScreen(navController: NavController) {
             )
         )
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = contraseña,
+            onValueChange = { contraseña = it },
             label = { Text("Contraseña", color = LightGrey) },
+            visualTransformation = if (mostrarContraseña) VisualTransformation.None
+            else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { mostrarContraseña = !mostrarContraseña }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.eyebrow),
+                        contentDescription = "Mostrar/Ocultar",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Black
+                    )
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
