@@ -169,7 +169,7 @@ fun ProfileScreen(navController: NavController) {
                     modifier = Modifier.padding(bottom = 14.dp)
                 )
 
-                OpcionPerfil("Editar Perfil") { navController.navigate("login") }
+                OpcionPerfil("Editar Perfil") { navController.navigate("editar_perfil") }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
