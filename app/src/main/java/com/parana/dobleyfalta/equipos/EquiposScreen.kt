@@ -20,7 +20,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.AppTopBar
 import com.parana.dobleyfalta.R
 
 // Modelo simple de Equipo
@@ -45,26 +44,13 @@ fun EquiposListScreen(navController: NavController) {
     ).sortedBy { it.nombre } // orden alfabético
 
     Scaffold(
-        topBar = {
-            AppTopBar(
-                title = "Equipos",
-                onMenuClick = { route ->
-                    when (route) {
-                        "login" -> navController.navigate("login")
-                        "equipos" -> navController.navigate("equipos")
-                        "noticias" -> navController.navigate("noticias")
-                        "jornadas" -> navController.navigate("jornadas")
-                    }
-                }
-            )
-        },
         containerColor = DarkBlue
     ) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2), // dos columnas fijas
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding) // Usa el padding proporcionado por el Scaffold
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
