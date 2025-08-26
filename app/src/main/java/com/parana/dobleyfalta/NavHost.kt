@@ -1,10 +1,11 @@
 package com.parana.dobleyfalta
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.parana.dobleyfalta.adminpantallas.AdminScreen
 import com.parana.dobleyfalta.adminpantallas.CreateUserScreen
@@ -20,8 +21,7 @@ import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.partidos.JornadasScreen
 
 @Composable
-fun AppNavHost() {
-    val navController = rememberNavController()
+fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
 
     NavHost(navController = navController, startDestination = "equipos") {
         composable("login") {
@@ -72,4 +72,3 @@ fun AppNavHost() {
         }
     }
 }
-

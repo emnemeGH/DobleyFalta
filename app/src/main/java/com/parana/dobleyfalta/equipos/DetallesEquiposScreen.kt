@@ -2,19 +2,14 @@ package com.parana.dobleyfalta.equipos
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,10 +25,10 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.parana.dobleyfalta.AppTopBar
 import com.parana.dobleyfalta.R
 
-data class DetallesEquiposScreen(
+// Renombramos el data class para evitar el conflicto de nombres con el Composable
+data class EquipoDetalles(
     val nombre: String,
     val escudoUrl: Int,
     val descripcion: String,
@@ -51,7 +46,7 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
     val TextWhite = Color.White
 
     val detalles = listOf(
-        DetallesEquiposScreen(
+        EquipoDetalles(
             "Paracao",
             R.drawable.escudo_paracao,
             "En el club están comenzando todas las actividades. Ahora en febrero comenzaron todos y ya el fin de semana tenemos Liguilla de básquet femenino y masculino. El sábado tenemos una velada de boxeo, donde hay dos peleas profesionales y seis amateurs. Invitamos a todos que se acerquen, que es un espectáculo muy bonito. La idea es hacerlo al aire libre, esperemos que el tiempo nos ayude. Sino lo haremos en el gimnasio, donde tenemos espacio suficiente”, detalló sobre lo que sucederá en los próximos días.",
@@ -59,7 +54,7 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
             1,
             -31.7700219, -60.5329188
         ),
-        DetallesEquiposScreen(
+        EquipoDetalles(
             "Rowing",
             R.drawable.escudo_rowing,
             "El Paraná Rowing Club es un club deportivo ubicado en la Ciudad de Paraná, capital de la provincia de Entre Ríos, en Argentina.Fue fundado en 1917 con el fin de practicar remo y natación, pero luego amplió sus actividades a otros deportes como rugby, básquet, hockey Sobre césped, pelota paleta, vóley, esgrima y tenis, entre otros.",
@@ -67,7 +62,7 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
             2,
             -31.718204, -60.5320849
         ),
-        DetallesEquiposScreen(
+        EquipoDetalles(
             "CAE",
             R.drawable.escudo_cae,
             "El Club Atlético Estudiantes es una institución deportiva de la ciudad Argentina de Paraná en la Provincia de Entre Ríos.El Club Atlético Estudiantes (CAE) fue fundado el 5 de mayo de 1905. El club nació para jugar al fútbol y su primer nombre fue “Estudiantes Football Club”, hasta mediados de la década del 30 que se dejó de practicar dicho deporte y por ende el club fue renombrado como en la actualidad y su principal deporte actualmente es el rugby, por el cual es reconocido nacionalmente",
@@ -79,123 +74,95 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
 
     val equipo = detalles.find { it.id == equipoId }
 
-    Scaffold(
-        topBar = {
-            AppTopBar(
-                title = equipo?.nombre ?: "Detalles",
-                onMenuClick = { route ->
-                    when (route) {
-                        "home" -> navController.navigate("home")
-                        "equipos" -> navController.navigate("equipos")
-                        "tabla" -> navController.navigate("tabla")
-                        "noticias" -> navController.navigate("noticias")
-                    }
-                }
-            )
-        },
-        containerColor = DarkBlue
-    ) { innerPadding ->
-        equipo?.let {
+    // Usamos un Box para aplicar el color de fondo y el padding
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBlue)
+    ) {
+        if (equipo != null) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(DarkBlue)
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()), // Permite el scroll vertical
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                DetallesEquiposItem(
-                    detalles = it,
-                    cardBackground = CardBackground,
-                    textColor = TextWhite,
-                    accentColor = PrimaryOrange
+                // Escudo
+                Image(
+                    painter = painterResource(id = equipo.escudoUrl),
+                    contentDescription = "Escudo de ${equipo.nombre}",
+                    modifier = Modifier.size(180.dp)
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Nombre
+                Text(
+                    text = equipo.nombre,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryOrange
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Card solo para la descripción
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = CardBackground
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Text(
+                        text = equipo.descripcion,
+                        fontSize = 16.sp,
+                        color = TextWhite,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Ubicación
+                Text(
+                    text = "Ubicación: ${equipo.ubicacion}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PrimaryOrange
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Mapa
+                GoogleMap(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    cameraPositionState = rememberCameraPositionState {
+                        position = CameraPosition.fromLatLngZoom(
+                            LatLng(equipo.lat, equipo.lng), 15f
+                        )
+                    }
+                ) {
+                    Marker(
+                        state = MarkerState(position = LatLng(equipo.lat, equipo.lng)),
+                        title = equipo.nombre,
+                        snippet = equipo.ubicacion
+                    )
+                }
             }
-        }
-    }
-}
-
-@Composable
-fun DetallesEquiposItem(
-    detalles: DetallesEquiposScreen,
-    cardBackground: Color,
-    textColor: Color,
-    accentColor: Color,
-    onClick: (() -> Unit)? = null
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Escudo
-        Image(
-            painter = painterResource(id = detalles.escudoUrl),
-            contentDescription = "Escudo de ${detalles.nombre}",
-            modifier = Modifier.size(180.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Nombre
-        Text(
-            text = detalles.nombre,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = accentColor
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Card solo para la descripción
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = cardBackground
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            onClick = { onClick?.invoke() }
-        ) {
+        } else {
+            // Maneja el caso en que el equipo no se encuentre
             Text(
-                text = detalles.descripcion,
-                fontSize = 16.sp,
-                color = textColor,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Ubicación
-        Text(
-            text = "Ubicación: ${detalles.ubicacion}",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = accentColor
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Mapa
-        GoogleMap(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp),
-            cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(
-                    LatLng(detalles.lat, detalles.lng), 15f
-                )
-            }
-        ) {
-            Marker(
-                state = MarkerState(position = LatLng(detalles.lat, detalles.lng)),
-                title = detalles.nombre,
-                snippet = detalles.ubicacion
+                text = "Equipo no encontrado",
+                color = TextWhite,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
             )
         }
     }
 }
-

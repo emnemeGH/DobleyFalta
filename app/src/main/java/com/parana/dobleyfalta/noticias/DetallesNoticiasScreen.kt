@@ -1,6 +1,8 @@
 package com.parana.dobleyfalta.noticias
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,8 +27,7 @@ fun DetalleNoticiasScreen(
     navController: NavController,
     noticiaId: Int
 ) {
-    // En una aplicación real, se buscaría la noticia en una base de datos o API por su ID.
-    // Aquí, usamos una lista de noticias de ejemplo para simular la búsqueda.
+
     val noticias = listOf(
         Noticia(
             id = 1,
@@ -69,7 +70,8 @@ fun DetalleNoticiasScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
-                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                    .border(BorderStroke(2.dp, Color.White), RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)), // Añade el borde blanco
                 contentScale = ContentScale.Crop
             )
 
