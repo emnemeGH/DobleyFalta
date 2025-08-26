@@ -5,31 +5,34 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 
 @Composable
 fun CreateUserScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
-    val PrimaryOrange = Color(0xFFFF6600)
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
+
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var mostrarContraseña by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -43,34 +46,42 @@ fun CreateUserScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Button(
-                onClick = { navController.navigate("admin") },
-                colors = ButtonDefaults.buttonColors(containerColor = DarkGrey),
-                modifier = Modifier.size(40.dp),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(0.dp)
+        Row {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { navController.navigate("admin") },
+                contentAlignment = Alignment.Center
             ) {
-                // Puedes reemplazar con un ícono de back si quieres
-                Text("<", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(
+                    "<",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp
+                )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
             Text(
-                text = "Crear Usuario",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
+                text = "Crear Empleado",
+                fontSize = 32.sp,
                 color = Color.White,
-                modifier = Modifier.weight(1f).padding(start = 16.dp)
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(end = 12.dp)
             )
+
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = username,
+            onValueChange = { username = it },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,13 +92,15 @@ fun CreateUserScreen(navController: NavController) {
                 unfocusedContainerColor = DarkGrey,
                 unfocusedBorderColor = DarkGrey,
                 focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             )
         )
 
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = email,
+            onValueChange = { email = it },
             label = { Text("Correo Electrónico", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,14 +111,31 @@ fun CreateUserScreen(navController: NavController) {
                 unfocusedContainerColor = DarkGrey,
                 unfocusedBorderColor = DarkGrey,
                 focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             )
         )
 
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Contraseña", color = LightGrey) },
+            visualTransformation = if (mostrarContraseña) VisualTransformation.None
+            else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { mostrarContraseña = !mostrarContraseña }) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (mostrarContraseña) R.drawable.hidden
+                            else R.drawable.eye_open
+                        ),
+                        contentDescription = "Mostrar/Ocultar",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Black
+                    )
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -115,7 +145,9 @@ fun CreateUserScreen(navController: NavController) {
                 unfocusedContainerColor = DarkGrey,
                 unfocusedBorderColor = DarkGrey,
                 focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             )
         )
 
@@ -138,12 +170,17 @@ fun CreateUserScreen(navController: NavController) {
         )
 
         Button(
-            onClick = { navController.navigate("otraPantalla") },
+            onClick = { navController.navigate("admin") },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-            shape = RoundedCornerShape(12.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
         ) {
-            Text("Crear Cuenta de Empleado", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Crear Cuenta", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
+
+//GLOSARIO
+
+//Modifier.weight(1f)
+//le dice a un elemento cuánto espacio proporcional debe ocupar dentro de un contenedor flexible
+//(Row o Column). Si hay solo uno ocupa todo, si hay 2 ocupan cada uno un 50 por ciento

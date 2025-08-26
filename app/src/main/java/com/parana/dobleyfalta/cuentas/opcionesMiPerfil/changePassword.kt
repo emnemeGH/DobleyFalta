@@ -95,7 +95,10 @@ fun ChangePasswordScreen(navController: NavController) {
             trailingIcon = {
                 IconButton(onClick = { mostrarContraseña = !mostrarContraseña }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.eyebrow),
+                        painter = painterResource(
+                            id = if (mostrarContraseña) R.drawable.hidden
+                            else R.drawable.eye_open
+                        ),
                         contentDescription = "Mostrar/Ocultar",
                         modifier = Modifier.size(24.dp),
                         tint = Color.Black
@@ -126,7 +129,10 @@ fun ChangePasswordScreen(navController: NavController) {
             trailingIcon = {
                 IconButton(onClick = { mostrarContraseñaVerif = !mostrarContraseñaVerif }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.eyebrow),
+                        painter = painterResource(
+                            id = if (mostrarContraseñaVerif) R.drawable.hidden
+                            else R.drawable.eye_open
+                        ),
                         contentDescription = "Mostrar/Ocultar",
                         modifier = Modifier.size(24.dp),
                         tint = Color.Black
