@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.parana.dobleyfalta.adminpantallas.AdminScreen
+import com.parana.dobleyfalta.adminpantallas.CreateUserScreen
 import com.parana.dobleyfalta.cuentas.LoginScreen
 import com.parana.dobleyfalta.cuentas.ProfileScreen
 import com.parana.dobleyfalta.cuentas.RegistroScreen
@@ -61,6 +63,12 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val noticiaId = backStackEntry.arguments?.getInt("noticiaId")
             DetalleNoticiasScreen(navController = navController, noticiaId = noticiaId ?: 0)
+        }
+        composable("admin") {
+            AdminScreen(navController = navController)
+        }
+        composable("crear_usuario") {
+            CreateUserScreen(navController = navController)
         }
     }
 }

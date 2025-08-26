@@ -30,7 +30,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
-
 import androidx.navigation.NavController
 
 @Composable
@@ -126,7 +125,13 @@ fun LoginScreen(navController: NavController) {
             )
         )
         Button(
-            onClick = { navController.navigate("principal") },
+            onClick = {
+                if (email == "admin") {
+                    navController.navigate("admin")
+                } else {
+                    navController.navigate("principal")
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
         ) {

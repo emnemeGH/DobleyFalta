@@ -9,4 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="darkBlue">#FF102B4E</color>
     <color name="primaryOrange">#FFFF6600</color>
+    <color name="red_delete">#D74040</color>
+    <color name="blue_edit">#24a4f4</color>
 </resources>
