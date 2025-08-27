@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.parana.dobleyfalta.adminpantallas.AdminEditUserScreen
 import com.parana.dobleyfalta.adminpantallas.AdminScreen
 import com.parana.dobleyfalta.adminpantallas.CreateUserScreen
 import com.parana.dobleyfalta.cuentas.LoginScreen
@@ -69,6 +70,9 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
         }
         composable("crear_usuario") {
             CreateUserScreen(navController = navController)
+        }
+        composable ("admin_editar_usuario") {
+            AdminEditUserScreen(navController = navController)
         }
     }
 }
