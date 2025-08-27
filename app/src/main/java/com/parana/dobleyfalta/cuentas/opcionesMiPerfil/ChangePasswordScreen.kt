@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +48,6 @@ fun ChangePasswordScreen(navController: NavController) {
             .fillMaxSize()
             .background(DarkBlue)
             .padding(32.dp)
-            .padding(top = 90.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -57,6 +55,26 @@ fun ChangePasswordScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(
+                onClick = { navController.navigate("miperfil") },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Volver",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(60.dp))
+
         Text(
             text = "Cambiar Contraseña",
             fontSize = 28.sp,

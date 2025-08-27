@@ -142,7 +142,7 @@ fun AdminScreen(navController: NavController) {
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 IconButton(
-                                    onClick = { },
+                                    onClick = { navController.navigate("") },
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(

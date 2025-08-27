@@ -17,10 +17,6 @@ Pantallas:
 
 1. Emanuel → Bloque de autenticación y administración
 
--Login
--Registro
--Mi perfil
--Pantalla del admin (CU-060)
 -Pantalla de métricas (CU-330 y KPIs)
 
 2. Conrado → Bloque de contenido y gestión deportiva

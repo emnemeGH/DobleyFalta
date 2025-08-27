@@ -48,20 +48,20 @@ fun CreateUserScreen(navController: NavController) {
     ) {
         Row {
             Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { navController.navigate("admin") },
+                modifier = Modifier.size(38.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "<",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp
-                )
+                IconButton(
+                    onClick = { navController.navigate("admin") },
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.back),
+                        contentDescription = "Volver",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))

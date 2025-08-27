@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import com.parana.dobleyfalta.R
 
 @Composable
@@ -29,10 +30,10 @@ fun EditProfileScreen(navController: NavController) {
 
     Column(
         modifier = Modifier
+            // El Column ocupa todo el fillMaxSize() con el fondo DarkBlue
             .fillMaxSize()
             .background(DarkBlue)
             .padding(32.dp)
-            .padding(top = 90.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -40,6 +41,26 @@ fun EditProfileScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(
+                onClick = { navController.navigate("miperfil") },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Volver",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(70.dp))
+
         Text(
             text = "Editar Perfil",
             fontSize = 28.sp,
