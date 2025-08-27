@@ -32,6 +32,19 @@ import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
 
+data class User(
+    val email: String,
+    val contraseña: String,
+    val rol: String
+)
+
+val usuarios = listOf(
+    User("admin", "", "admin"),
+    User("abcd", "", "empleado"),
+    User("", "", "empleado"),
+    User("empleado3@test.com", "3333", "empleado")
+)
+
 @Composable
 fun LoginScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
@@ -40,9 +53,12 @@ fun LoginScreen(navController: NavController) {
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var email by remember { mutableStateOf("") }
-    var contraseña by remember { mutableStateOf("")}
+    var v_email by remember { mutableStateOf("") }
+    var v_contraseña by remember { mutableStateOf("") }
     var mostrarContraseña by remember { mutableStateOf(false) }
+
+// El tipo es String? porque puede contener un String (mensaje de error) o null (sin error).
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -73,8 +89,8 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.padding(vertical = 32.dp)
         )
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = v_email,
+            onValueChange = { v_email = it },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -95,8 +111,8 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.height(5.dp)
         )
         OutlinedTextField(
-            value = contraseña,
-            onValueChange = { contraseña = it },
+            value = v_contraseña,
+            onValueChange = { v_contraseña = it },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
             else PasswordVisualTransformation(),
@@ -114,8 +130,7 @@ fun LoginScreen(navController: NavController) {
                 }
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
@@ -127,12 +142,40 @@ fun LoginScreen(navController: NavController) {
                 unfocusedTextColor = Color.White
             )
         )
+
+        //El operador ?. significa "ejecuta esto solo si no es null".
+        //Si errorMessage == null → no entra al let.
+        //Si errorMessage tiene un valor → entra al let.
+
+        //let es una función que sirve para ejecutar un bloque de código sobre un objeto (en este caso string).
+        //Dentro de ese bloque, puedes acceder al objeto a través de un parámetro implícito llamado it
+        //El valor de errorMessage es un string, asi que it representa lo que haya en ese string
+        errorMessage?.let {
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = it,
+                color = Color.Red
+            )
+        }
+
+        Spacer(
+            modifier = Modifier.height(32.dp)
+        )
+
         Button(
             onClick = {
-                if (email == "admin") {
-                    navController.navigate("admin")
+                val user = validarLogin(v_email, v_contraseña)
+
+                if (user != null) {
+                    if (user.rol == "admin") {
+                        navController.navigate("admin")
+                    } else {
+                        navController.navigate("principal")
+                    }
                 } else {
-                    navController.navigate("principal")
+                    errorMessage = "Credenciales incorrectas"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -140,6 +183,7 @@ fun LoginScreen(navController: NavController) {
         ) {
             Text("Iniciar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
         }
+
         Text(
             text = "¿No tienes cuenta? Regístrate aquí",
             color = PrimaryOrange,
@@ -150,7 +194,18 @@ fun LoginScreen(navController: NavController) {
     }
 }
 
+fun validarLogin(p_email: String, p_contraseña: String): User? {
+    return usuarios.find { it.email == p_email && it.contraseña == p_contraseña }
+}
+
+
 //Glosario
+
+//.find
+//La función find { ... } devuelve el primer elemento de la lista que cumpla la condición del predicado.
+
+//it
+//es un objeto User en cada iteración.
 
 //@Composable
 //Es una anotación de Jetpack Compose.

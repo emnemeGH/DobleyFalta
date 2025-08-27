@@ -72,7 +72,7 @@ fun AdminScreen(navController: NavController) {
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Crear Usuario", color = Color.White)
+                Text("Crear Empleado", color = Color.White)
             }
         }
 
@@ -142,7 +142,7 @@ fun AdminScreen(navController: NavController) {
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 IconButton(
-                                    onClick = { navController.navigate("") },
+                                    onClick = { navController.navigate("admin_editar_usuario") },
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(
