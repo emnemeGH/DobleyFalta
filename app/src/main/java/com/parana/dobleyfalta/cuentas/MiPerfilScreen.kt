@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -24,15 +25,23 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
 import com.parana.dobleyfalta.R
 
 @Composable
 fun ProfileScreen(navController: NavController) {
+    var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
+
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
+    val RedColor = colorResource(id = R.color.red_delete)
 
     Column(
         modifier = Modifier
@@ -47,7 +56,7 @@ fun ProfileScreen(navController: NavController) {
             //El primer hijo va al inicio (izquierda)
             //El último hijo va al final (derecha).
             //Si hay más de dos hijos, el espacio se reparte entre los elementos (pero no antes del primero ni después del último).
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -56,14 +65,6 @@ fun ProfileScreen(navController: NavController) {
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = { navController.navigate("login") }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.logout),
-                    contentDescription = "Cerrar sesión",
-                    modifier = Modifier.size(25.dp),
-                    tint = LightGrey
-                )
-            }
         }
 
         Row(
@@ -175,9 +176,71 @@ fun ProfileScreen(navController: NavController) {
                     color = Color.Gray
                 )
                 OpcionPerfil("Cambiar Contraseña") { navController.navigate("cambiar_contraseña") }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
+                    thickness = 1.dp,
+                    color = Color.Gray
+                )
+
+                OpcionPerfilPeligro(
+                    text = "Cerrar Sesión",
+                    icon = painterResource(id = R.drawable.logout),
+                    onClick = { navController.navigate("login") }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
+                    thickness = 1.dp,
+                    color = Color.Gray
+                )
+
+                OpcionPerfilPeligro(
+                    text = "Borrar Cuenta",
+                    icon = painterResource(id = R.drawable.ic_delete),
+                    onClick = {
+                        mostrarConfirmacionBorrado = true
+                    }
+                )
             }
         }
     }
+
+    if (mostrarConfirmacionBorrado) {
+    AlertDialog(
+        onDismissRequest = {
+            mostrarConfirmacionBorrado = false
+        },
+        title = {
+            Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
+        },
+        text = {
+            Text(stringResource(R.string.delete), color = LightGrey)
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    mostrarConfirmacionBorrado = false
+                    navController.navigate("login")
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = RedColor)
+            ) {
+                Text("Borrar")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    mostrarConfirmacionBorrado = false
+                }
+            ) {
+                Text("Cancelar", color = PrimaryOrange)
+            }
+        },
+        containerColor = DarkGrey,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
 }
 
 @Composable
@@ -209,7 +272,41 @@ fun OpcionPerfil(text: String, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun OpcionPerfilPeligro(text: String, icon: Painter, onClick: () -> Unit) {
+    val RedColor = colorResource(id = R.color.red_delete)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = text,
+            tint = RedColor,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text, color = RedColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+
 //GLOSARIO
+
+//AlertDialog(...)
+//Este es un diálogo de alerta, un componente que muestra un mensaje emergente en la pantalla
+//normalmente con uno o varios botones.
+
+//onDismissRequest = { ... }
+//Esta es una lambda que se ejecuta cuando el usuario intenta cerrar el diálogo
+//sin hacer clic explícitamente en un botón del mismo (por ejemplo, tocando fuera del cuadro de diálogo
+// o presionando el botón "atrás").
 
 //.clip(CircleShape)
 //El modifier .clip(...) recorta el contenido de un Composable según una forma geométrica (shape).
