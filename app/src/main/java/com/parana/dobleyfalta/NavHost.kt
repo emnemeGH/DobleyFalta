@@ -12,6 +12,7 @@ import com.parana.dobleyfalta.adminpantallas.AdminScreen
 import com.parana.dobleyfalta.adminpantallas.CreateUserScreen
 import com.parana.dobleyfalta.cuentas.LoginScreen
 import com.parana.dobleyfalta.cuentas.ProfileScreen
+import com.parana.dobleyfalta.cuentas.RecuperarContraseñaScreen
 import com.parana.dobleyfalta.cuentas.RegistroScreen
 import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.ChangePasswordScreen
 import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.EditProfileScreen
@@ -73,6 +74,9 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
         }
         composable ("admin_editar_usuario") {
             AdminEditUserScreen(navController = navController)
+        }
+        composable("recuperar_contraseña") {
+            RecuperarContraseñaScreen(navController = navController)
         }
     }
 }
