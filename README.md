@@ -1,6 +1,6 @@
 TAREAS:
-1.validaciones registro
-2.( boton "recordarme" en login) y captchat
+1.validaciones registro COMPLETADA
+2.( boton "recordarme" en login) y captcha. NO SE PUEDE HACER SIN EL BACK
 3.recuperar contrasena
 4.baja de cuenta (por parte del usuario)
 5.validacion modificacion de cuenta (por parte del usuario) 
