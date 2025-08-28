@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,10 +28,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 
 data class User(
     val email: String,
@@ -60,6 +63,7 @@ fun LoginScreen(navController: NavController) {
 // El tipo es String? porque puede contener un String (mensaje de error) o null (sin error).
     var emailError by remember { mutableStateOf<String?>(null) }
     var contraseñaError by remember { mutableStateOf<String?>(null) }
+    var mostrarRecuperar by remember { mutableStateOf(false) }
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -200,6 +204,27 @@ fun LoginScreen(navController: NavController) {
                 .padding(top = 16.dp)
                 .clickable { navController.navigate("registro") }
         )
+
+        LaunchedEffect(contraseñaError) {
+            if (contraseñaError != null) {
+                delay(5000)
+                mostrarRecuperar = true
+            }
+        }
+
+        if (mostrarRecuperar) {
+            Text(
+                text = "Recuperar Contraseña",
+                color = Color.White,
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .clickable {
+                        navController.navigate("recuperar_contraseña")
+                    },
+                textDecoration = TextDecoration.Underline
+            )
+        }
+
     }
 }
 
@@ -209,6 +234,17 @@ fun validarLogin(p_email: String, p_contraseña: String): User? {
 
 
 //Glosario
+
+//LaunchedEffect
+// es una API de Compose que te permite ejecutar código asíncrono (como delay(), llamadas a APIs,
+// o animaciones) dentro de una composición
+
+//Sintaxis
+//LaunchedEffect(key) {
+//    // Código asíncrono
+//}
+//key es el parámetro que desencadena el efecto. Cuando cambia, el bloque de código dentro
+//de LaunchedEffect se vuelve a ejecutar.
 
 //.find
 //La función find { ... } devuelve el primer elemento de la lista que cumpla la condición del predicado.
