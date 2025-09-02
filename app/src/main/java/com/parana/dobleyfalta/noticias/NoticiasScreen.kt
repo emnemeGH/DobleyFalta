@@ -1,5 +1,6 @@
 package com.parana.dobleyfalta.noticias
 
+import android.text.Layout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -106,15 +107,39 @@ fun NoticiasScreen(navController: NavController) {
             .padding(bottom = 48.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Noticias Destacadas",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+        Row(
             modifier = Modifier
-                .padding(bottom = 16.dp)
                 .align(Alignment.CenterHorizontally)
-        )
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "Noticias Destacadas",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+
+            Spacer(modifier = Modifier.weight(0.65f))
+
+            Button(
+                onClick = { navController.navigate("crear_noticia") },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                shape = RoundedCornerShape(24.dp),
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_add),
+                    contentDescription = "Crear Noticia",
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White
+                )
+            }
+        }
+
 
         //Por cada noticia creamos un card.
         listaNoticiasOrdenadas.forEach { noticia ->

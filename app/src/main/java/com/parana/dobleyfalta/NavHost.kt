@@ -22,6 +22,7 @@ import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 
 @Composable
@@ -87,6 +88,9 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
         }
         composable("editar_noticia") {
             EditarNoticiaScreen(navController = navController)
+        }
+        composable("agregar_noticia") {
+            CrearNoticiaScreen(navController = navController)
         }
     }
 }

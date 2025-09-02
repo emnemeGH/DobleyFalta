@@ -29,9 +29,11 @@ fun EditarNoticiaScreen(navController: NavController) {
 
     var tituloNoticia by remember { mutableStateOf("") }
     var contenidoNoticia by remember { mutableStateOf("") }
+    var urlNoticia by remember { mutableStateOf("") }
 
     var tituloError by remember { mutableStateOf<String?>(null) }
     var contenidoError by remember { mutableStateOf<String?>(null) }
+    var urlError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -129,22 +131,39 @@ fun EditarNoticiaScreen(navController: NavController) {
             }
         )
 
-        Button(
-            onClick = {  },
+        OutlinedTextField(
+            value = urlNoticia,
+            onValueChange = {
+                urlNoticia = it
+                urlError = null
+            },
+            label = { Text("Imagen URL", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkGrey),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Cambiar Imagen", color = Color.White, fontWeight = FontWeight.Bold)
-        }
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            isError = urlError != null,
+            supportingText = {
+                urlError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            }
+        )
 
         Button(
             onClick = {
                 tituloError = null
                 contenidoError = null
+                urlError = null
 
                 if (tituloNoticia.isBlank()) {
                     tituloError = "El título es obligatorio"
@@ -152,8 +171,11 @@ fun EditarNoticiaScreen(navController: NavController) {
                 if (contenidoNoticia.isBlank()) {
                     contenidoError = "El contenido es obligatorio"
                 }
+                if (urlNoticia.isBlank()) {
+                    urlError = "El URL es obligatorio"
+                }
 
-                if (tituloError == null && contenidoError == null) {
+                if (tituloError == null && contenidoError == null && urlError == null) {
                     navController.navigate("noticias")
                 }
             },
