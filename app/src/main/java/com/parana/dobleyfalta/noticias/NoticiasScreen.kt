@@ -124,7 +124,8 @@ fun NoticiasScreen(navController: NavController) {
                 alBorrarClick = {
                     noticiaAEliminar = noticia
                     mostrarConfirmacionBorrado = true
-                }
+                },
+                alEditarClick = { navController.navigate("editar_noticia")}
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -168,7 +169,8 @@ fun NoticiasScreen(navController: NavController) {
 fun NoticiaDestacadaCard(
     noticia: Noticia,
     alHacerClick: () -> Unit,
-    alBorrarClick: () -> Unit
+    alBorrarClick: () -> Unit,
+    alEditarClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -200,7 +202,7 @@ fun NoticiaDestacadaCard(
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     IconButton(
-                        onClick = { },
+                        onClick = { alEditarClick() },
                         modifier = Modifier.size(36.dp)
                     ) {
                         Box(
