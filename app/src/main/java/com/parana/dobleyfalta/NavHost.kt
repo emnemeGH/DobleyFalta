@@ -18,9 +18,10 @@ import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.ChangePasswordScreen
 import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.EditProfileScreen
 import com.parana.dobleyfalta.equipos.EquiposListScreen
 import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
+import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
-import com.parana.dobleyfalta.partidos.JornadasScreen
+import com.parana.dobleyfalta.jornadas.JornadasScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
@@ -53,8 +54,13 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
                 DetallesEquiposScreen(navController, equipoId)
             }
         }
-        composable("jornadas") {
-            JornadasScreen(navController)
+        composable("jornadas_por_liga_screen") {
+            JornadasPorLigaScreen(navController)
+        }
+
+        composable("jornadas_screen/{jornadaId}") { backStackEntry ->
+            val jornadaId = backStackEntry.arguments?.getString("jornadaId")?.toIntOrNull() ?: 1
+            JornadasScreen(navController = navController, jornadaId = jornadaId)
         }
         composable("noticias") {
             NoticiasScreen(navController = navController)

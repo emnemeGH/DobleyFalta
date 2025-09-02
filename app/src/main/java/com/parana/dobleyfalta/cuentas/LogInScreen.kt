@@ -42,9 +42,9 @@ data class User(
 )
 
 val usuarios = listOf(
-    User("admin", "a", "admin"),
-    User("abcd", "a", "empleado"),
-    User("a", "a", "empleado"),
+    User("ad", "ad", "admin"),
+    User("em", "em", "empleado"),
+    User("usu", "usu", "usuario"),
     User("empleado3@test.com", "3333", "empleado")
 )
 
