@@ -22,6 +22,7 @@ import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.tienda.TiendaScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
@@ -84,5 +85,13 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
         composable("recuperar_contraseña") {
             RecuperarContraseñaScreen(navController = navController)
         }
+        composable("tienda") {
+            TiendaScreen(navController = navController)
+        }
+        /*composable("detalle_producto/{productId}") {
+            backStackEntry ->
+            val productoId = backStackEntry.arguments?.getInt("productoId")
+            DetalleProductoScreen(navController = navController, product = productoId ?:0)
+        }*/
     }
 }

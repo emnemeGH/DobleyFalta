@@ -168,5 +168,12 @@ fun AppBottomNavigationBar(
                 menuExpanded = false
             }
         )
+        DropdownMenuItem(
+            text = {Text("Tienda", color = Color.White) },
+            onClick = {
+                navController.navigate("tienda")
+                menuExpanded = false
+            }
+        )
     }
 }
