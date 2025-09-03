@@ -111,7 +111,7 @@ fun EditarNoticiaScreen(navController: NavController) {
             label = { Text("Contenido", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 120.dp, max = 300.dp)
+                .heightIn(min = 180.dp, max = 300.dp)
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
