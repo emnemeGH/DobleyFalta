@@ -25,6 +25,7 @@ import com.parana.dobleyfalta.jornadas.JornadasScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
+import com.parana.dobleyfalta.tienda.TiendaScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, mainViewModel: MainViewModel) {
@@ -97,5 +98,14 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
         composable("crear_noticia") {
             CrearNoticiaScreen(navController = navController)
         }
+        composable("tienda") {
+            TiendaScreen(navController = navController)
+        }
+        /*composable("detalle_producto/{productId}") {
+            backStackEntry ->
+            val productoId = backStackEntry.arguments?.getInt("productoId")
+            DetalleProductoScreen(navController = navController, product = productoId ?:0)
+        }*/
+
     }
 }
