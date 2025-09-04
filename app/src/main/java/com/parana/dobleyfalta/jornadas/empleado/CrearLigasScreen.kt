@@ -7,9 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.MainViewModel
 
 @Composable
-fun CrearLigaScreen(navController: NavController) {
+fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) {
     var nombreLiga by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
 

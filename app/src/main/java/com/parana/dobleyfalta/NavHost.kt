@@ -22,21 +22,22 @@ import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
+fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, mainViewModel: MainViewModel) {
 
-    NavHost(navController = navController, startDestination = "equipos") {
+    NavHost(navController = navController, startDestination = "login") {
         composable("login") {
-            LoginScreen(navController)
+            LoginScreen(navController, mainViewModel)
         }
         composable("registro") {
             RegistroScreen(navController)
         }
         composable("principal") {
-            PantallaPrincipal(navController)
+            PantallaPrincipal(navController, mainViewModel)
         }
         composable("equipos") {
             EquiposListScreen(navController)
@@ -57,7 +58,11 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
             }
         }
         composable("jornadas_por_liga_screen") {
-            JornadasPorLigaScreen(navController)
+            JornadasPorLigaScreen(navController, mainViewModel)
+        }
+
+        composable("crear_liga") {
+            CrearLigaScreen(navController,mainViewModel)
         }
 
         composable("jornadas_screen/{jornadaId}") { backStackEntry ->
