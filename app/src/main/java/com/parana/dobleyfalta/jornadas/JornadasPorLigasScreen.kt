@@ -1,5 +1,6 @@
 package com.parana.dobleyfalta.jornadas
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,13 +44,55 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                 },
                 navigationIcon = {
                     if (selectedLiga != null) {
-                        IconButton(onClick = { selectedLiga = null }) {
+                        IconButton(
+                            onClick = { selectedLiga = null },
+                            modifier = Modifier.padding(0.dp)
+                        ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = TextWhite
+                                painter = painterResource(id = R.drawable.back),
+                                contentDescription = "Volver a ligas",
+                                tint = Color.White,
+                                modifier = Modifier.size(30.dp)
                             )
                         }
+                    }
+                },
+                actions = {
+                    // Mostrar botón solo si es empleado y no hay liga seleccionada
+                    if (rol == "empleado" && selectedLiga == null) {
+                        Button(
+                            onClick = { navController.navigate("crear_liga") },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                            shape = RoundedCornerShape(24.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = "Crear Liga",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
+                        // Botón para agregar jornada (visible si es empleado y hay una jornada seleccionada)
+                    if (rol == "empleado" && selectedLiga != null) {
+                        Button(
+                            onClick = { navController.navigate("crear_jornada") },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                            shape = RoundedCornerShape(24.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = "Agregar jornada",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -57,7 +100,8 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                 )
             )
         }
-    ) { innerPadding ->
+    )
+    { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,7 +114,8 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    listOf("Liga A", "Liga B").forEach { liga ->
+                    // lista dinámica del ViewModel
+                    mainViewModel.ligas.forEach { liga ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -87,29 +132,9 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                             )
                         }
                     }
-
-                    // 🔹 Mostrar botones solo si es empleado
-                    if (rol == "empleado") {
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Button(
-                            onClick = { navController.navigate("crear_liga") },
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-                            shape = RoundedCornerShape(24.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_add),
-                                contentDescription = "Crear Liga",
-                                modifier = Modifier.size(16.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
                 }
             } else {
-                // Vista de selección de jornadas
+
                 Text(
                     text = "Selecciona una jornada",
                     color = TextWhite,
@@ -140,18 +165,6 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-                    }
-                }
-
-                // 🔹 Botón especial visible solo para empleados
-                if (rol == "empleado") {
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = { /* Lógica de agregar jornada */ },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("➕ Agregar jornada")
                     }
                 }
             }
