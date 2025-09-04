@@ -9,7 +9,7 @@ X Suscripciones notificaciones PUSH, esperamos al back
 A) Emanuel → Bloque de autenticación y administración
 1.validacion modificacion de cuenta (por parte del usuario)
 2.validacion en creacion de cuenta (por parte del admin)
-3. ABM de noticia (pantalla)
+~~3. ABM de noticia (pantalla)~~
 4. ABM de equipo (pantalla)
 
 B) Conrado → Bloque de contenido y gestión deportiva

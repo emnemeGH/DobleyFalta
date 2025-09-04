@@ -16,8 +16,10 @@ import com.parana.dobleyfalta.cuentas.RecuperarContraseñaScreen
 import com.parana.dobleyfalta.cuentas.RegistroScreen
 import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.ChangePasswordScreen
 import com.parana.dobleyfalta.cuentas.opcionesMiPerfil.EditProfileScreen
-import com.parana.dobleyfalta.equipos.EquiposListScreen
 import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
+import com.parana.dobleyfalta.equipos.EquiposScreen
+import com.parana.dobleyfalta.equipos.empleado_equipos.CrearEquipoScreen
+import com.parana.dobleyfalta.equipos.empleado_equipos.EditarEquipoScreen
 import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
@@ -41,7 +43,7 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
             PantallaPrincipal(navController, mainViewModel)
         }
         composable("equipos") {
-            EquiposListScreen(navController)
+            EquiposScreen(navController)
         }
         composable("miperfil") {
             ProfileScreen(navController)
@@ -107,5 +109,11 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
             DetalleProductoScreen(navController = navController, product = productoId ?:0)
         }*/
 
+        composable("crear_equipo") {
+            CrearEquipoScreen(navController = navController)
+        }
+        composable("editar_equipo") {
+            EditarEquipoScreen(navController = navController)
+        }
     }
 }
