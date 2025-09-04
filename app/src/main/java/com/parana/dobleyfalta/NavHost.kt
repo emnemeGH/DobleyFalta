@@ -22,20 +22,23 @@ import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
+import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
+import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
+fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, mainViewModel: MainViewModel) {
 
-    NavHost(navController = navController, startDestination = "equipos") {
+    NavHost(navController = navController, startDestination = "login") {
         composable("login") {
-            LoginScreen(navController)
+            LoginScreen(navController, mainViewModel)
         }
         composable("registro") {
             RegistroScreen(navController)
         }
         composable("principal") {
-            PantallaPrincipal(navController)
+            PantallaPrincipal(navController, mainViewModel)
         }
         composable("equipos") {
             EquiposListScreen(navController)
@@ -56,7 +59,11 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
             }
         }
         composable("jornadas_por_liga_screen") {
-            JornadasPorLigaScreen(navController)
+            JornadasPorLigaScreen(navController, mainViewModel)
+        }
+
+        composable("crear_liga") {
+            CrearLigaScreen(navController,mainViewModel)
         }
 
         composable("jornadas_screen/{jornadaId}") { backStackEntry ->
@@ -85,6 +92,12 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
         composable("recuperar_contraseña") {
             RecuperarContraseñaScreen(navController = navController)
         }
+        composable("editar_noticia") {
+            EditarNoticiaScreen(navController = navController)
+        }
+        composable("crear_noticia") {
+            CrearNoticiaScreen(navController = navController)
+        }
         composable("tienda") {
             TiendaScreen(navController = navController)
         }
@@ -93,5 +106,6 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues) {
             val productoId = backStackEntry.arguments?.getInt("productoId")
             DetalleProductoScreen(navController = navController, product = productoId ?:0)
         }*/
+
     }
 }

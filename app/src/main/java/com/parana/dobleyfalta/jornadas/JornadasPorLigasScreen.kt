@@ -12,20 +12,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.MainViewModel
+import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.noticias.PrimaryOrange
 
-// Colores propios
-//val DarkBlue = Color(0xFF0D1B2A)
+// Colores
 val CardBackground = Color(0xFF1A375E)
 val TextWhite = Color.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JornadasPorLigaScreen(navController: NavController) {
+fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewModel) {
     var selectedLiga by remember { mutableStateOf<String?>(null) }
+    val rol = mainViewModel.rolUsuario.value
 
     Scaffold(
         containerColor = DarkBlue,
@@ -83,6 +87,26 @@ fun JornadasPorLigaScreen(navController: NavController) {
                             )
                         }
                     }
+
+                    // 🔹 Mostrar botones solo si es empleado
+                    if (rol == "empleado") {
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = { navController.navigate("crear_liga") },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                            shape = RoundedCornerShape(24.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = "Crear Liga",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
                 }
             } else {
                 // Vista de selección de jornadas
@@ -116,6 +140,18 @@ fun JornadasPorLigaScreen(navController: NavController) {
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
+                    }
+                }
+
+                // 🔹 Botón especial visible solo para empleados
+                if (rol == "empleado") {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = { /* Lógica de agregar jornada */ },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("➕ Agregar jornada")
                     }
                 }
             }

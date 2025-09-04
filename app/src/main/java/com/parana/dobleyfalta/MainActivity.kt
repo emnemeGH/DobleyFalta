@@ -14,21 +14,23 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.Surface
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val mainViewModel: MainViewModel = viewModel()
             // Usa una Surface en lugar de un tema específico para un ejemplo genérico.
             Surface(color = MaterialTheme.colorScheme.background) {
-                MainScreenWithBottomNav()
+                MainScreenWithBottomNav(mainViewModel)
             }
         }
     }
 }
 
 @Composable
-fun MainScreenWithBottomNav() {
+fun MainScreenWithBottomNav(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
 
     // Obtiene la ruta actual para saber qué ícono de la barra debe estar seleccionado
@@ -42,12 +44,12 @@ fun MainScreenWithBottomNav() {
         }
     ) { innerPadding ->
         // Coloca el NavHost en el slot de content y pasa el padding a los composables hijos
-        AppNavHost(navController = navController, innerPadding = innerPadding)
+        AppNavHost(navController = navController, innerPadding = innerPadding, mainViewModel = mainViewModel)
     }
 }
 
 @Composable
-fun PantallaPrincipal(navController: androidx.navigation.NavController) {
+fun PantallaPrincipal(navController: androidx.navigation.NavController, mainViewModel: MainViewModel) {
     androidx.compose.material3.Button(
         onClick = { navController.navigate("equipos") },
         modifier = Modifier.padding(16.dp)

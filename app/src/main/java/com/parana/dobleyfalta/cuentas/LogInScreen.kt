@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.MainViewModel
 import kotlinx.coroutines.delay
 
 data class User(
@@ -49,7 +50,7 @@ val usuarios = listOf(
 )
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
@@ -183,6 +184,8 @@ fun LoginScreen(navController: NavController) {
                     v_contraseña.isBlank() -> contraseñaError = "La contraseña es obligatoria"
                     user == null -> contraseñaError = "Credenciales incorrectas"
                     else -> {
+                        mainViewModel.setRol(user.rol)
+
                         if (user.rol == "admin") {
                             navController.navigate("admin")
                         } else {
