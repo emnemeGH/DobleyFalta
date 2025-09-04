@@ -94,7 +94,7 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
         composable("editar_noticia") {
             EditarNoticiaScreen(navController = navController)
         }
-        composable("agregar_noticia") {
+        composable("crear_noticia") {
             CrearNoticiaScreen(navController = navController)
         }
     }
