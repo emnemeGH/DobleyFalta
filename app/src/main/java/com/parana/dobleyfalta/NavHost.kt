@@ -20,11 +20,12 @@ import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 import com.parana.dobleyfalta.equipos.EquiposScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.CrearEquipoScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.EditarEquipoScreen
-import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
+import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
+import com.parana.dobleyfalta.jornadas.empleado.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
@@ -66,6 +67,9 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
 
         composable("crear_liga") {
             CrearLigaScreen(navController,mainViewModel)
+        }
+        composable("editar_liga") {
+            EditarLigasScreen(navController,mainViewModel)
         }
 
         composable("jornadas_screen/{jornadaId}") { backStackEntry ->
