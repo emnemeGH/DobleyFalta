@@ -1,10 +1,16 @@
 package com.parana.dobleyfalta.jornadas
 
+import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import kotlinx.parcelize.Parcelize
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -28,8 +35,11 @@ val PrimaryOrange = Color(0xFFFF6600)
 val DarkGrey = Color(0xFF1A375E)
 val LightGrey = Color(0xFFA0B3C4)
 val LiveGreen = Color(0xFF50C878)
+val BlueEdit = Color(0xFF007ACC)
+val RedDelete = Color(0xFFE53935)
 
 // Modelo de Partido actualizado para incluir más detalles
+@Parcelize
 data class Partido(
     val id: Int,
     val equipo1: String,
@@ -40,14 +50,12 @@ data class Partido(
     val score2: Int?,
     val status: String, // e.g., "Terminado", "Próximo", "En curso"
     val liga: String,
-    val categoria: String,
-    val genero: String,
     val quarterScores1: List<Int>,
     val quarterScores2: List<Int>,
     val fecha: String,
     val hora: String,
     val estadio: String
-)
+) : Parcelable
 
 @Composable
 fun JornadasScreen(navController: NavController, jornadaId: Int) {
@@ -66,8 +74,6 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 score2 = listOf(24, 20, 23, 27).sum(),
                 status = "Terminado",
                 liga = "FEDERACION DE BALONCESTO",
-                categoria = "ASB - U21",
-                genero = "MASCULINO",
                 quarterScores1 = listOf(19, 9, 15, 18),
                 quarterScores2 = listOf(24, 20, 23, 27),
                 fecha = "05/04/2024",
@@ -84,8 +90,6 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 score2 = 0,
                 status = "Próximo",
                 liga = "LIGA REGIONAL",
-                categoria = "MAYORES",
-                genero = "FEMENINO",
                 quarterScores1 = emptyList(),
                 quarterScores2 = emptyList(),
                 fecha = "22/04/2024",
@@ -104,8 +108,6 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 score2 = listOf(18, 19, 19, 19).sum(),
                 status = "Terminado",
                 liga = "LIGA REGIONAL",
-                categoria = "U18",
-                genero = "MASCULINO",
                 quarterScores1 = listOf(20, 15, 25, 20),
                 quarterScores2 = listOf(18, 19, 19, 19),
                 fecha = "08/04/2024",
@@ -122,8 +124,6 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 score2 = listOf(10).sum(),
                 status = "En Vivo",
                 liga = "LIGA NACIONAL",
-                categoria = "U16",
-                genero = "FEMENINO",
                 quarterScores1 = listOf(5),
                 quarterScores2 = listOf(10),
                 fecha = "08/04/2024",
@@ -142,8 +142,6 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 score2 = 0,
                 status = "Próximo",
                 liga = "TORNEO AMISTOSO",
-                categoria = "MAYORES",
-                genero = "MASCULINO",
                 quarterScores1 = emptyList(),
                 quarterScores2 = emptyList(),
                 fecha = "12/04/2024",
@@ -215,15 +213,50 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Lista de partidos de la jornada ya ordenada
-        sortedJornadas[jornada]?.forEach { partido ->
-            PartidoCard(partido = partido)
-            Spacer(modifier = Modifier.height(12.dp))
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(sortedJornadas[jornada] ?: emptyList()) { partido ->
+                PartidoCard(
+                    partido = partido,
+                    onEditClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.set("partido", partido)
+                        navController.navigate("editar_partido")
+                    },
+                    onDeleteClick = { /* TODO: Implementar lógica de eliminación */ }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            // Botón "Agregar Partido" como último elemento de la lista, centrado
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        onClick = { navController.navigate("crear_partido") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = PrimaryOrange),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "AGREGAR PARTIDO",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun PartidoCard(partido: Partido) {
+fun PartidoCard(
+    partido: Partido,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     val cardBackgroundColor = DarkGrey
     val textLightColor = LightGrey
     val textStrongColor = Color.White
@@ -333,12 +366,6 @@ fun PartidoCard(partido: Partido) {
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center
                     )
-                    Text(
-                        text = "${partido.categoria} - ${partido.genero}",
-                        color = textLightColor,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
                 }
 
                 // Equipo 2
@@ -408,31 +435,31 @@ fun PartidoCard(partido: Partido) {
                     Text(text = partido.fecha, color = textStrongColor)
                     Text(text = partido.hora, color = textStrongColor)
                 }
-
-
             }
 
-            // Ubicación del estadio
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Botones de editar y eliminar
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(DarkGrey)
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.stadium_logo),
-                    contentDescription = "Ubicación",
-                    tint = textLightColor,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = partido.estadio,
-                    color = textLightColor,
-                    fontSize = 12.sp
-                )
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Editar Partido",
+                        tint = BlueEdit
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Eliminar Partido",
+                        tint = RedDelete
+                    )
+                }
             }
         }
     }

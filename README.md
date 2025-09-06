@@ -13,9 +13,9 @@ A) Emanuel → Bloque de autenticación y administración
 4. ABM de equipo (pantalla)
 
 B) Conrado → Bloque de contenido y gestión deportiva
-1.ABM de jornada (pantalla)
+1.ABM de jornada (pantalla) ✅
 2.ABM de partido (pantalla)
-3.ABM de liga
+3.ABM de liga ✅
 4.Hacer scrolleable equipos
 
 C) Naomi → Bloque de e-commerce y experiencia general

@@ -20,10 +20,15 @@ import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 import com.parana.dobleyfalta.equipos.EquiposScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.CrearEquipoScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.EditarEquipoScreen
+import com.parana.dobleyfalta.jornadas.EditarPartidosScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.jornadas.Partido
+import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
+import com.parana.dobleyfalta.jornadas.empleado.CrearPartidosScreen
+import com.parana.dobleyfalta.jornadas.empleado.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
 import com.parana.dobleyfalta.jornadas.empleado.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
@@ -31,7 +36,11 @@ import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, mainViewModel: MainViewModel) {
+fun AppNavHost(
+    navController: NavHostController,
+    innerPadding: PaddingValues,
+    mainViewModel: MainViewModel
+) {
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
@@ -66,16 +75,39 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
         }
 
         composable("crear_liga") {
-            CrearLigaScreen(navController,mainViewModel)
+            CrearLigaScreen(navController, mainViewModel)
         }
         composable("editar_liga") {
-            EditarLigasScreen(navController,mainViewModel)
+            EditarLigasScreen(navController, mainViewModel)
         }
 
         composable("jornadas_screen/{jornadaId}") { backStackEntry ->
             val jornadaId = backStackEntry.arguments?.getString("jornadaId")?.toIntOrNull() ?: 1
             JornadasScreen(navController = navController, jornadaId = jornadaId)
         }
+
+        composable("crear_jornada") {
+            CrearJornadaScreen(navController, mainViewModel)
+        }
+
+        composable ("editar_jornada"){
+            EditarJornadaScreen(navController, mainViewModel)
+        }
+
+        composable("crear_partido") {
+            CrearPartidosScreen(navController, mainViewModel)
+        }
+
+        composable("editar_partido") { backStackEntry ->
+            val partido = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Partido>("partido")
+
+            partido?.let {
+                EditarPartidosScreen(navController, mainViewModel, it)
+            }
+        }
+
         composable("noticias") {
             NoticiasScreen(navController = navController)
         }
@@ -92,7 +124,7 @@ fun AppNavHost(navController: NavHostController, innerPadding: PaddingValues, ma
         composable("crear_usuario") {
             CreateUserScreen(navController = navController)
         }
-        composable ("admin_editar_usuario") {
+        composable("admin_editar_usuario") {
             AdminEditUserScreen(navController = navController)
         }
         composable("recuperar_contraseña") {

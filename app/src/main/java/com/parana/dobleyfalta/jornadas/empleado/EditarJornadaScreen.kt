@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
@@ -15,35 +16,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.DarkBlue
-import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.MainViewModel
 import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
-import com.parana.dobleyfalta.equipos.LightGrey
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun EditarJornadaScreen(navController: NavController, mainViewModel: MainViewModel) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
 
-    // Estados para los campos del formulario
-    var nombreLiga by remember { mutableStateOf("") }
-    var fechaInicioLiga by remember { mutableStateOf("") }
-    var fechaFinalizacionLiga by remember { mutableStateOf("") }
+    // Estados para los campos de la jornada
+    var numeroJornada by remember { mutableStateOf("") }
+    var fechaInicioJornada by remember { mutableStateOf("") }
+    var fechaFinalizacionJornada by remember { mutableStateOf("") }
 
     // Estados para los errores de validación
-    var nombreError by remember { mutableStateOf<String?>(null) }
-    var fechaInicioError by remember { mutableStateOf<String?>(null) }
-    var fechaFinalizacionError by remember { mutableStateOf<String?>(null) }
+    var numeroJornadaError by remember { mutableStateOf<String?>(null) }
+    var fechaInicioJornadaError by remember { mutableStateOf<String?>(null) }
+    var fechaFinalizacionJornadaError by remember { mutableStateOf<String?>(null) }
 
     // Estados para controlar la visibilidad de los selectores de fecha
     var mostrarSeleccionFechaInicio by remember { mutableStateOf(false) }
@@ -62,8 +61,8 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                         val selectedDateMillis = datePickerState.selectedDateMillis
                         if (selectedDateMillis != null) {
                             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            fechaInicioLiga = formatter.format(Date(selectedDateMillis))
-                            fechaInicioError = null
+                            fechaInicioJornada = formatter.format(Date(selectedDateMillis))
+                            fechaInicioJornadaError = null
                         }
                         mostrarSeleccionFechaInicio = false
                     }
@@ -89,8 +88,8 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                         val selectedDateMillis = datePickerState.selectedDateMillis
                         if (selectedDateMillis != null) {
                             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            fechaFinalizacionLiga = formatter.format(Date(selectedDateMillis))
-                            fechaFinalizacionError = null
+                            fechaFinalizacionJornada = formatter.format(Date(selectedDateMillis))
+                            fechaFinalizacionJornadaError = null
                         }
                         mostrarSeleccionFechaFinalizacion = false
                     }
@@ -126,7 +125,7 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),
-                    contentDescription = "Volver a ligas",
+                    contentDescription = "Volver a jornadas",
                     tint = Color.White,
                     modifier = Modifier.size(30.dp)
                 )
@@ -136,21 +135,21 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "Crear Liga",
+            text = "Editar Jornada",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Campo de texto para el nombre de la liga
+        // Campo de texto para el número de la jornada
         OutlinedTextField(
-            value = nombreLiga,
+            value = numeroJornada,
             onValueChange = {
-                nombreLiga = it
-                nombreError = null
+                numeroJornada = it
+                numeroJornadaError = null
             },
-            label = { Text("Nombre de la liga", color = LightGrey) },
+            label = { Text("Número de la jornada", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -164,9 +163,10 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
-            isError = nombreError != null,
+            isError = numeroJornadaError != null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             supportingText = {
-                nombreError?.let {
+                numeroJornadaError?.let {
                     Text(it, color = Color.Red, fontSize = 12.sp)
                 }
             }
@@ -174,7 +174,7 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
 
         // Campo de texto para la fecha de inicio (con selector)
         OutlinedTextField(
-            value = fechaInicioLiga,
+            value = fechaInicioJornada,
             onValueChange = {},
             readOnly = true,
             label = { Text("Fecha de inicio", color = LightGrey) },
@@ -196,16 +196,16 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                 unfocusedTextColor = Color.White,
                 disabledTextColor = Color.White
             ),
-            isError = fechaInicioError != null,
+            isError = fechaInicioJornadaError != null,
             supportingText = {
-                fechaInicioError?.let {
+                fechaInicioJornadaError?.let {
                     Text(it, color = Color.Red, fontSize = 12.sp)
                 }
             },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Seleccionar fecha de inicio de la liga",
+                    contentDescription = "Seleccionar fecha de inicio de la jornada",
                     tint = LightGrey,
                     modifier = Modifier.clickable(
                         indication = null,
@@ -217,7 +217,7 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
 
         // Campo de texto para la fecha de finalización (con selector)
         OutlinedTextField(
-            value = fechaFinalizacionLiga,
+            value = fechaFinalizacionJornada,
             onValueChange = {},
             readOnly = true,
             label = { Text("Fecha de finalización", color = LightGrey) },
@@ -239,16 +239,16 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                 unfocusedTextColor = Color.White,
                 disabledTextColor = Color.White
             ),
-            isError = fechaFinalizacionError != null,
+            isError = fechaFinalizacionJornadaError != null,
             supportingText = {
-                fechaFinalizacionError?.let {
+                fechaFinalizacionJornadaError?.let {
                     Text(it, color = Color.Red, fontSize = 12.sp)
                 }
             },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Seleccionar fecha de finalización de la liga",
+                    contentDescription = "Seleccionar fecha de finalización de la jornada",
                     tint = LightGrey,
                     modifier = Modifier.clickable(
                         indication = null,
@@ -261,12 +261,12 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
         // Botón para guardar los cambios
         Button(
             onClick = {
-                nombreError = if (nombreLiga.isBlank()) "El nombre es obligatorio" else null
-                fechaInicioError = if (fechaInicioLiga.isBlank()) "La fecha de inicio es obligatoria" else null
-                fechaFinalizacionError = if (fechaFinalizacionLiga.isBlank()) "La fecha de finalización es obligatoria" else null
+                numeroJornadaError = if (numeroJornada.isBlank()) "El número de la jornada es obligatorio" else null
+                fechaInicioJornadaError = if (fechaInicioJornada.isBlank()) "La fecha de inicio es obligatoria" else null
+                fechaFinalizacionJornadaError = if (fechaFinalizacionJornada.isBlank()) "La fecha de finalización es obligatoria" else null
 
-                if (nombreError == null && fechaInicioError == null && fechaFinalizacionError == null) {
-                    println("Liga creada: Nombre='$nombreLiga', Fecha Inicio='$fechaInicioLiga', Fecha Fin='$fechaFinalizacionLiga'")
+                if (numeroJornadaError == null && fechaInicioJornadaError == null && fechaFinalizacionJornadaError == null) {
+                    println("Jornada editada: N° $numeroJornada, Fecha de inicio: $fechaInicioJornada, Fecha de finalización: $fechaFinalizacionJornada")
                     navController.popBackStack()
                 }
             },
@@ -277,7 +277,7 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Guardar Liga", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Guardar Cambios", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
