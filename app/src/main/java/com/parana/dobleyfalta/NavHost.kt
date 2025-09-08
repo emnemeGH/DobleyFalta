@@ -34,6 +34,7 @@ import com.parana.dobleyfalta.jornadas.empleado.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
+import com.parana.dobleyfalta.carrito.CarritoScreen
 
 @Composable
 fun AppNavHost(
@@ -144,7 +145,9 @@ fun AppNavHost(
             val productoId = backStackEntry.arguments?.getInt("productoId")
             DetalleProductoScreen(navController = navController, product = productoId ?:0)
         }*/
-
+        composable("carrito") {
+            CarritoScreen(navController = navController)
+        }
         composable("crear_equipo") {
             CrearEquipoScreen(navController = navController)
         }
