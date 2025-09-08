@@ -175,35 +175,31 @@ fun RegistroScreen(navController: NavController) {
                 emailError = null
                 contraseñaError = null
 
-                var valido = true
+                usuarioError = validarCampoNoVacio(usuario, "Usuario")
 
-                if (usuario.isBlank()) {
-                    usuarioError = "El nombre de usuario es obligatorio"
-                    valido = false
-                } else if (usuariosExistentes.contains(usuario.trim())) {
-                    usuarioError = "Ese nombre de usuario ya existe"
-                    valido = false //Esta validacion debe hacerse en el back
+                if (usuarioError == null) {
+                    usuarioError = validarUnicidad(usuario, usuariosExistentes, "usuario")
                 }
 
-                if (email.isBlank()) {
-                    emailError = "El email es obligatorio"
-                    valido = false
-                    //Si tiene un formato valido se niega entonces no entra al if
-                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    emailError = "El email no tiene un formato válido"
-                    valido = false
-                } else if (emailsExistentes.contains(email.trim())) {
-                    emailError = "Ese email ya está registrado" //Esta validacion debe hacerse en el back
-                    valido = false
+                emailError = validarCampoNoVacio(email, "Email")
+
+                //Hay que hacer esta estructura de ifs, si no, si la primer validacion da error pero la segunda no
+                //se sobreeescriben los errores
+                if (emailError == null) {
+                    emailError = validarEmail(email)
                 }
 
-                if (contraseña.isBlank()) {
-                    contraseñaError = "La contraseña es obligatoria"
-                    valido = false
-                } else if (contraseña.length < 6) {
-                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
-                    valido = false
+                if (emailError == null) {
+                    emailError = validarUnicidad(email, emailsExistentes, "email")
                 }
+
+                contraseñaError = validarCampoNoVacio(contraseña, "Contraseña")
+
+                if (contraseñaError == null) {
+                    contraseñaError = validarLongitudContraseña(contraseña)
+                }
+
+                val valido = usuarioError == null && emailError == null && contraseñaError == null
 
                 if (valido) {
                     navController.navigate("miperfil")
@@ -229,7 +225,52 @@ fun RegistroScreen(navController: NavController) {
         )
     }
 }
+/**
+ * Valida que un campo de texto no esté vacío.
+ * @param valor El contenido del campo.
+ * @param nombreCampo El nombre del campo para mostrar en el mensaje.
+ * @return String con mensaje de error si está vacío, o null si está completo.
+ */
+fun validarCampoNoVacio(valor: String, nombreCampo: String): String? {
+    //Devuelve si valor esta vacio el string, si no devuelve null
+    return if (valor.isBlank()) "$nombreCampo es obligatorio" else null
+}
 
+/**
+ * Valida que un email tenga formato válido.
+ * @param email El email a validar.
+ * @return String con mensaje de error si no es válido, o null si es válido.
+ */
+fun validarEmail(email: String): String? {
+    //Si tiene un formato valido se niega entonces no entra al if
+    return if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        "El email no tiene un formato correcto"
+    } else null
+}
+
+/**
+ * Valida que la contraseña cumpla con una longitud mínima.
+ * @param contraseña La contraseña a validar.
+ * @param minLength Longitud mínima requerida (default 6).
+ * @return String con mensaje de error si no cumple la longitud mínima, o null si es válida.
+ */
+fun validarLongitudContraseña(contraseña: String): String? {
+    return if (contraseña.length < 6) {
+        "La contraseña debe tener al menos 6 caracteres"
+    } else null
+}
+
+/**
+ * Valida que un valor no exista dentro de una lista (ej: usuarios o emails existentes).
+ * @param valor El valor a validar.
+ * @param lista Lista de valores existentes.
+ * @param mensaje Mensaje de error a mostrar si existe.
+ * @return String con mensaje de error si ya existe, o null si es válido.
+ */
+//Esta validacion debe hacerse en el back
+fun validarUnicidad(valor: String, lista: List<String>, nombreCampo: String): String? {
+    return if (lista.contains(valor.trim())) "El $nombreCampo ya existe" else null
+}
 
 //GLOSARIO
 
