@@ -237,7 +237,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     }
 }
 
-private fun validarLogin(p_email: String, p_contraseña: String): User? {
+fun validarLogin(p_email: String, p_contraseña: String): User? {
     return usuarios.find { it.email == p_email && it.contraseña == p_contraseña }
 }
 
