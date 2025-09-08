@@ -1,36 +1,24 @@
 TAREAS:
-1.validaciones registro COMPLETADA
-2.( boton "recordarme" en login) y captcha. NO SE PUEDE HACER SIN EL BACK
-3.recuperar contrasena
-4.baja de cuenta (por parte del usuario)
-5.validacion modificacion de cuenta (por parte del usuario) 
-6.validacion en creacion de cuenta (por parte del admin)
-7.ABM de jornada (pantalla)
-8.ABM de partido (pantalla)
-9.ABM de equipo (pantalla)
-10.ABM de noticia (pantalla)
-11.seleccion de torneos y seleccion de jornadas(pantalla)
-12.carga de resultados (a discutir)
+
+X.( boton "recordarme" en login) y captcha. NO SE PUEDE HACER SIN EL BACK
+X. Lo que sigue de recuperar contraseña requiere el back.
+X. Pantalla de métricas (CU-330 y KPIs) Decidimos no implementarla por ahora
+X Suscripciones notificaciones PUSH, esperamos al back
 
 
+A) Emanuel → Bloque de autenticación y administración
+1.validacion modificacion de cuenta (por parte del usuario)
+2.validacion en creacion de cuenta (por parte del admin)
+~~3. ABM de noticia (pantalla)~~
+4. ABM de equipo (pantalla)
 
+B) Conrado → Bloque de contenido y gestión deportiva
+1.ABM de jornada (pantalla) ✅
+2.ABM de partido (pantalla)
+3.ABM de liga ✅
+4.Hacer scrolleable equipos
 
-1. Emanuel → Bloque de autenticación y administración
-
--Login
--Registro
--Mi perfil
--Pantalla del admin (CU-060)
--Pantalla de métricas (CU-330 y KPIs)
-
-2. Conrado → Bloque de contenido y gestión deportiva
--Noticias
--Detalle de noticia (CU-270)
--Pantalla partidos y jornadas (Fixture) (CU-240)
--Equipos
--Detalle de equipo seleccionado (CU-300)
-
-3. Naomi → Bloque de e-commerce y experiencia general
+C) Naomi → Bloque de e-commerce y experiencia general
 
 -Inicio (Home)
 -La tabla completa

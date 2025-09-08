@@ -1,0 +1,331 @@
+package com.parana.dobleyfalta.tienda
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.parana.dobleyfalta.DarkBlue
+import com.parana.dobleyfalta.DarkGrey
+import com.parana.dobleyfalta.R
+import org.w3c.dom.Text
+
+// Modelo de producto
+data class Product(
+    val id: Int,
+    val name: String,
+    val price: Double,
+    val image: Int, // drawable local
+    val inStock: Boolean,
+    val popularity: Int,
+    val categoria: String
+)
+
+// Mock de productos
+val products = listOf(
+    Product(1, "Pelota ", 29.99, R.drawable.escudo_rowing, true, 95, "Pelotas"),
+    Product(2, "Buzo", 79.99, R.drawable.escudo_cae, false, 88, "Indumentaria"),
+    Product(3, "Remera", 34.99, R.drawable.escudo_paracao, true, 92, "Indumentaria")
+)
+
+@Composable
+fun TiendaScreen(navController: NavController) {
+    val DarkBlue = colorResource(id = R.color.darkBlue)
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
+    val White = colorResource(id = R.color.white)
+    val Blue = colorResource(id = R.color.blue_edit)
+    val DarkGrey = Color(0xFF1A375E)
+
+
+
+    var searchQuery by remember { mutableStateOf("") }
+    var cart by remember { mutableStateOf(listOf<Int>()) }
+    var showFilters by remember { mutableStateOf(false) }
+
+    val filteredProducts = products.filter {
+        it.name.lowercase().contains(searchQuery.lowercase())
+    }
+    var selectedCategoria by remember { mutableStateOf("Mostrar todo") }
+    var selectedEquipo by remember { mutableStateOf("Mostrar todo") }
+    var selectedTamaño by remember { mutableStateOf("Mostrar todo") }
+
+    val sortedProducts = filteredProducts.sortedByDescending { it.popularity }
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBlue)
+    ) {
+        // Header
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkGrey)
+                .padding(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Tienda Online", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = White)
+            Text("Merch original de los equipos", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
+        }
+
+        // Barra de búsqueda y filtro
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkGrey)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar productos", color = Color.White) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryOrange) },
+                modifier = Modifier.weight(1f),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryOrange,
+                    unfocusedBorderColor = White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.Gray,
+                    focusedContainerColor = DarkGrey,
+                    unfocusedContainerColor = DarkGrey
+                )
+            )
+            IconButton(onClick = { showFilters = !showFilters }) {
+                Icon(painter = painterResource(id = R.drawable.filter_list),
+                    contentDescription = "Filtro",
+                    tint = PrimaryOrange,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
+
+        // Filtros
+        if (showFilters) {
+            FiltrosPanel(
+                selectedCategoria = selectedCategoria,
+                onCategoriaChange = { selectedCategoria = it },
+                selectedTamaño = selectedTamaño,
+                onTamañoChange = { selectedTamaño = it }
+            )
+        }
+
+
+        // Lista de productos
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.padding(8.dp),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            item(span = { GridItemSpan(this.maxLineSpan)}) {
+                Text("Productos",color = White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(16.dp))}
+            items(sortedProducts ) { product ->
+                ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
+            }
+        }
+
+        // Badge del carrito
+        if (cart.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(16.dp)
+            ) {
+                Surface(
+                    color = PrimaryOrange,
+                    shape = CircleShape,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(cart.size.toString(), color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: NavController) {
+    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
+
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable { navController.navigate("detalle_producto/${product.id}")},
+        colors = CardDefaults.cardColors(containerColor = DarkGrey),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column {
+            Box {
+                Image(
+                    painter = painterResource(id = product.image),
+                    contentDescription = product.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+                if (!product.inStock) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.6f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("SOLD OUT", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White, maxLines = 2)
+                Text("$${product.price}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+
+                val stockColor = if (product.inStock) Color(0xFF4CAF50) else Color(0xFFF44336)
+                val stockText = if (product.inStock) "En Stock" else "Agotado"
+
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(stockColor)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stockText, fontSize = 12.sp, color = stockColor)
+                }
+
+                Button(
+                    onClick = { onAddToCart(product.id) },
+                    enabled = product.inStock,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(if (product.inStock) "Agregar al carrito" else "Notificarme")
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FiltrosPanel(
+    selectedCategoria: String,
+    onCategoriaChange: (String) -> Unit,
+    selectedTamaño: String,
+    onTamañoChange: (String) -> Unit
+) {
+    val categorias = listOf("Mostrar todo", "Pelotas", "Indumentaria")
+    val tamaños = listOf("Mostrar todo", "S", "M", "L", "XL", "XXL")
+    val LightGrey = Color(0xFFA0B3C4)
+
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkGrey),
+        //border = BorderStroke(width = 1.dp, color = LightGrey)
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Text("Filtros", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            DropdownFilter("Categoría", categorias, selectedCategoria, onCategoriaChange)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            DropdownFilter("Tamaño", tamaños, selectedTamaño, onTamañoChange)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownFilter(
+    label: String,
+    options: List<String>,
+    selected: String,
+    onSelectedChange: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val LightGrey = Color(0xFFA0B3C4)
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = selected,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label, color = Color.White)},
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color.White,
+                focusedLabelColor = DarkGrey,
+                unfocusedLabelColor = DarkGrey,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            Modifier.background(color = DarkBlue),
+            border = BorderStroke(width = 1.dp, color = LightGrey)
+
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option, color = Color.White) },
+                    onClick = {
+                        onSelectedChange(option)
+                        expanded = false
+                    },
+                    modifier = Modifier.background(DarkBlue)
+                )
+            }
+        }
+    }
+}

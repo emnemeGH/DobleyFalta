@@ -55,9 +55,9 @@ fun AppBottomNavigationBar(
 
         // Ícono de Partidos/Jornadas
         NavigationBarItem(
-            selected = currentRoute == "jornadas",
+            selected = currentRoute == "jornadas_por_liga_screen",
             onClick = {
-                navController.navigate("jornadas") {
+                navController.navigate("jornadas_por_liga_screen") {
                     popUpTo(navController.graph.startDestinationId)
                     launchSingleTop = true
                 }
@@ -66,47 +66,20 @@ fun AppBottomNavigationBar(
                 Icon(
                     painter = painterResource(id = R.drawable.icon_basketball),
                     contentDescription = "Jornadas",
-                    tint = if (currentRoute == "jornadas") PrimaryOrange else Color.White,
+                    tint = if (currentRoute == "jornadas_por_liga_screen") PrimaryOrange else Color.White,
                     modifier = Modifier.size(30.dp)
                 )
             },
             label = {
                 Text(
                     text = "Jornadas",
-                    color = if (currentRoute == "jornadas") PrimaryOrange else Color.White
+                    color = if (currentRoute == "jornadas_por_liga_screen") PrimaryOrange else Color.White
                 )
             },
             colors = NavigationBarItemDefaults.colors(
                 indicatorColor = Color.Transparent
             )
         )
-
-//        // Ícono de Tabla de Posiciones
-//        NavigationBarItem(
-//            selected = currentRoute == "clasificacion_screen",
-//            onClick = {
-//                navController.navigate("clasificacion_screen") {
-//                    popUpTo(navController.graph.startDestinationId)
-//                    launchSingleTop = true
-//                }
-//            },
-//            icon = {
-//                Icon(
-//                    painter = painterResource(id = R.drawable.icono_clasificacion),
-//                    contentDescription = "Clasificación",
-//                    tint = if (currentRoute == "clasificacion_screen") PrimaryOrange else Color.White
-//                )
-//            },
-//            label = {
-//                Text(
-//                    text = "Clasificación",
-//                    color = if (currentRoute == "clasificacion_screen") PrimaryOrange else Color.White
-//                )
-//            },
-//            colors = NavigationBarItemDefaults.colors(
-//                indicatorColor = Color.Transparent
-//            )
-//        )
 
         // Ícono de Cuenta/Login
         NavigationBarItem(
@@ -184,7 +157,7 @@ fun AppBottomNavigationBar(
         DropdownMenuItem(
             text = { Text("Jornadas", color = Color.White) },
             onClick = {
-                navController.navigate("jornadas")
+                navController.navigate("jornadas_por_liga_screen")
                 menuExpanded = false
             }
         )
@@ -193,6 +166,26 @@ fun AppBottomNavigationBar(
             onClick = {
                 navController.navigate("noticias")
                 menuExpanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Tienda", color = Color.White) },
+            onClick = {
+                navController.navigate("tienda")
+                menuExpanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Mi Perfil", color = Color.White) },
+            onClick = {
+                navController.navigate("miperfil")
+                menuExpanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Admin", color = Color.White) },
+            onClick = {
+                navController.navigate("admin")
             }
         )
     }
