@@ -1,4 +1,4 @@
-package com.parana.dobleyfalta.tienda
+package com.parana.dobleyfalta.carrito
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
