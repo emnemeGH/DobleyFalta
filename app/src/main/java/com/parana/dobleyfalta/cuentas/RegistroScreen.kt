@@ -4,20 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,9 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.navigation.NavController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 
 @Composable
@@ -45,6 +34,13 @@ fun RegistroScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var contraseña by remember { mutableStateOf("") }
     var mostrarContraseña by remember { mutableStateOf(false) }
+
+    var usuarioError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var contraseñaError by remember { mutableStateOf<String?>(null) }
+
+    val usuariosExistentes = listOf("juan", "maria")
+    val emailsExistentes = listOf("juan@mail.com", "maria@mail.com")
 
     Column(
         modifier = Modifier
@@ -73,14 +69,21 @@ fun RegistroScreen(navController: NavController) {
             color = Color.White,
             modifier = Modifier.padding(vertical = 32.dp)
         )
+
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             shape = RoundedCornerShape(12.dp),
+            isError = usuarioError != null,
+            supportingText = {
+                usuarioError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -91,14 +94,21 @@ fun RegistroScreen(navController: NavController) {
                 unfocusedTextColor = Color.White
             )
         )
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             shape = RoundedCornerShape(12.dp),
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -109,6 +119,7 @@ fun RegistroScreen(navController: NavController) {
                 unfocusedTextColor = Color.White
             )
         )
+
         OutlinedTextField(
             value = contraseña,
             onValueChange = { contraseña = it },
@@ -130,8 +141,14 @@ fun RegistroScreen(navController: NavController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             shape = RoundedCornerShape(12.dp),
+            isError = contraseñaError != null,
+            supportingText = {
+                contraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -142,8 +159,47 @@ fun RegistroScreen(navController: NavController) {
                 unfocusedTextColor = Color.White
             )
         )
+
         Button(
-            onClick = { navController.navigate("miperfil") },
+            onClick = {
+                usuarioError = null
+                emailError = null
+                contraseñaError = null
+
+                var valido = true
+
+                if (usuario.isBlank()) {
+                    usuarioError = "El nombre de usuario es obligatorio"
+                    valido = false
+                } else if (usuariosExistentes.contains(usuario.trim())) {
+                    usuarioError = "Ese nombre de usuario ya existe"
+                    valido = false //Esta validacion debe hacerse en el back
+                }
+
+                if (email.isBlank()) {
+                    emailError = "El email es obligatorio"
+                    valido = false
+                    //Si tiene un formato valido se niega entonces no entra al if
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    emailError = "El email no tiene un formato válido"
+                    valido = false
+                } else if (emailsExistentes.contains(email.trim())) {
+                    emailError = "Ese email ya está registrado" //Esta validacion debe hacerse en el back
+                    valido = false
+                }
+
+                if (contraseña.isBlank()) {
+                    contraseñaError = "La contraseña es obligatoria"
+                    valido = false
+                } else if (contraseña.length < 6) {
+                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
+                    valido = false
+                }
+
+                if (valido) {
+                    navController.navigate("miperfil")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
@@ -152,6 +208,7 @@ fun RegistroScreen(navController: NavController) {
         ) {
             Text(text = "Crear Cuenta", color = Color.White, fontWeight = FontWeight.Bold)
         }
+
         Text(
             text = "¿Ya tienes cuenta? Inicia sesión",
             modifier = Modifier
@@ -164,7 +221,29 @@ fun RegistroScreen(navController: NavController) {
     }
 }
 
+
 //GLOSARIO
+
+//android.util.Patterns.EMAIL_ADDRESS
+//Es una constante que contiene una expresión regular (regex) predefinida por Android
+//para detectar si un texto tiene formato de correo electrónico válido.
+
+//matcher(email)
+//Aplica esa expresión regular al valor de la variable email.
+
+//.matches()
+//Devuelve true si el email coincide completamente con el patrón de un email válido.
+
+//isBlank()
+//devuelve true si la cadena está vacía o solo tiene espacios en blanco
+
+//supportingText = { ... }
+//Es un espacio que aparece debajo del TextField.
+//Se suele usar para poner mensajes de ayuda o de error.
+
+//isError
+//es un parámetro del OutlinedTextField.
+//Si lo pones en true, el campo cambia el color del borde (usualmente se pone en rojo).
 
 //colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
 //Los botones en Compose permiten configurar sus colores.

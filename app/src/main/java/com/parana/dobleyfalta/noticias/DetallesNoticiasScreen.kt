@@ -70,8 +70,8 @@ fun DetalleNoticiasScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
-                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
-                    .border(BorderStroke(2.dp, Color.White), RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)), // Añade el borde blanco
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp, topStart = 16.dp, topEnd = 16.dp))
+                    .border(BorderStroke(1.dp, Color.White), RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp, topStart = 16.dp, topEnd = 16.dp)),  // Añade el borde blanco
                 contentScale = ContentScale.Crop
             )
 

@@ -3,8 +3,10 @@ package com.parana.dobleyfalta.tienda
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,9 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.R
+import org.w3c.dom.Text
 
 // Modelo de producto
 data class Product(
@@ -46,13 +50,13 @@ val products = listOf(
     Product(2, "Buzo Cae", 79.99, R.drawable.escudo_cae, false, 88, 4.6, "Indumentaria"),
     Product(3, "Remera Parcao", 34.99, R.drawable.escudo_paracao, true, 92, 4.7, "Indumentaria")
 )
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Composable
+//fun TiendaScreenPreview() {
+//    TiendaScreen()
+//}
 @Composable
-fun TiendaScreenPreview() {
-    TiendaScreen()
-}
-@Composable
-fun TiendaScreen() {
+fun TiendaScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
@@ -139,7 +143,7 @@ fun TiendaScreen() {
 
         // Lista de productos
         Text(
-            "Más Populares",
+            "Productos",
             color = White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -151,10 +155,10 @@ fun TiendaScreen() {
             modifier = Modifier.padding(8.dp),
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            items(sortedProducts) { product ->
-                ProductCard(product) { productId ->
-                    cart = cart + productId
-                }
+            item(span = { GridItemSpan(this.maxLineSpan)}) {
+                Text("Productos")}
+            items(sortedProducts ) { product ->
+                ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
             }
         }
 
@@ -181,13 +185,14 @@ fun TiendaScreen() {
 
 
 @Composable
-fun ProductCard(product: Product, onAddToCart: (Int) -> Unit) {
+fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: NavController) {
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
 
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { navController.navigate("detalle_producto/${product.id}")},
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp)
@@ -211,17 +216,6 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit) {
                     ) {
                         Text("SOLD OUT", color = Color.White, fontWeight = FontWeight.Bold)
                     }
-                }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-                        .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(14.dp))
-                    Text(product.rating.toString(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Column(modifier = Modifier.padding(8.dp)) {

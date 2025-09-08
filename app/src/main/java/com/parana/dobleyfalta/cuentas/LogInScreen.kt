@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,10 +28,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.MainViewModel
+import kotlinx.coroutines.delay
 
 data class User(
     val email: String,
@@ -39,14 +43,14 @@ data class User(
 )
 
 val usuarios = listOf(
-    User("admin", "", "admin"),
-    User("abcd", "", "empleado"),
-    User("", "", "empleado"),
+    User("ad", "ad", "admin"),
+    User("em", "em", "empleado"),
+    User("usu", "usu", "usuario"),
     User("empleado3@test.com", "3333", "empleado")
 )
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
@@ -58,7 +62,9 @@ fun LoginScreen(navController: NavController) {
     var mostrarContraseña by remember { mutableStateOf(false) }
 
 // El tipo es String? porque puede contener un String (mensaje de error) o null (sin error).
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var contraseñaError by remember { mutableStateOf<String?>(null) }
+    var mostrarRecuperar by remember { mutableStateOf(false) }
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -104,7 +110,13 @@ fun LoginScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
         )
 //        Spacer sirve para aplicar margenes
         Spacer(
@@ -140,25 +152,21 @@ fun LoginScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = contraseñaError != null,
+            supportingText = {
+                //let es una función que sirve para ejecutar un bloque de código sobre un objeto (en este caso string).
+                //Dentro de ese bloque, puedes acceder al objeto a través de un parámetro implícito llamado it
+                //El valor de errorMessage es un string, asi que it representa lo que haya en ese string
+                contraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
         )
 
         //El operador ?. significa "ejecuta esto solo si no es null".
         //Si errorMessage == null → no entra al let.
         //Si errorMessage tiene un valor → entra al let.
-
-        //let es una función que sirve para ejecutar un bloque de código sobre un objeto (en este caso string).
-        //Dentro de ese bloque, puedes acceder al objeto a través de un parámetro implícito llamado it
-        //El valor de errorMessage es un string, asi que it representa lo que haya en ese string
-        errorMessage?.let {
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = it,
-                color = Color.Red
-            )
-        }
 
         Spacer(
             modifier = Modifier.height(32.dp)
@@ -166,16 +174,24 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
+                emailError = null
+                contraseñaError = null
+
                 val user = validarLogin(v_email, v_contraseña)
 
-                if (user != null) {
-                    if (user.rol == "admin") {
-                        navController.navigate("admin")
-                    } else {
-                        navController.navigate("principal")
+                when {
+                    v_email.isBlank() -> emailError = "El email es obligatorio"
+                    v_contraseña.isBlank() -> contraseñaError = "La contraseña es obligatoria"
+                    user == null -> contraseñaError = "Credenciales incorrectas"
+                    else -> {
+                        mainViewModel.setRol(user.rol)
+
+                        if (user.rol == "admin") {
+                            navController.navigate("admin")
+                        } else {
+                            navController.navigate("principal")
+                        }
                     }
-                } else {
-                    errorMessage = "Credenciales incorrectas"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -191,6 +207,27 @@ fun LoginScreen(navController: NavController) {
                 .padding(top = 16.dp)
                 .clickable { navController.navigate("registro") }
         )
+
+        LaunchedEffect(contraseñaError) {
+            if (contraseñaError != null) {
+                delay(5000)
+                mostrarRecuperar = true
+            }
+        }
+
+        if (mostrarRecuperar) {
+            Text(
+                text = "Recuperar Contraseña",
+                color = Color.White,
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .clickable {
+                        navController.navigate("recuperar_contraseña")
+                    },
+                textDecoration = TextDecoration.Underline
+            )
+        }
+
     }
 }
 
@@ -200,6 +237,17 @@ fun validarLogin(p_email: String, p_contraseña: String): User? {
 
 
 //Glosario
+
+//LaunchedEffect
+// es una API de Compose que te permite ejecutar código asíncrono (como delay(), llamadas a APIs,
+// o animaciones) dentro de una composición
+
+//Sintaxis
+//LaunchedEffect(key) {
+//    // Código asíncrono
+//}
+//key es el parámetro que desencadena el efecto. Cuando cambia, el bloque de código dentro
+//de LaunchedEffect se vuelve a ejecutar.
 
 //.find
 //La función find { ... } devuelve el primer elemento de la lista que cumpla la condición del predicado.

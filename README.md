@@ -1,35 +1,28 @@
-Pantallas:
--Inicio (Home)
--Login
--Registro
--Tienda Online
--Pantalla carrito
--Pantalla de pago online (CU-430)
--Noticias
--Deatalle de noticia (Noticia Completa) (cu-270)
--Pantalla partidos y jornadas (Fixture) CU-240
--La tabla completa
--Equipos
--Detalle de equipo seleccionado (CU-300) se menciona
--Mi perfil
--Pantalla de métricas (solo para empleados, CU-330 y otros KPIs)
--Pantalla del admin CU-060
+TAREAS:
 
-1. Emanuel → Bloque de autenticación y administración
+X.( boton "recordarme" en login) y captcha. NO SE PUEDE HACER SIN EL BACK
+X. Lo que sigue de recuperar contraseña requiere el back.
+X. Pantalla de métricas (CU-330 y KPIs) Decidimos no implementarla por ahora
+X Suscripciones notificaciones PUSH, esperamos al back
 
--Pantalla de métricas (CU-330 y KPIs)
 
-2. Conrado → Bloque de contenido y gestión deportiva
--Noticias
--Detalle de noticia (CU-270)
--Pantalla partidos y jornadas (Fixture) (CU-240)
--Equipos
--Detalle de equipo seleccionado (CU-300)
+A) Emanuel → Bloque de autenticación y administración
+1.validacion modificacion de cuenta (por parte del usuario)
+2.validacion en creacion de cuenta (por parte del admin)
+3. ABM de noticia (pantalla)
+4. ABM de equipo (pantalla)
 
-3. Naomi → Bloque de e-commerce y experiencia general
+B) Conrado → Bloque de contenido y gestión deportiva
+1.ABM de jornada (pantalla)
+2.ABM de partido (pantalla)
+3.ABM de liga
+4.Hacer scrolleable equipos
+
+C) Naomi → Bloque de e-commerce y experiencia general
 
 -Inicio (Home)
 -La tabla completa
 -Tienda Online
 -Pantalla carrito
 -Pantalla de pago online (CU-430)
+

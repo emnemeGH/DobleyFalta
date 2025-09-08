@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Doble y Falta</string>
+    <string name="delete">¿Estás seguro de que quieres borrar tu cuenta? Esta acción no se puede deshacer.</string>
 </resources>
