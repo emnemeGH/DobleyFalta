@@ -72,7 +72,10 @@ fun RegistroScreen(navController: NavController) {
 
         OutlinedTextField(
             value = usuario,
-            onValueChange = { usuario = it },
+            onValueChange = {
+                usuario = it
+                usuarioError = null
+            },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,7 +100,10 @@ fun RegistroScreen(navController: NavController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                emailError = null
+            },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,7 +128,10 @@ fun RegistroScreen(navController: NavController) {
 
         OutlinedTextField(
             value = contraseña,
-            onValueChange = { contraseña = it },
+            onValueChange = {
+                contraseña = it
+                contraseñaError = null
+            },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
             else PasswordVisualTransformation(),

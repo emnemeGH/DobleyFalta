@@ -96,7 +96,10 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
         )
         OutlinedTextField(
             value = v_email,
-            onValueChange = { v_email = it },
+            onValueChange = {
+                v_email = it
+                emailError = null
+            },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -124,7 +127,10 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
         )
         OutlinedTextField(
             value = v_contraseña,
-            onValueChange = { v_contraseña = it },
+            onValueChange = {
+                v_contraseña = it
+                contraseñaError = null
+            },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
             else PasswordVisualTransformation(),
