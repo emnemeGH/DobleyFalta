@@ -104,7 +104,7 @@ fun NoticiasScreen(navController: NavController) {
             .fillMaxSize()
             .background(DarkBlue)
             .padding(24.dp)
-            .padding(bottom = 48.dp)
+            .padding(bottom = 60.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Row(
@@ -140,8 +140,6 @@ fun NoticiasScreen(navController: NavController) {
             }
         }
 
-
-        //Por cada noticia creamos un card.
         listaNoticiasOrdenadas.forEach { noticia ->
             NoticiaDestacadaCard(
                 noticia = noticia,
@@ -154,6 +152,8 @@ fun NoticiasScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
+
+        Spacer(modifier = Modifier.height(60.dp))
     }
 
     //Si apretamos en el boton de borrar aparece este dialgo

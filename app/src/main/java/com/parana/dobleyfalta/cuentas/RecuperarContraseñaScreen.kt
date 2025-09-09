@@ -64,7 +64,10 @@ fun RecuperarContraseñaScreen(navController: NavController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                emailError = null
+            },
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,11 +96,13 @@ fun RecuperarContraseñaScreen(navController: NavController) {
             onClick = {
                 emailError = null
 
-                if (email.isBlank()) {
-                    emailError = "El email es obligatorio"
-                } else if (!email.contains("@")) {
-                    emailError = "Por favor ingresa un email válido"
-                } else {
+                emailError = validarCampoNoVacio(email, "Email")
+
+                if (emailError == null) {
+                    emailError = validarEmail(email)
+                }
+
+                if (emailError == null) {
                     mostrarMensajeExito = true
                 }
             },

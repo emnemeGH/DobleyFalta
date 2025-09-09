@@ -40,21 +40,16 @@ data class Product(
     val image: Int, // drawable local
     val inStock: Boolean,
     val popularity: Int,
-    val rating: Double,
     val categoria: String
 )
 
 // Mock de productos
 val products = listOf(
-    Product(1, "Gorra Rowing", 29.99, R.drawable.escudo_rowing, true, 95, 4.8, "Accesorios"),
-    Product(2, "Buzo Cae", 79.99, R.drawable.escudo_cae, false, 88, 4.6, "Indumentaria"),
-    Product(3, "Remera Parcao", 34.99, R.drawable.escudo_paracao, true, 92, 4.7, "Indumentaria")
+    Product(1, "Pelota ", 29.99, R.drawable.escudo_rowing, true, 95, "Pelotas"),
+    Product(2, "Buzo", 79.99, R.drawable.escudo_cae, false, 88, "Indumentaria"),
+    Product(3, "Remera", 34.99, R.drawable.escudo_paracao, true, 92, "Indumentaria")
 )
-//@Preview(showBackground = true)
-//@Composable
-//fun TiendaScreenPreview() {
-//    TiendaScreen()
-//}
+
 @Composable
 fun TiendaScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
@@ -133,8 +128,6 @@ fun TiendaScreen(navController: NavController) {
             FiltrosPanel(
                 selectedCategoria = selectedCategoria,
                 onCategoriaChange = { selectedCategoria = it },
-                selectedEquipo = selectedEquipo,
-                onEquipoChange = { selectedEquipo = it },
                 selectedTamaño = selectedTamaño,
                 onTamañoChange = { selectedTamaño = it }
             )
@@ -142,13 +135,6 @@ fun TiendaScreen(navController: NavController) {
 
 
         // Lista de productos
-        Text(
-            "Productos",
-            color = White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -156,7 +142,10 @@ fun TiendaScreen(navController: NavController) {
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             item(span = { GridItemSpan(this.maxLineSpan)}) {
-                Text("Productos")}
+                Text("Productos",color = White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(16.dp))}
             items(sortedProducts ) { product ->
                 ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
             }
@@ -256,13 +245,10 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
 fun FiltrosPanel(
     selectedCategoria: String,
     onCategoriaChange: (String) -> Unit,
-    selectedEquipo: String,
-    onEquipoChange: (String) -> Unit,
     selectedTamaño: String,
     onTamañoChange: (String) -> Unit
 ) {
-    val categorias = listOf("Mostrar todo", "Accesorios", "Indumentaria")
-    val equipos = listOf("Mostrar todo", "Cae", "Parcao", "Rowing")
+    val categorias = listOf("Mostrar todo", "Pelotas", "Indumentaria")
     val tamaños = listOf("Mostrar todo", "S", "M", "L", "XL", "XXL")
     val LightGrey = Color(0xFFA0B3C4)
 
@@ -281,9 +267,6 @@ fun FiltrosPanel(
             Spacer(modifier = Modifier.height(8.dp))
 
             DropdownFilter("Categoría", categorias, selectedCategoria, onCategoriaChange)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            DropdownFilter("Equipo", equipos, selectedEquipo, onEquipoChange)
             Spacer(modifier = Modifier.height(8.dp))
 
             DropdownFilter("Tamaño", tamaños, selectedTamaño, onTamañoChange)

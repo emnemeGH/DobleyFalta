@@ -144,7 +144,7 @@ fun ProfileScreen(navController: NavController) {
                         "Club Estudiantes",
                         color = Color.White,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(end = 65.dp)
+                        modifier = Modifier.padding(end = 55.dp)
                     )
                     TextButton(onClick = { navController.navigate("login") }) {
                         Text("Cambiar", color = PrimaryOrange, fontWeight = FontWeight.SemiBold)

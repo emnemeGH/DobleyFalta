@@ -29,16 +29,22 @@ fun CreateUserScreen(navController: NavController) {
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var username by remember { mutableStateOf("") }
+    var usuario by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
     var mostrarContraseña by remember { mutableStateOf(false) }
 
+    var usuarioError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var contraseñaError by remember { mutableStateOf<String?>(null) }
+
+    val emailsExistentes = listOf("juan@mail.com", "maria@mail.com")
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
             .padding(32.dp)
+            .padding(top = 20.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -80,8 +86,11 @@ fun CreateUserScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
+            value = usuario,
+            onValueChange = {
+                usuario = it
+                usuarioError = null
+            },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -95,12 +104,20 @@ fun CreateUserScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = usuarioError != null,
+            supportingText = {
+                usuarioError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+            },
+            singleLine = true
         )
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                emailError = null
+            },
             label = { Text("Correo Electrónico", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,12 +131,20 @@ fun CreateUserScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+            },
+            singleLine = true
         )
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = contraseña,
+            onValueChange = {
+                contraseña = it
+                contraseñaError = null
+            },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
             else PasswordVisualTransformation(),
@@ -148,7 +173,12 @@ fun CreateUserScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = contraseñaError != null,
+            supportingText = {
+                contraseñaError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+            },
+            singleLine = true
         )
 
         OutlinedTextField(
@@ -170,7 +200,39 @@ fun CreateUserScreen(navController: NavController) {
         )
 
         Button(
-            onClick = { navController.navigate("admin") },
+            onClick = {
+                usuarioError = null
+                emailError = null
+                contraseñaError = null
+                var valido = true
+
+                if (usuario.isBlank()) {
+                    usuarioError = "El nombre es obligatorio"
+                    valido = false
+                }
+
+                if (email.isBlank()) {
+                    emailError = "El email es obligatorio"
+                    valido = false
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    emailError = "El formato del email no es válido"
+                    valido = false
+                } else if (emailsExistentes.contains(email.trim())) {
+                    emailError = "Ese email ya está registrado"
+                    valido = false
+                }
+
+                if (contraseña.isBlank()) {
+                    contraseñaError = "La contraseña es obligatoria"
+                    valido = false
+                } else if (contraseña.length < 6) {
+                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
+                    valido = false
+                }
+                if (valido) {
+                    navController.navigate("admin")
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
         ) {

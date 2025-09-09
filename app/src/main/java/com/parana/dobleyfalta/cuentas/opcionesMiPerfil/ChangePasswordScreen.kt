@@ -43,6 +43,10 @@ fun ChangePasswordScreen(navController: NavController) {
     var mostrarContraseña by remember { mutableStateOf(false) }
     var mostrarContraseñaVerif by remember { mutableStateOf(false) }
 
+    var contraseñaError by remember { mutableStateOf<String?>(null) }
+    var newContraseñaError by remember { mutableStateOf<String?>(null) }
+    var verifContraseñaError by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +89,10 @@ fun ChangePasswordScreen(navController: NavController) {
 
         OutlinedTextField(
             value = contraseña,
-            onValueChange = { contraseña = it },
+            onValueChange = {
+                contraseña = it
+                contraseñaError = null
+            },
             label = { Text("Contraseña Actual", color = LightGrey) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
@@ -100,12 +107,21 @@ fun ChangePasswordScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = contraseñaError != null,
+            supportingText = {
+                contraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            }
         )
 
         OutlinedTextField(
             value = new_contraseña,
-            onValueChange = { new_contraseña = it },
+            onValueChange = {
+                new_contraseña = it
+                newContraseñaError = null
+            },
             label = { Text("Nueva Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
             else PasswordVisualTransformation(),
@@ -135,12 +151,21 @@ fun ChangePasswordScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = newContraseñaError != null,
+            supportingText = {
+                newContraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            }
         )
 
         OutlinedTextField(
             value = verif_contraseña,
-            onValueChange = {verif_contraseña = it },
+            onValueChange = {
+                verif_contraseña = it
+                verifContraseñaError = null
+            },
             label = { Text("Confirmar Nueva Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseñaVerif) VisualTransformation.None
             else PasswordVisualTransformation(),
@@ -169,11 +194,54 @@ fun ChangePasswordScreen(navController: NavController) {
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
-            )
+            ),
+            isError = verifContraseñaError != null,
+            supportingText = {
+                verifContraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            }
         )
 
         Button(
-            onClick = { },
+            onClick = {
+                contraseñaError = null
+                newContraseñaError = null
+                verifContraseñaError = null
+
+                var valido = true
+
+                if (contraseña.isBlank()) {
+                    contraseñaError = "La contraseña actual es obligatoria"
+                    valido = false
+                } else if (contraseña.length < 6) {
+                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
+                    valido = false
+                }
+
+                if (new_contraseña.isBlank()) {
+                    newContraseñaError = "La nueva contraseña es obligatoria"
+                    valido = false
+                } else if (new_contraseña.length < 6) {
+                    newContraseñaError = "La nueva contraseña debe tener al menos 6 caracteres"
+                    valido = false
+                } else if (new_contraseña == contraseña) {
+                    newContraseñaError = "La nueva contraseña no puede ser igual a la actual"
+                    valido = false
+                }
+
+                if (verif_contraseña.isBlank()) {
+                    verifContraseñaError = "Debe confirmar la nueva contraseña"
+                    valido = false
+                } else if (verif_contraseña != new_contraseña) {
+                    verifContraseñaError = "Las contraseñas no coinciden"
+                    valido = false
+                }
+
+                if (valido) {
+                    navController.navigate("miperfil")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp),
