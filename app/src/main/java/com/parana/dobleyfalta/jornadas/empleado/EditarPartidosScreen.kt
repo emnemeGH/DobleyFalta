@@ -1,8 +1,12 @@
 package com.parana.dobleyfalta.jornadas
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -10,159 +14,296 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.MainViewModel
+import com.parana.dobleyfalta.R
+
 
 @Composable
 fun EditarPartidosScreen(
     navController: NavController,
     mainViewModel: MainViewModel,
-    partido: Partido // ⬅ recibe el partido a editar
+    partido: Partido // recibe el partido a editar
 ) {
-    var score1 by remember { mutableStateOf(partido.score1 ?: 0) }
-    var score2 by remember { mutableStateOf(partido.score2 ?: 0) }
-    var quarters1 by remember { mutableStateOf(partido.quarterScores1.toMutableList().ifEmpty { mutableListOf(0, 0, 0, 0) }) }
-    var quarters2 by remember { mutableStateOf(partido.quarterScores2.toMutableList().ifEmpty { mutableListOf(0, 0, 0, 0) }) }
-    var currentQuarter by remember { mutableStateOf(0) }
 
-    var showForm by remember { mutableStateOf(false) }
+    // Definición de colores para mantener la coherencia
+    val DarkBlue = Color(0xFF102B4E)
+    val PrimaryOrange = Color(0xFFFF6600)
+    val DarkGrey = Color(0xFF1A375E)
+    val LightGrey = Color(0xFFA0B3C4)
+    val LiveGreen = Color(0xFF50C878)
+    val BlueEdit = Color(0xFF007ACC)
+    val RedDelete = Color(0xFFE53935)
 
-    if (showForm) {
-        FormularioModificarPartido(
-            partido = partido,
-            onGuardar = { local, visitante, fecha, hora, lugar ->
-                println("Modificado: $local vs $visitante en $lugar el $fecha $hora")
-                showForm = false
-                navController.popBackStack() // volver después de guardar
-            },
-            onCancelar = { showForm = false }
-        )
-    } else {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(modifier = Modifier.background(Color.White)) {
-                Text(
-                    "En vivo",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF28A745))
-                        .padding(8.dp),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
+    // Agregamos un Box para establecer el fondo de toda la pantalla a DarkBlue
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBlue)
+    ) {
+        var score1 by remember { mutableStateOf(partido.score1 ?: 0) }
+        var score2 by remember { mutableStateOf(partido.score2 ?: 0) }
+        var quarters1 by remember {
+            mutableStateOf(
+                partido.quarterScores1.toMutableList().ifEmpty { mutableListOf(0, 0, 0, 0) })
+        }
+        var quarters2 by remember {
+            mutableStateOf(
+                partido.quarterScores2.toMutableList().ifEmpty { mutableListOf(0, 0, 0, 0) })
+        }
+        var currentQuarter by remember { mutableStateOf(0) }
 
-                // Marcador
+        var showForm by remember { mutableStateOf(false) }
+
+        if (showForm) {
+            FormularioModificarPartido(
+                navController = navController,
+                partido = partido,
+                onGuardar = { local, visitante, fecha, hora, lugar ->
+                    println("Modificado: $local vs $visitante en $lugar el $fecha $hora")
+                    showForm = false
+                    navController.popBackStack() // volver después de guardar
+                },
+                onCancelar = { showForm = false }
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                //verticalArrangement = Arrangement.Center
+            ) {
+                // Botón para volver
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(partido.equipo1, fontWeight = FontWeight.Bold)
-                        Text("🏀", fontSize = 30.sp)
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.padding(0.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.back),
+                            contentDescription = "Volver a jornadas",
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$score1 - $score2", fontSize = 40.sp, fontWeight = FontWeight.Bold)
-                        Row {
-                            Button(onClick = {
-                                score1++
-                                quarters1[currentQuarter]++
-                            }) { Text("+1") }
-                            Spacer(Modifier.width(8.dp))
-                            Button(onClick = {
-                                if (score1 > 0 && quarters1[currentQuarter] > 0) {
-                                    score1--; quarters1[currentQuarter]--
+                }
+                Spacer(Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkGrey)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "En vivo",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(LiveGreen)
+                                .padding(8.dp),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    partido.equipo1,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Image(
+                                    painter = painterResource(id = getEscudoResourceId(partido.equipo1)),
+                                    contentDescription = partido.equipo1,
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "$score1 - $score2",
+                                    fontSize = 50.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Spacer(Modifier.height(16.dp))
+                                Row {
+                                    // Columna para los botones del equipo 1
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Button(onClick = {
+                                            score1++
+                                            quarters1[currentQuarter]++
+                                        }) { Text("+1") }
+                                        Spacer(Modifier.height(8.dp))
+                                        Button(onClick = {
+                                            if (score1 > 0 && quarters1[currentQuarter] > 0) {
+                                                score1--; quarters1[currentQuarter]--
+                                            }
+                                        }) { Text("-1") }
+                                    }
+                                    Spacer(Modifier.width(16.dp))
+                                    // Columna para los botones del equipo 2
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Button(onClick = {
+                                            score2++
+                                            quarters2[currentQuarter]++
+                                        }) { Text("+1") }
+                                        Spacer(Modifier.height(8.dp))
+                                        Button(onClick = {
+                                            if (score2 > 0 && quarters2[currentQuarter] > 0) {
+                                                score2--; quarters2[currentQuarter]--
+                                            }
+                                        }) { Text("-1") }
+                                    }
                                 }
-                            }) { Text("-1") }
-                            Spacer(Modifier.width(8.dp))
-                            Button(onClick = {
-                                score2++
-                                quarters2[currentQuarter]++
-                            }) { Text("+1") }
-                            Spacer(Modifier.width(8.dp))
-                            Button(onClick = {
-                                if (score2 > 0 && quarters2[currentQuarter] > 0) {
-                                    score2--; quarters2[currentQuarter]--
-                                }
-                            }) { Text("-1") }
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    partido.equipo2,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                )
+                                Image(
+                                    painter = painterResource(id = getEscudoResourceId(partido.equipo2)),
+                                    contentDescription = partido.equipo2,
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(partido.equipo2, fontWeight = FontWeight.Bold)
-                        Text("🏀", fontSize = 30.sp)
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            // Cuartos
+                            Column(Modifier.padding(16.dp)) {
+                                Text(
+                                    "${partido.equipo1}: Q1 ${quarters1[0]} | Q2 ${quarters1[1]} | Q3 ${quarters1[2]} | Q4 ${quarters1[3]}",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${partido.equipo2}: Q1 ${quarters2[0]} | Q2 ${quarters2[1]} | Q3 ${quarters2[2]} | Q4 ${quarters2[3]}",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        // Control de cuartos
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Button(
+                                    onClick = { if (currentQuarter > 0) currentQuarter-- },
+                                    enabled = currentQuarter > 0,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                                ) { Text("Cuarto anterior") }
+                                Spacer(Modifier.width(8.dp))
+                                Button(
+                                    onClick = { if (currentQuarter < 3) currentQuarter++ },
+                                    enabled = currentQuarter < 3,
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
+                                ) { Text("Siguiente cuarto") }
+                            }
+                            Text(
+                                "Cuarto actual: Q${currentQuarter + 1}",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp,
+                                color = Color.White
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+
+                        // Lugar
+                        Text(
+                            "${partido.estadio}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(DarkGrey)
+                                .padding(8.dp),
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
-
-                // Cuartos
-                Column(Modifier.padding(16.dp)) {
-                    Text("${partido.equipo1}: Q1 ${quarters1[0]} | Q2 ${quarters1[1]} | Q3 ${quarters1[2]} | Q4 ${quarters1[3]}")
-                    Text("${partido.equipo2}: Q1 ${quarters2[0]} | Q2 ${quarters2[1]} | Q3 ${quarters2[2]} | Q4 ${quarters2[3]}")
-                }
-
-                // Control de cuartos
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row {
-                        Button(
-                            onClick = { if (currentQuarter > 0) currentQuarter-- },
-                            enabled = currentQuarter > 0,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                        ) { Text("Cuarto anterior") }
-                        Spacer(Modifier.width(8.dp))
-                        Button(
-                            onClick = { if (currentQuarter < 3) currentQuarter++ },
-                            enabled = currentQuarter < 3,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
-                        ) { Text("Siguiente cuarto") }
-                    }
-                    Text("Cuarto actual: Q${currentQuarter + 1}")
-                }
-
-                // Lugar
+                Spacer(Modifier.height(16.dp))
                 Text(
-                    "🏟 ${partido.estadio}",
+                    "Modificar otros campos",
+                    color = PrimaryOrange,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.DarkGray)
+                        .clickable { showForm = true }
                         .padding(8.dp),
-                    color = Color.White,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
+    }
+}
 
-        // Link de modificar
-        Text(
-            "Modificar otros campos",
-            color = Color(0xFF007BFF),
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showForm = true }
-                .padding(8.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
+// Función auxiliar para obtener el ID de recurso de drawable según el nombre del equipo
+@DrawableRes
+fun getEscudoResourceId(nombreEquipo: String): Int {
+    return when (nombreEquipo) {
+        "ROWING" -> R.drawable.escudo_rowing
+        "CAE" -> R.drawable.escudo_cae
+        "PARACAO" -> R.drawable.escudo_paracao
+        else -> R.drawable.logo_transparent // O un icono genérico por defecto
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioModificarPartido(
+    navController: NavController,
     partido: Partido,
     onGuardar: (String, String, String, String, String) -> Unit,
     onCancelar: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
+
     var equipoLocal by remember { mutableStateOf(partido.equipo1) }
     var equipoVisitante by remember { mutableStateOf(partido.equipo2) }
     var fecha by remember { mutableStateOf(partido.fecha) }
@@ -172,70 +313,163 @@ fun FormularioModificarPartido(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A375E))
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(DarkBlue) // Fondo oscuro como en la pantalla de creación
+            .padding(24.dp)
+            .clickable(
+                indication = null,
+                interactionSource = interactionSource
+            ) { focusManager.clearFocus() },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text("Modificar Partido", fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.Bold)
+        // Botón para volver
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Volver a jornadas",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
 
-        Spacer(Modifier.height(16.dp))
+        Text(
+            "Modificar Partido",
+            fontSize = 24.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
 
         OutlinedTextField(
             value = equipoLocal,
             onValueChange = { equipoLocal = it },
-            label = { Text("Equipo local", color = Color.LightGray) },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Equipo local", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                disabledTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = equipoVisitante,
             onValueChange = { equipoVisitante = it },
-            label = { Text("Equipo visitante", color = Color.LightGray) },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Equipo visitante", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                disabledTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = fecha,
             onValueChange = { fecha = it },
-            label = { Text("Fecha (dd/MM/yyyy)", color = Color.LightGray) },
+            label = { Text("Fecha (dd/MM/yyyy)", color = LightGrey) },
             leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                disabledTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = hora,
             onValueChange = { hora = it },
-            label = { Text("Hora (HH:mm)", color = Color.LightGray) },
+            label = { Text("Hora (HH:mm)", color = LightGrey) },
             leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                disabledTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = lugar,
             onValueChange = { lugar = it },
-            label = { Text("Lugar del partido", color = Color.LightGray) },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Lugar del partido", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey,
+                unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+            ),
+            shape = RoundedCornerShape(12.dp)
         )
 
         Spacer(Modifier.height(16.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             Button(
                 onClick = { onGuardar(equipoLocal, equipoVisitante, fecha, hora, lugar) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Guardar", color = Color.White)
+                Text("Guardar", color = Color.White, fontWeight = FontWeight.Bold)
             }
-            Button(onClick = onCancelar, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
-                Text("Cancelar", color = Color.White)
+            Button(
+                onClick = onCancelar,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
