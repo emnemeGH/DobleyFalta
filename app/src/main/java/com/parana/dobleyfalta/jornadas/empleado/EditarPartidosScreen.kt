@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -128,12 +129,19 @@ fun EditarPartidosScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Equipo 1
+                            Column(
+                                modifier = Modifier.weight(1f), // Da un peso de 1, para que ocupe una parte equitativa
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text(
                                     partido.equipo1,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    maxLines = 1, // Limita el texto a una sola línea
+                                    overflow = TextOverflow.Ellipsis, // Agrega "..." si el texto es demasiado largo
+                                    textAlign = TextAlign.Center // Centra el texto en su columna
                                 )
                                 Spacer(Modifier.height(8.dp))
                                 Image(
@@ -145,7 +153,12 @@ fun EditarPartidosScreen(
                                     contentScale = ContentScale.Fit
                                 )
                             }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                            // Marcador y botones (le damos más peso para que tenga más espacio)
+                            Column(
+                                modifier = Modifier.weight(2f), // Este peso mayor le da más espacio al marcador central
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text(
                                     "$score1 - $score2",
                                     fontSize = 50.sp,
@@ -183,13 +196,22 @@ fun EditarPartidosScreen(
                                     }
                                 }
                             }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                            // Equipo 2
+                            Column(
+                                modifier = Modifier.weight(1f), // Da un peso de 1, igual que el primer equipo
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 Text(
                                     partido.equipo2,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    maxLines = 1, // Limita el texto a una sola línea
+                                    overflow = TextOverflow.Ellipsis, // Agrega "..." si el texto es demasiado largo
+                                    textAlign = TextAlign.Center // Centra el texto en su columna
                                 )
+                                Spacer(Modifier.height(8.dp))
                                 Image(
                                     painter = painterResource(id = getEscudoResourceId(partido.equipo2)),
                                     contentDescription = partido.equipo2,
@@ -201,28 +223,58 @@ fun EditarPartidosScreen(
                             }
                         }
 
-                        Row(
+                        // Cuartos
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            horizontalArrangement = Arrangement.Center
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Cuartos
-                            Column(Modifier.padding(16.dp)) {
+                            // Columna para el equipo 1: nombre y cuartos centrados
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    "${partido.equipo1}: Q1 ${quarters1[0]} | Q2 ${quarters1[1]} | Q3 ${quarters1[2]} | Q4 ${quarters1[3]}",
+                                    text = partido.equipo1,
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 18.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    "${partido.equipo2}: Q1 ${quarters2[0]} | Q2 ${quarters2[1]} | Q3 ${quarters2[2]} | Q4 ${quarters2[3]}",
+                                    text = "Q1 ${quarters1[0]} | Q2 ${quarters1[1]} | Q3 ${quarters1[2]} | Q4 ${quarters1[3]}",
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 18.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            // Columna para el equipo 2: nombre y cuartos centrados
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = partido.equipo2,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = "Q1 ${quarters2[0]} | Q2 ${quarters2[1]} | Q3 ${quarters2[2]} | Q4 ${quarters2[3]}",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 4.dp)
                                 )
                             }
                         }
+
 
                         // Control de cuartos
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
