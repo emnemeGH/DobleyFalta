@@ -24,14 +24,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.R
-import org.w3c.dom.Text
 
 // Modelo de producto
 data class Product(
@@ -53,12 +51,11 @@ val products = listOf(
 
 @Composable
 fun TiendaScreen(navController: NavController) {
+    //Colores
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
-    val Blue = colorResource(id = R.color.blue_edit)
     val DarkGrey = Color(0xFF1A375E)
-
 
 
     var searchQuery by remember { mutableStateOf("") }
@@ -72,7 +69,6 @@ fun TiendaScreen(navController: NavController) {
     var selectedTamaño by remember { mutableStateOf("Mostrar todo") }
 
     val sortedProducts = filteredProducts.sortedByDescending { it.popularity }
-
 
     Column(
         modifier = Modifier
@@ -99,15 +95,34 @@ fun TiendaScreen(navController: NavController) {
                 Text("Merch original de la liga", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
             }
 
-            IconButton(onClick = {
-                navController.navigate("carrito") // 🔥 Navega a pantalla del carrito
-            }) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingCart,
-                    contentDescription = "Carrito",
-                    tint = PrimaryOrange,
-                    modifier = Modifier.size(40.dp)
-                )
+            Box{
+                IconButton(onClick = {
+                    navController.navigate("carrito") // 🔥 Navega a pantalla del carrito
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = "Carrito",
+                        tint = PrimaryOrange,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                if (cart.isNotEmpty()){
+                    Box(
+                        modifier = Modifier
+                            .padding(0.dp)
+                            .align(Alignment.TopEnd)
+                    ) {
+                        Surface(
+                            color = White,
+                            shape = CircleShape,
+                            modifier = Modifier.size(26.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(cart.size.toString(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -153,9 +168,7 @@ fun TiendaScreen(navController: NavController) {
             )
         }
 
-
         // Lista de productos
-
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.padding(8.dp),
@@ -170,28 +183,8 @@ fun TiendaScreen(navController: NavController) {
                 ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
             }
         }
-
-        // Badge del carrito
-        if (cart.isNotEmpty()) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(16.dp)
-            ) {
-                Surface(
-                    color = PrimaryOrange,
-                    shape = CircleShape,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(cart.size.toString(), color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
     }
 }
-
 
 @Composable
 fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: NavController) {
@@ -270,8 +263,6 @@ fun FiltrosPanel(
 ) {
     val categorias = listOf("Mostrar todo", "Pelotas", "Indumentaria")
     val tamaños = listOf("Mostrar todo", "S", "M", "L", "XL", "XXL")
-    val LightGrey = Color(0xFFA0B3C4)
-
 
     Card(
         modifier = Modifier
@@ -317,7 +308,6 @@ fun DropdownFilter(
             label = { Text(label, color = Color.White)},
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
-                .menuAnchor()
                 .fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.White,
