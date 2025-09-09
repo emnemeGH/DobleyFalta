@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,9 +46,9 @@ data class Product(
 
 // Mock de productos
 val products = listOf(
-    Product(1, "Pelota ", 29.99, R.drawable.escudo_rowing, true, 95, "Pelotas"),
-    Product(2, "Buzo", 79.99, R.drawable.escudo_cae, false, 88, "Indumentaria"),
-    Product(3, "Remera", 34.99, R.drawable.escudo_paracao, true, 92, "Indumentaria")
+    Product(1, "Pelota ", 29.999, R.drawable.escudo_rowing, true, 95, "Pelotas"),
+    Product(2, "Buzo", 79.999, R.drawable.escudo_cae, false, 88, "Indumentaria"),
+    Product(3, "Remera", 34.999, R.drawable.escudo_paracao, true, 92, "Indumentaria")
 )
 
 @Composable
@@ -68,7 +69,6 @@ fun TiendaScreen(navController: NavController) {
         it.name.lowercase().contains(searchQuery.lowercase())
     }
     var selectedCategoria by remember { mutableStateOf("Mostrar todo") }
-    var selectedEquipo by remember { mutableStateOf("Mostrar todo") }
     var selectedTamaño by remember { mutableStateOf("Mostrar todo") }
 
     val sortedProducts = filteredProducts.sortedByDescending { it.popularity }
@@ -80,15 +80,35 @@ fun TiendaScreen(navController: NavController) {
             .background(DarkBlue)
     ) {
         // Header
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(DarkGrey)
-                .padding(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Tienda Online", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = White)
-            Text("Merch original de los equipos", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
+            Image(
+                painter = painterResource(id = R.drawable.logo_transparent),
+                contentDescription = "Logo",
+                modifier = Modifier.size(65.dp)
+            )
+
+            Column {
+                Text("Tienda Online", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = White, textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
+                Text("Merch original de la liga", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
+            }
+
+            IconButton(onClick = {
+                navController.navigate("carrito") // 🔥 Navega a pantalla del carrito
+            }) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = "Carrito",
+                    tint = PrimaryOrange,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
         }
 
         // Barra de búsqueda y filtro
@@ -96,14 +116,14 @@ fun TiendaScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(DarkGrey)
-                .padding(12.dp),
+                .padding(top = 2.dp, start = 20.dp, end = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text("Buscar productos", color = Color.White) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryOrange) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryOrange)},
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryOrange,
@@ -118,7 +138,7 @@ fun TiendaScreen(navController: NavController) {
                 Icon(painter = painterResource(id = R.drawable.filter_list),
                     contentDescription = "Filtro",
                     tint = PrimaryOrange,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(35.dp)
                 )
             }
         }
@@ -143,9 +163,9 @@ fun TiendaScreen(navController: NavController) {
         ) {
             item(span = { GridItemSpan(this.maxLineSpan)}) {
                 Text("Productos",color = White,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp))}
+                    modifier = Modifier.padding(12.dp))}
             items(sortedProducts ) { product ->
                 ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
             }
