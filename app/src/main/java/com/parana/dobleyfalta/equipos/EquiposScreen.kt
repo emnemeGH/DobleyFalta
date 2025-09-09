@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -103,7 +104,8 @@ fun EquiposScreen(navController: NavController) {
                     alBorrarClick = {
                         equipoAEliminar = equipo
                         mostrarConfirmacionBorrado = true
-                    }
+                    },
+                    alHacerClick = { navController.navigate("detalles/${equipo.id}") }
                 )
             }
         }
@@ -147,11 +149,14 @@ fun EquiposScreen(navController: NavController) {
 fun EquipoGridCard(
     equipo: Equipo,
     alEditarClick: () -> Unit,
-    alBorrarClick: () -> Unit
+    alBorrarClick: () -> Unit,
+    alHacerClick: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        onClick = alHacerClick,
+        modifier = Modifier.testTag("equipoCard")
     ) {
         Column(
             modifier = Modifier
