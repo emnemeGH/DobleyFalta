@@ -6,14 +6,16 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.Rule
 
 @RunWith(AndroidJUnit4::class)
-class LoginTest {
+class AppTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
@@ -21,6 +23,7 @@ class LoginTest {
     @Test
     fun login_exitoso_redirige_aPerfil() {
         composeTestRule.onNodeWithText("Email").performTextInput("em")
+
         composeTestRule.onNodeWithText("Contraseña").performTextInput("em")
 
         composeTestRule.onNodeWithTag("loginBoton").performClick()
@@ -29,11 +32,91 @@ class LoginTest {
 
         composeTestRule.onNodeWithText("Ver Equipos").performClick()
 
+        Thread.sleep(2000)
+
         composeTestRule.onAllNodesWithTag("equipoCard")[0].performClick()
 
+        Thread.sleep(2000)
+
         composeTestRule.onNodeWithTag("textoUbiacion").assertIsDisplayed()
+
+        Thread.sleep(4000)
+
+        //Esto es para volver para atras, requiere que este en el hilo principal
+        composeTestRule.activity.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("editarEquipo")[0].assertExists().performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[0].performTextClearance()
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[1].performTextClearance()
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[2].performTextClearance()
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[3].performTextClearance()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithTag("botonGuardar").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[0].performTextReplacement("Real Madrid")
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[1].performTextReplacement("Diamante")
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[2].performTextReplacement("Aménabar 723")
+
+        composeTestRule.onAllNodesWithTag("campoEditarEquipo")[3].performTextReplacement("https://ejemplo.com/logo.png")
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithTag("botonGuardar").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("eliminarEquipo")[0].performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithTag("confirmarEliminar").performClick()
+
+        Thread.sleep(1000)
+
+        composeTestRule.onNodeWithTag("menu").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithTag("menuNoticias").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("noticiaCard")[0].performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithTag("volverANoticias").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onAllNodesWithTag("editarNoticia")[0].performClick()
     }
 }
+
+//performTextClearance()
+//Borra todo el texto actual de un TextField o BasicTextField.
+//Simula la acción de “seleccionar todo + suprimir”.
+//Lo deja vacío.
+
+//performTextReplacement(newText: String)
+//Reemplaza todo el contenido actual por el texto nuevo que le pases.
+//Es como si hicieras: seleccionar todo → escribir lo nuevo.
 
 //@RunWith(AndroidJUnit4::class)
 //Es un anotación de JUnit que le dice al framework qué “runner” usar para ejecutar los tests.

@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -129,7 +130,8 @@ fun AppBottomNavigationBar(
             },
             colors = NavigationBarItemDefaults.colors(
                 indicatorColor = Color.Transparent
-            )
+            ),
+            modifier = Modifier.testTag("menu")
         )
     }
 
@@ -166,7 +168,8 @@ fun AppBottomNavigationBar(
             onClick = {
                 navController.navigate("noticias")
                 menuExpanded = false
-            }
+            },
+            modifier = Modifier.testTag("menuNoticias")
         )
         DropdownMenuItem(
             text = { Text("Tienda", color = Color.White) },

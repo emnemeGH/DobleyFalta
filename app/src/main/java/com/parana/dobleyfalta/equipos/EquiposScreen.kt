@@ -128,7 +128,8 @@ fun EquiposScreen(navController: NavController) {
                         }
                         mostrarConfirmacionBorrado = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier.testTag("confirmarEliminar")
                 ) {
                     Text("Borrar")
                 }
@@ -189,7 +190,9 @@ fun EquipoGridCard(
             ) {
                 IconButton(
                     onClick = alEditarClick,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("editarEquipo")
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_edit),
@@ -201,7 +204,9 @@ fun EquipoGridCard(
 
                 IconButton(
                     onClick = alBorrarClick,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("eliminarEquipo")
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),
