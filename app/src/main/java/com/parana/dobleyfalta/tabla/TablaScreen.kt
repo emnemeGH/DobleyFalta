@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.noticias.LightGrey
@@ -53,14 +55,8 @@ val equiposTabla = listOf(
     EquipoTabla(5, 5, "Quique", R.drawable.escudo_cae, 44, 28, 6, 32, 2724, 3216)
 )
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewTablaScreen(){
-    TablaScreen()
-}
-
-@Composable
-fun TablaScreen (){
+fun TablaScreen (navController: NavController ){
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
@@ -72,12 +68,13 @@ fun TablaScreen (){
             .fillMaxSize()
             .background(DarkBlue)
             .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
 
         Text(
             text = "TABLA DE POSICIONES TORNEO",
             fontWeight = FontWeight.Bold,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,7 +84,7 @@ fun TablaScreen (){
 
         Text(
             text = "Desliza la tabla para ver más información",
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,7 +95,7 @@ fun TablaScreen (){
         Text(
             text = "LIGA A",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
@@ -138,20 +135,24 @@ fun TablaScreen (){
                         TablaHeader("P.C", Modifier.width(55.dp))
                     }
 
-                    LazyColumn {
+                    LazyColumn(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(207.dp)
+                    ) {
                         items(equiposTabla) { equipo ->
                             EquipoFila(equipo)
                         }
                     }
                 }
             }
-
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         Text(
             text = "LIGA B",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
@@ -190,15 +191,19 @@ fun TablaScreen (){
                         TablaHeader("P.C", Modifier.width(55.dp))
                     }
 
-                    LazyColumn {
+                    LazyColumn(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(207.dp)
+                    ) {
                         items(equiposTabla) { equipo ->
                             EquipoFila(equipo)
                         }
                     }
                 }
             }
-
         }
+
+        Spacer(modifier = Modifier.height(80.dp))
 
     }
 }

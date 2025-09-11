@@ -35,6 +35,7 @@ import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
+import com.parana.dobleyfalta.tabla.TablaScreen
 
 @Composable
 fun AppNavHost(
@@ -153,6 +154,9 @@ fun AppNavHost(
         }
         composable("editar_equipo") {
             EditarEquipoScreen(navController = navController)
+        }
+        composable("tabla") {
+            TablaScreen(navController = navController)
         }
     }
 }

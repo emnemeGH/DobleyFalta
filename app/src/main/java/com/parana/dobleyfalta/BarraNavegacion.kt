@@ -197,6 +197,13 @@ fun AppBottomNavigationBar(
                 }
             )
             DropdownMenuItem(
+                text = { Text("Tabla", color = Color.White, fontSize = 18.sp) },
+                onClick = {
+                    navController.navigate("tabla")
+                    menuExpanded = false
+                }
+            )
+            DropdownMenuItem(
                 text = { Text("Mi Perfil", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("miperfil")
