@@ -44,8 +44,16 @@ fun EquiposScreen(navController: NavController) {
         Equipo(2, "Rowing", R.drawable.escudo_rowing),
         Equipo(3, "CAE", R.drawable.escudo_cae),
         Equipo(4, "Ciclista", R.drawable.escudo_rowing),
-        Equipo(5, "Quique", R.drawable.escudo_cae)
+        Equipo(5, "Quique", R.drawable.escudo_cae),
+        Equipo(6, "Olimpia", R.drawable.escudo_paracao),
+        Equipo(7, "Echagüe", R.drawable.escudo_rowing),
+        Equipo(8, "San Martín", R.drawable.escudo_cae),
+        Equipo(9, "Estudiantes", R.drawable.escudo_paracao),
+        Equipo(10, "Recreativo", R.drawable.escudo_rowing),
+        Equipo(11, "Universitario", R.drawable.escudo_cae),
+        Equipo(12, "Bancario", R.drawable.escudo_paracao)
     )
+
 
     var listaEquipos by remember { mutableStateOf(equipos) }
     var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
