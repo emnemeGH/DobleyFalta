@@ -92,121 +92,14 @@ fun TablaScreen (navController: NavController ){
             textAlign = TextAlign.Center
         )
 
-        Text(
-            text = "LIGA A",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 15.dp, bottom = 10.dp),
-            textAlign = TextAlign.Center
-        )
-
-        // Encabezado de tabla
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-        ){
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                // Lista de equipos
-                Column() {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(DarkGrey)
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        TablaHeader("N°", Modifier.width(50.dp))
-                        TablaHeader("Equipo", Modifier.width(150.dp))
-                        TablaHeader("Puntos", Modifier.width(65.dp))
-                        TablaHeader("P.J", Modifier.width(50.dp))
-                        TablaHeader("P.G", Modifier.width(50.dp))
-                        TablaHeader("P.P", Modifier.width(60.dp))
-                        TablaHeader("P.F", Modifier.width(70.dp))
-                        TablaHeader("P.C", Modifier.width(55.dp))
-                    }
-
-                    LazyColumn(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(207.dp)
-                    ) {
-                        items(equiposTabla) { equipo ->
-                            EquipoFila(equipo)
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = "LIGA B",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 25.dp, bottom = 10.dp),
-            textAlign = TextAlign.Center
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-        ){
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                // Lista de equipos
-                Column() {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(DarkGrey)
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        TablaHeader("N°", Modifier.width(50.dp))
-                        TablaHeader("Equipo", Modifier.width(150.dp))
-                        TablaHeader("Puntos", Modifier.width(65.dp))
-                        TablaHeader("P.J", Modifier.width(50.dp))
-                        TablaHeader("P.G", Modifier.width(50.dp))
-                        TablaHeader("P.P", Modifier.width(60.dp))
-                        TablaHeader("P.F", Modifier.width(70.dp))
-                        TablaHeader("P.C", Modifier.width(55.dp))
-                    }
-
-                    LazyColumn(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(207.dp)
-                    ) {
-                        items(equiposTabla) { equipo ->
-                            EquipoFila(equipo)
-                        }
-                    }
-                }
-            }
-        }
+        TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
+        TablaLiga(nombreLiga = "LIGA B", equipos = equiposTabla)
 
         Spacer(modifier = Modifier.height(80.dp))
 
     }
 }
+
 
 @Composable
 fun TablaHeader(text: String, modifier: Modifier) {
@@ -219,7 +112,65 @@ fun TablaHeader(text: String, modifier: Modifier) {
     )
 }
 
+@Composable
+fun TablaLiga(nombreLiga: String, equipos: List<EquipoTabla>) {
+    val DarkGrey = Color(0xFF1A375E)
 
+    Text(
+        text = nombreLiga,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 25.dp, bottom = 10.dp),
+        textAlign = TextAlign.Center
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            border = BorderStroke(1.dp, Color.Black),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column {
+                // Encabezado
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(DarkGrey)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TablaHeader("N°", Modifier.width(50.dp))
+                    TablaHeader("Equipo", Modifier.width(150.dp))
+                    TablaHeader("Puntos", Modifier.width(65.dp))
+                    TablaHeader("P.J", Modifier.width(50.dp))
+                    TablaHeader("P.G", Modifier.width(50.dp))
+                    TablaHeader("P.P", Modifier.width(60.dp))
+                    TablaHeader("P.F", Modifier.width(70.dp))
+                    TablaHeader("P.C", Modifier.width(55.dp))
+                }
+
+                // Lista de equipos
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(207.dp)
+                ) {
+                    items(equipos) { equipo ->
+                        EquipoFila(equipo)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun EquipoFila(equipo: EquipoTabla) {
