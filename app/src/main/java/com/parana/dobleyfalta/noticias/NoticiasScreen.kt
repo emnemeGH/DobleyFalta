@@ -104,8 +104,8 @@ fun NoticiasScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            .padding(24.dp)
-            .padding(bottom = 60.dp)
+            .padding(horizontal = 24.dp)
+            .padding(top = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Row(
@@ -153,8 +153,6 @@ fun NoticiasScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
-
-        Spacer(modifier = Modifier.height(60.dp))
     }
 
     //Si apretamos en el boton de borrar aparece este dialgo

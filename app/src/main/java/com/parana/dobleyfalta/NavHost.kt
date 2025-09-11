@@ -1,7 +1,9 @@
 package com.parana.dobleyfalta
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -35,6 +37,8 @@ import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
+import com.parana.dobleyfalta.tabla.TablaScreen
+import com.parana.dobleyfalta.home.HomeScreen
 
 @Composable
 fun AppNavHost(
@@ -43,7 +47,11 @@ fun AppNavHost(
     mainViewModel: MainViewModel
 ) {
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        modifier = Modifier.padding(innerPadding)
+    ) {
         composable("login") {
             LoginScreen(navController, mainViewModel)
         }
@@ -52,6 +60,9 @@ fun AppNavHost(
         }
         composable("principal") {
             PantallaPrincipal(navController, mainViewModel)
+        }
+        composable("home") {
+            HomeScreen(navController, mainViewModel)
         }
         composable("equipos") {
             EquiposScreen(navController)
@@ -153,6 +164,9 @@ fun AppNavHost(
         }
         composable("editar_equipo") {
             EditarEquipoScreen(navController = navController)
+        }
+        composable("tabla") {
+            TablaScreen(navController = navController)
         }
     }
 }
