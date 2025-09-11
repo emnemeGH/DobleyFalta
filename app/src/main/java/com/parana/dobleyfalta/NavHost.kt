@@ -1,7 +1,9 @@
 package com.parana.dobleyfalta
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,7 +47,11 @@ fun AppNavHost(
     mainViewModel: MainViewModel
 ) {
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        modifier = Modifier.padding(innerPadding)
+    ) {
         composable("login") {
             LoginScreen(navController, mainViewModel)
         }
