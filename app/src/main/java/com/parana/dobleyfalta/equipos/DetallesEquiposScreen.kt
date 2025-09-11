@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -131,7 +132,8 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                     text = "Ubicación: ${equipo.ubicacion}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = PrimaryOrange
+                    color = PrimaryOrange,
+                    modifier = Modifier.testTag("textoUbiacion")
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

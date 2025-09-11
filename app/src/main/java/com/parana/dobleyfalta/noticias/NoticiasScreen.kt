@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -201,7 +202,8 @@ fun NoticiaDestacadaCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = alHacerClick),
+            .clickable(onClick = alHacerClick)
+            .testTag("noticiaCard"),
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -228,7 +230,9 @@ fun NoticiaDestacadaCard(
                 ) {
                     IconButton(
                         onClick = { alEditarClick() },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("editarNoticia")
                     ) {
                         Box(
                             modifier = Modifier
@@ -272,8 +276,7 @@ fun NoticiaDestacadaCard(
                     text = noticia.titulo,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.weight(1f)
+                    fontSize = 16.sp
                 )
 
                 Text(
