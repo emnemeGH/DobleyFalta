@@ -77,11 +77,11 @@ fun TablaScreen (){
         Text(
             text = "TABLA DE POSICIONES TORNEO",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 15.dp, bottom = 10.dp),
+                .padding(top = 15.dp, bottom = 8.dp),
             textAlign = TextAlign.Center
         )
 
@@ -91,14 +91,77 @@ fun TablaScreen (){
             color = White,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 10.dp),
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = "LIGA A",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = White,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp, bottom = 10.dp),
             textAlign = TextAlign.Center
         )
 
         // Encabezado de tabla
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        ){
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, Color.Black),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                // Lista de equipos
+                Column() {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(DarkGrey)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TablaHeader("N°", Modifier.width(50.dp))
+                        TablaHeader("Equipo", Modifier.width(150.dp))
+                        TablaHeader("Puntos", Modifier.width(65.dp))
+                        TablaHeader("P.J", Modifier.width(50.dp))
+                        TablaHeader("P.G", Modifier.width(50.dp))
+                        TablaHeader("P.P", Modifier.width(60.dp))
+                        TablaHeader("P.F", Modifier.width(70.dp))
+                        TablaHeader("P.C", Modifier.width(55.dp))
+                    }
+
+                    LazyColumn {
+                        items(equiposTabla) { equipo ->
+                            EquipoFila(equipo)
+                        }
+                    }
+                }
+            }
+
+        }
+
+        Text(
+            text = "LIGA B",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = White,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 25.dp, bottom = 10.dp),
+            textAlign = TextAlign.Center
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ){
             Card(
@@ -150,6 +213,8 @@ fun TablaHeader(text: String, modifier: Modifier) {
         fontSize = 14.sp
     )
 }
+
+
 
 @Composable
 fun EquipoFila(equipo: EquipoTabla) {
