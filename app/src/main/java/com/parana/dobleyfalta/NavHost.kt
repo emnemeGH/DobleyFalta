@@ -36,6 +36,7 @@ import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
 import com.parana.dobleyfalta.tabla.TablaScreen
+import com.parana.dobleyfalta.home.HomeScreen
 
 @Composable
 fun AppNavHost(
@@ -53,6 +54,9 @@ fun AppNavHost(
         }
         composable("principal") {
             PantallaPrincipal(navController, mainViewModel)
+        }
+        composable("home") {
+            HomeScreen(navController, mainViewModel)
         }
         composable("equipos") {
             EquiposScreen(navController)
