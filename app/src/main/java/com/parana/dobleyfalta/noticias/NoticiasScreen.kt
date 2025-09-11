@@ -276,8 +276,7 @@ fun NoticiaDestacadaCard(
                     text = noticia.titulo,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.weight(1f)
+                    fontSize = 16.sp
                 )
 
                 Text(
