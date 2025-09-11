@@ -15,6 +15,7 @@ activity-compose = "1.9.0"
 kotlin-compiler-extension = "1.5.3"
 navigationCompose = "2.7.7"
 coil = "2.4.0"
+composeTestJunit4 = "1.6.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +35,8 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version = "18.1.0" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version = "2.11.0" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composeTestJunit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "composeTestJunit4" }
 
 
 [plugins]

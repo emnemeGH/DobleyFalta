@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -103,7 +104,8 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
             label = { Text("Email", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 16.dp)
+                .testTag("emailInput"),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
@@ -200,7 +202,9 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("loginBoton"),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
         ) {
             Text("Iniciar Sesión", color = Color.White, fontWeight = FontWeight.Bold)

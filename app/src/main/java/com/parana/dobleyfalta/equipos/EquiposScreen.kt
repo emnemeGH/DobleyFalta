@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,8 +44,16 @@ fun EquiposScreen(navController: NavController) {
         Equipo(2, "Rowing", R.drawable.escudo_rowing),
         Equipo(3, "CAE", R.drawable.escudo_cae),
         Equipo(4, "Ciclista", R.drawable.escudo_rowing),
-        Equipo(5, "Quique", R.drawable.escudo_cae)
+        Equipo(5, "Quique", R.drawable.escudo_cae),
+        Equipo(6, "Olimpia", R.drawable.escudo_paracao),
+        Equipo(7, "Echagüe", R.drawable.escudo_rowing),
+        Equipo(8, "San Martín", R.drawable.escudo_cae),
+        Equipo(9, "Estudiantes", R.drawable.escudo_paracao),
+        Equipo(10, "Recreativo", R.drawable.escudo_rowing),
+        Equipo(11, "Universitario", R.drawable.escudo_cae),
+        Equipo(12, "Bancario", R.drawable.escudo_paracao)
     )
+
 
     var listaEquipos by remember { mutableStateOf(equipos) }
     var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
@@ -103,7 +112,8 @@ fun EquiposScreen(navController: NavController) {
                     alBorrarClick = {
                         equipoAEliminar = equipo
                         mostrarConfirmacionBorrado = true
-                    }
+                    },
+                    alHacerClick = { navController.navigate("detalles/${equipo.id}") }
                 )
             }
         }
@@ -126,7 +136,8 @@ fun EquiposScreen(navController: NavController) {
                         }
                         mostrarConfirmacionBorrado = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier.testTag("confirmarEliminar")
                 ) {
                     Text("Borrar")
                 }
@@ -147,11 +158,14 @@ fun EquiposScreen(navController: NavController) {
 fun EquipoGridCard(
     equipo: Equipo,
     alEditarClick: () -> Unit,
-    alBorrarClick: () -> Unit
+    alBorrarClick: () -> Unit,
+    alHacerClick: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        onClick = alHacerClick,
+        modifier = Modifier.testTag("equipoCard")
     ) {
         Column(
             modifier = Modifier
@@ -184,7 +198,9 @@ fun EquipoGridCard(
             ) {
                 IconButton(
                     onClick = alEditarClick,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("editarEquipo")
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_edit),
@@ -196,7 +212,9 @@ fun EquipoGridCard(
 
                 IconButton(
                     onClick = alBorrarClick,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("eliminarEquipo")
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),

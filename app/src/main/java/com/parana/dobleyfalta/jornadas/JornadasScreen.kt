@@ -28,6 +28,8 @@ import com.parana.dobleyfalta.R
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 // Definición de colores
 val DarkBlue = Color(0xFF102B4E)
@@ -62,94 +64,103 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
     var jornada by remember { mutableStateOf(jornadaId) }
 
     // Datos de partidos de ejemplo (mock data)
-    val jornadas = mapOf(
-        1 to listOf(
-            Partido(
-                id = 1,
-                equipo1 = "ROWING",
-                equipo2 = "CAE",
-                escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=SR",
-                escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=EQ",
-                score1 = listOf(19, 9, 15, 18).sum(),
-                score2 = listOf(24, 20, 23, 27).sum(),
-                status = "Terminado",
-                liga = "FEDERACION DE BALONCESTO",
-                quarterScores1 = listOf(19, 9, 15, 18),
-                quarterScores2 = listOf(24, 20, 23, 27),
-                fecha = "05/04/2024",
-                hora = "21:30",
-                estadio = "EL GIGANTE DE CALLE LAS HERAS"
-            ),
-            Partido(
-                id = 2,
-                equipo1 = "EQUIPO A",
-                equipo2 = "EQUIPO B",
-                escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=A",
-                escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=B",
-                score1 = 0,
-                score2 = 0,
-                status = "Próximo",
-                liga = "LIGA REGIONAL",
-                quarterScores1 = emptyList(),
-                quarterScores2 = emptyList(),
-                fecha = "22/04/2024",
-                hora = "20:00",
-                estadio = "ESTADIO CENTRAL"
-            )
-        ),
-        2 to listOf(
-            Partido(
-                id = 3,
-                equipo1 = "CAMIONEROS",
-                equipo2 = "DEPORTIVO",
-                escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=C",
-                escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=D",
-                score1 = listOf(20, 15, 25, 20).sum(),
-                score2 = listOf(18, 19, 19, 19).sum(),
-                status = "Terminado",
-                liga = "LIGA REGIONAL",
-                quarterScores1 = listOf(20, 15, 25, 20),
-                quarterScores2 = listOf(18, 19, 19, 19),
-                fecha = "08/04/2024",
-                hora = "19:00",
-                estadio = "POLIDEPORTIVO"
-            ),
-            Partido(
-                id = 5,
-                equipo1 = "DEPORTIVO",
-                equipo2 = "CENTRO",
-                escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=DEP",
-                escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=CEN",
-                score1 = listOf(5).sum(),
-                score2 = listOf(10).sum(),
-                status = "En Vivo",
-                liga = "LIGA NACIONAL",
-                quarterScores1 = listOf(5),
-                quarterScores2 = listOf(10),
-                fecha = "08/04/2024",
-                hora = "21:00",
-                estadio = "ESTADIO MUNICIPAL"
-            )
-        ),
-        3 to listOf(
-            Partido(
-                id = 4,
-                equipo1 = "DEFENSORES",
-                equipo2 = "CLUB NORTE",
-                escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=DF",
-                escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=CN",
-                score1 = 0,
-                score2 = 0,
-                status = "Próximo",
-                liga = "TORNEO AMISTOSO",
-                quarterScores1 = emptyList(),
-                quarterScores2 = emptyList(),
-                fecha = "12/04/2024",
-                hora = "20:30",
-                estadio = "ESTADIO NORTE"
+    // Se usa mutableStateOf para poder modificar la lista de partidos
+    var jornadas by remember {
+        mutableStateOf(
+            mapOf(
+                1 to listOf(
+                    Partido(
+                        id = 1,
+                        equipo1 = "ROWING",
+                        equipo2 = "CAE",
+                        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=SR",
+                        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=EQ",
+                        score1 = listOf(19, 9, 15, 18).sum(),
+                        score2 = listOf(24, 20, 23, 27).sum(),
+                        status = "Terminado",
+                        liga = "FEDERACION DE BALONCESTO",
+                        quarterScores1 = listOf(19, 9, 15, 18),
+                        quarterScores2 = listOf(24, 20, 23, 27),
+                        fecha = "05/04/2024",
+                        hora = "21:30",
+                        estadio = "EL GIGANTE DE CALLE LAS HERAS"
+                    ),
+                    Partido(
+                        id = 2,
+                        equipo1 = "EQUIPO A",
+                        equipo2 = "EQUIPO B",
+                        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=A",
+                        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=B",
+                        score1 = 0,
+                        score2 = 0,
+                        status = "Próximo",
+                        liga = "LIGA REGIONAL",
+                        quarterScores1 = emptyList(),
+                        quarterScores2 = emptyList(),
+                        fecha = "22/04/2024",
+                        hora = "20:00",
+                        estadio = "ESTADIO CENTRAL"
+                    )
+                ),
+                2 to listOf(
+                    Partido(
+                        id = 3,
+                        equipo1 = "CAMIONEROS",
+                        equipo2 = "DEPORTIVO",
+                        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=C",
+                        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=D",
+                        score1 = listOf(20, 15, 25, 20).sum(),
+                        score2 = listOf(18, 19, 19, 19).sum(),
+                        status = "Terminado",
+                        liga = "LIGA REGIONAL",
+                        quarterScores1 = listOf(20, 15, 25, 20),
+                        quarterScores2 = listOf(18, 19, 19, 19),
+                        fecha = "08/04/2024",
+                        hora = "19:00",
+                        estadio = "POLIDEPORTIVO"
+                    ),
+                    Partido(
+                        id = 5,
+                        equipo1 = "DEPORTIVO",
+                        equipo2 = "CENTRO",
+                        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=DEP",
+                        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=CEN",
+                        score1 = listOf(5).sum(),
+                        score2 = listOf(10).sum(),
+                        status = "En Vivo",
+                        liga = "LIGA NACIONAL",
+                        quarterScores1 = listOf(5),
+                        quarterScores2 = listOf(10),
+                        fecha = "08/04/2024",
+                        hora = "21:00",
+                        estadio = "ESTADIO MUNICIPAL"
+                    )
+                ),
+                3 to listOf(
+                    Partido(
+                        id = 4,
+                        equipo1 = "DEFENSORES",
+                        equipo2 = "CLUB NORTE",
+                        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=DF",
+                        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=CN",
+                        score1 = 0,
+                        score2 = 0,
+                        status = "Próximo",
+                        liga = "TORNEO AMISTOSO",
+                        quarterScores1 = emptyList(),
+                        quarterScores2 = emptyList(),
+                        fecha = "12/04/2024",
+                        hora = "20:30",
+                        estadio = "ESTADIO NORTE"
+                    )
+                )
             )
         )
-    )
+    }
+
+    // Variables de estado para el diálogo de confirmación
+    var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
+    var partidoAEliminar by remember { mutableStateOf<Partido?>(null) }
 
     // Formateador para convertir el string de fecha a un objeto de fecha
     val formatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
@@ -221,7 +232,10 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                         navController.currentBackStackEntry?.savedStateHandle?.set("partido", partido)
                         navController.navigate("editar_partido")
                     },
-                    onDeleteClick = { /* TODO: Implementar lógica de eliminación */ }
+                    onDeleteClick = {
+                        partidoAEliminar = partido
+                        mostrarConfirmacionBorrado = true
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -248,6 +262,50 @@ fun JornadasScreen(navController: NavController, jornadaId: Int) {
                 }
             }
         }
+    }
+
+    // Diálogo de confirmación para eliminar un partido
+    if (mostrarConfirmacionBorrado && partidoAEliminar != null) {
+        AlertDialog(
+            onDismissRequest = { mostrarConfirmacionBorrado = false },
+            title = {
+                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
+            },
+            text = {
+                Text("¿Seguro que quieres eliminar este partido?", color = LightGrey)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        partidoAEliminar?.let { partido ->
+                            // Obtiene la lista actual de la jornada
+                            val partidosEnJornada = jornadas[jornada] ?: emptyList()
+                            // Crea una nueva lista sin el partido a eliminar
+                            val nuevaLista = partidosEnJornada.filter { it.id != partido.id }
+                            // Actualiza el estado de la jornada con la nueva lista
+                            jornadas = jornadas.toMutableMap().apply {
+                                this[jornada] = nuevaLista
+                            }.toMap()
+                        }
+                        mostrarConfirmacionBorrado = false
+                        partidoAEliminar = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Borrar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    mostrarConfirmacionBorrado = false
+                    partidoAEliminar = null
+                }) {
+                    Text("Cancelar", color = PrimaryOrange)
+                }
+            },
+            containerColor = DarkGrey,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
 

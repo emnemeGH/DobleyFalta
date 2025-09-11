@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -143,7 +144,8 @@ fun EditarEquipoScreen(navController: NavController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(50.dp)
+                .testTag("botonGuardar"),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -169,7 +171,8 @@ private fun CampoDeTexto(
         label = { Text(etiqueta, color = LightGrey) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = 16.dp)
+            .testTag("campoEditarEquipo"),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = CardBackground,
