@@ -3,6 +3,7 @@ package com.parana.dobleyfalta
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 val DarkBlue = Color(0xFF102B4E)
@@ -98,15 +100,14 @@ fun AppBottomNavigationBar(
                     Icon(
                         painter = painterResource(id = R.drawable.icon_home),
                         contentDescription = "Home",
-                        tint = PrimaryOrange, // Siempre resaltado
-                        modifier = Modifier.size(34.dp) // 👈 más grande que los demás
+                        tint = if (currentRoute == "home") PrimaryOrange else Color.White,
+                        modifier = Modifier.size(34.dp)
                     )
                 },
                 label = {
                     Text(
                         text = "Home",
-                        color = PrimaryOrange,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        color = if (currentRoute == "home") PrimaryOrange else Color.White
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
@@ -162,32 +163,26 @@ fun AppBottomNavigationBar(
             onDismissRequest = { menuExpanded = false },
             modifier = Modifier
                 .background(DarkGrey)
-                .align(Alignment.BottomEnd),
-            offset = DpOffset(x = (-16).dp, y = (-56).dp)
+                .align(Alignment.BottomEnd)
+                .padding(start = 8.dp, end = 16.dp),
+            offset = DpOffset(x = (295).dp, y = (-56).dp)
         ) {
             DropdownMenuItem(
-                text = { Text("Login", color = Color.White) },
-                onClick = {
-                    navController.navigate("login")
-                    menuExpanded = false
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("Equipos", color = Color.White) },
+                text = { Text("Equipos", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("equipos")
                     menuExpanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Jornadas", color = Color.White) },
+                text = { Text("Jornadas", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("jornadas_por_liga_screen")
                     menuExpanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Noticias", color = Color.White) },
+                text = { Text("Noticias", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("noticias")
                     menuExpanded = false
@@ -195,21 +190,21 @@ fun AppBottomNavigationBar(
                 modifier = Modifier.testTag("menuNoticias")
             )
             DropdownMenuItem(
-                text = { Text("Tienda", color = Color.White) },
+                text = { Text("Tienda", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("tienda")
                     menuExpanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Mi Perfil", color = Color.White) },
+                text = { Text("Mi Perfil", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("miperfil")
                     menuExpanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Admin", color = Color.White) },
+                text = { Text("Admin", color = Color.White, fontSize = 18.sp) },
                 onClick = {
                     navController.navigate("admin")
                 }
