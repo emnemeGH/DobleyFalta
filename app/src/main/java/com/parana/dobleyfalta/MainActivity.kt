@@ -57,3 +57,17 @@ fun PantallaPrincipal(navController: androidx.navigation.NavController, mainView
         Text("Ver Equipos")
     }
 }
+
+// Scaffold
+// Es un "contenedor base" en Jetpack Compose para estructurar la UI de una pantalla.
+// Permite colocar elementos comunes de una app, como:
+// - topBar → barra superior (ej: título, botones de acción)
+// - bottomBar → barra inferior de navegación
+// - floatingActionButton → botón flotante
+// - drawerContent → menú lateral deslizable
+// - content → el contenido principal de la pantalla
+
+// Scaffold se encarga de:
+// Posicionar correctamente todos estos elementos en la pantalla.
+// Calcular automáticamente el padding para que el contenido principal
+// no quede tapado por la barra superior o inferior (ese padding se pasa como innerPadding).

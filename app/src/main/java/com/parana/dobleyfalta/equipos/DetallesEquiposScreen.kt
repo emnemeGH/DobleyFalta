@@ -85,7 +85,8 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 20.dp)
                     .verticalScroll(rememberScrollState()), // Permite el scroll vertical
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
