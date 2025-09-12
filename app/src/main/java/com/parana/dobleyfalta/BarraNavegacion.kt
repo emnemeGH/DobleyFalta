@@ -165,7 +165,7 @@ fun AppBottomNavigationBar(
                 .background(DarkGrey)
                 .align(Alignment.BottomEnd)
                 .padding(start = 8.dp, end = 16.dp),
-            offset = DpOffset(x = (295).dp, y = (-56).dp)
+            offset = DpOffset(x = (295).dp, y = (0).dp)
         ) {
             DropdownMenuItem(
                 text = { Text("Equipos", color = Color.White, fontSize = 18.sp) },

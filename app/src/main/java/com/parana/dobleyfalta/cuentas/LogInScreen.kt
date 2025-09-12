@@ -197,7 +197,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                         if (user.rol == "admin") {
                             navController.navigate("admin")
                         } else {
-                            navController.navigate("principal")
+                            navController.navigate("home")
                         }
                     }
                 }
