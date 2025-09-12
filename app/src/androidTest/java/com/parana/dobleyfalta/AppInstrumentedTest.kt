@@ -28,13 +28,13 @@ class AppTest {
 
         composeTestRule.onNodeWithTag("loginBoton").performClick()
 
-        composeTestRule.onNodeWithText("Ver Equipos").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("menu").performClick()
 
-        composeTestRule.onNodeWithText("Ver Equipos").performClick()
+        composeTestRule.onNodeWithTag("menuEquipos").performClick()
 
         Thread.sleep(2000)
 
-        composeTestRule.onAllNodesWithTag("equipoCard")[0].performClick()
+        composeTestRule.onAllNodesWithTag("equipoCard")[1].performClick()
 
         Thread.sleep(2000)
 
@@ -49,7 +49,7 @@ class AppTest {
 
         Thread.sleep(2000)
 
-        composeTestRule.onAllNodesWithTag("editarEquipo")[0].assertExists().performClick()
+        composeTestRule.onAllNodesWithTag("editarEquipo")[1].assertExists().performClick()
 
         Thread.sleep(2000)
 

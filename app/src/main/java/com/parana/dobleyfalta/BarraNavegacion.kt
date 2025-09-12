@@ -172,7 +172,8 @@ fun AppBottomNavigationBar(
                 onClick = {
                     navController.navigate("equipos")
                     menuExpanded = false
-                }
+                },
+                modifier = Modifier.testTag("menuEquipos")
             )
             DropdownMenuItem(
                 text = { Text("Jornadas", color = Color.White, fontSize = 18.sp) },
