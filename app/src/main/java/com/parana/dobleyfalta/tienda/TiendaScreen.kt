@@ -44,9 +44,9 @@ data class Product(
 
 // Mock de productos
 val products = listOf(
-    Product(1, "Pelota ", 29.999, R.drawable.escudo_rowing, true, 95, "Pelotas"),
-    Product(2, "Buzo", 79.999, R.drawable.escudo_cae, false, 88, "Indumentaria"),
-    Product(3, "Remera", 34.999, R.drawable.escudo_paracao, true, 92, "Indumentaria")
+    Product(1, "Pelota ", 29.999, R.drawable.pelota_basquet, true, 95, "Pelotas"),
+    Product(2, "Buzo", 79.999, R.drawable.buzo, false, 88, "Indumentaria"),
+    Product(3, "Remera", 34.999, R.drawable.remera, true, 92, "Indumentaria")
 )
 
 @Composable
