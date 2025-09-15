@@ -24,7 +24,7 @@ import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 
 @Composable
-fun ProductDetailScreen(
+fun DetalleProductoScreen(
     productId: Int,
     navController: NavController,
     onAddToCart: (Int) -> Unit

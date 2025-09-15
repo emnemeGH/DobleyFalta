@@ -95,7 +95,9 @@ fun TiendaScreen(navController: NavController) {
                 Text("Merch original de la liga", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
             }
 
-            Box{
+            Box(
+                modifier = Modifier.size(65.dp)
+            ){
                 IconButton(onClick = {
                     navController.navigate("carrito") // 🔥 Navega a pantalla del carrito
                 }) {

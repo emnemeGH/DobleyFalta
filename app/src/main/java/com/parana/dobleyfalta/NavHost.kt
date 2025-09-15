@@ -39,6 +39,7 @@ import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
 import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
+import com.parana.dobleyfalta.tienda.DetalleProductoScreen
 
 @Composable
 fun AppNavHost(
@@ -151,11 +152,21 @@ fun AppNavHost(
         composable("tienda") {
             TiendaScreen(navController = navController)
         }
-        /*composable("detalle_producto/{productId}") {
-            backStackEntry ->
-            val productoId = backStackEntry.arguments?.getInt("productoId")
-            DetalleProductoScreen(navController = navController, product = productoId ?:0)
-        }*/
+        /*
+        composable(
+            "detalle_producto/{productId}"
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull()
+            if (productId != null) {
+                DetalleProductoScreen(
+                    productId = productId,
+                    navController = navController,
+                    onAddToCart = { id -> mainViewModel.addToCart(id) }
+                )
+            }
+        }
+        */
+
         composable("carrito") {
             CarritoScreen(navController = navController)
         }
@@ -170,3 +181,4 @@ fun AppNavHost(
         }
     }
 }
+
