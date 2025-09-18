@@ -204,10 +204,11 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
                 Image(
                     painter = painterResource(id = product.image),
                     contentDescription = product.name,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
+                        .padding(bottom = 8.dp)
                 )
                 if (!product.inStock) {
                     Box(
@@ -221,8 +222,21 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
                 }
             }
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(product.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White, maxLines = 2)
-                Text("$${product.price}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(
+                    product.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    maxLines = 2,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Text(
+                    "$${product.price}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
 
                 val stockColor = if (product.inStock) Color(0xFF4CAF50) else Color(0xFFF44336)
                 val stockText = if (product.inStock) "En Stock" else "Agotado"
@@ -246,7 +260,10 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (product.inStock) "Agregar al carrito" else "Notificarme")
+                    Text(
+                        if (product.inStock) "Agregar al carrito" else "Notificarme",
+                        fontSize = 12.sp
+                    )
                 }
             }
         }
@@ -339,3 +356,48 @@ fun DropdownFilter(
         }
     }
 }
+
+//contentScale
+// es un parámetro de Image() y AsyncImage() que define cómo se ajusta la imagen
+// dentro del espacio que tiene asignado en pantalla.
+//
+// Sintaxis Básica:
+// Image(
+//     painter = painterResource(id = R.drawable.mi_imagen),
+//     contentDescription = "Ejemplo",
+//     contentScale = ContentScale.Fit
+// )
+//
+// Principales valores de ContentScale:
+// - ContentScale.Fit
+//   * Ajusta la imagen para que quepa COMPLETAMENTE en el espacio disponible,
+//     manteniendo su relación de aspecto. Puede dejar espacios vacíos (letterboxing).
+//
+// - ContentScale.Crop
+//   * Rellena todo el espacio disponible, recortando (crop) la imagen si es necesario.
+//     Mantiene relación de aspecto, pero puede cortar partes de la imagen.
+//
+// - ContentScale.FillBounds
+//   * Estira la imagen para llenar el espacio, SIN mantener relación de aspecto.
+//     Puede distorsionar la imagen (ensanchar o aplastar).
+//
+// - ContentScale.FillWidth
+//   * Escala la imagen para llenar el ancho del contenedor, manteniendo aspecto.
+//     Puede dejar espacio vacío arriba y abajo.
+//
+// - ContentScale.FillHeight
+//   * Escala la imagen para llenar el alto del contenedor, manteniendo aspecto.
+//     Puede dejar espacio vacío a los lados.
+//
+// - ContentScale.Inside
+//   * Similar a Fit, pero solo escala si la imagen es más grande que el contenedor.
+//     Si ya es más chica, no la agranda.
+//
+// - ContentScale.None
+//   * Muestra la imagen en su tamaño original, sin escalar.
+//
+// Notas:
+// - Se usa junto con Modifier.size(), .width(), .height() o .fillMaxSize()
+//   para controlar el espacio que ocupa la imagen.
+// - Si querés que siempre llene el espacio, lo más común es usar Crop.
+// - Si querés que nunca se recorte, lo más común es usar Fit o Inside.
