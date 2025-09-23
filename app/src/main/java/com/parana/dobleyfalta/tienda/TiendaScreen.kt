@@ -193,8 +193,8 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth()
-            .clickable { navController.navigate("detalle_producto/${product.id}")},
+            .fillMaxWidth(),
+            //.clickable { navController.navigate("tienda")},
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp)
