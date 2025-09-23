@@ -50,7 +50,8 @@ fun CrearNoticiaScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            .padding(32.dp)
+            .padding(horizontal = 32.dp)
+            .padding(top = 32.dp)
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -245,7 +246,7 @@ fun CrearNoticiaScreen(navController: NavController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp),
+                .padding(top = 6.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(12.dp)
