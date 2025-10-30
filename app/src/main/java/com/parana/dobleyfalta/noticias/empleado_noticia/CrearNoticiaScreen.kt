@@ -18,14 +18,40 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.clients.RetrofitClientNoticias
+import com.parana.dobleyfalta.retrofit.models.noticia.CrearNoticiaModel
+import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
+import com.parana.dobleyfalta.retrofit.viewmodels.CrearNoticiaViewModel
 import java.time.Instant
 import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearNoticiaScreen(navController: NavController) {
+fun CrearNoticiaScreen(
+    navController: NavController,
+    viewModel: CrearNoticiaViewModel = viewModel()
+) {
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val success by viewModel.success.collectAsState()
+
+    if (loading) {
+        CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+    }
+
+    error?.let {
+        Text("Error: $it", color = Color.Red)
+    }
+
+    if (success) {
+        LaunchedEffect(Unit) {
+            navController.navigate("noticias")
+        }
+    }
+
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
@@ -36,7 +62,6 @@ fun CrearNoticiaScreen(navController: NavController) {
     var contenidoNoticia by remember { mutableStateOf("") }
     var fechaPublicacion by remember { mutableStateOf("") }
     var urlNoticia by remember { mutableStateOf("") }
-
 
     var tituloError by remember { mutableStateOf<String?>(null) }
     var contenidoError by remember { mutableStateOf<String?>(null) }
@@ -220,6 +245,7 @@ fun CrearNoticiaScreen(navController: NavController) {
             onClick = {
                 tituloError = null
                 contenidoError = null
+                fechaError = null
                 urlError = null
                 var formValido = true
 
@@ -241,7 +267,14 @@ fun CrearNoticiaScreen(navController: NavController) {
                 }
 
                 if (formValido) {
-                    navController.navigate("noticias")
+                    val noticia = CrearNoticiaModel(
+                        titulo = tituloNoticia,
+                        contenido = contenidoNoticia,
+                        fechaPublicacion = fechaPublicacion + "T00:00:00",
+                        imagen = urlNoticia
+                    )
+
+                    viewModel.crearNoticia(noticia)
                 }
             },
             modifier = Modifier

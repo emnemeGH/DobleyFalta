@@ -12,6 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DobleYFalta"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <!-- 🔑 Agregar la API Key de Google Maps aquí -->

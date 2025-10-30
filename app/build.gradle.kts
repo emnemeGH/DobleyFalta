@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.bundles.compose)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.compose.ui.tooling)
     testImplementation(libs.junit)

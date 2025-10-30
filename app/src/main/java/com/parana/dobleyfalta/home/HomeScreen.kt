@@ -28,7 +28,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,16 +54,19 @@ import com.parana.dobleyfalta.jornadas.LightGrey
 import com.parana.dobleyfalta.jornadas.LiveGreen
 import com.parana.dobleyfalta.jornadas.Partido
 import com.parana.dobleyfalta.jornadas.PrimaryOrange
-import com.parana.dobleyfalta.noticias.Noticia
-import com.parana.dobleyfalta.noticias.getFechaPublicacion
-import com.parana.dobleyfalta.noticias.noticias
+import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
+import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
+import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import com.parana.dobleyfalta.tabla.TablaLiga
 import com.parana.dobleyfalta.tabla.equiposTabla
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 @Composable
 fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
+
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
@@ -70,7 +78,8 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             .fillMaxSize()
             .background(DarkBlue)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(horizontal = 24.dp)
+            .padding(top = 24.dp)
     ) {
 
         //SECCIÓN DE PARTIDOS
@@ -169,7 +178,7 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             NoticiasSection(navController)
         }
 
-        Spacer(modifier = Modifier.height(80.dp))
+//        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -329,36 +338,73 @@ val partidosProximos = listOf(
 
 @Composable
 fun NoticiasSection(navController: NavController) {
+
+    val repository = remember { NoticiasRepository() }
+    val scope = rememberCoroutineScope()
+
+    var listaNoticias by remember { mutableStateOf(listOf<NoticiaApiModel>()) }
+    var cargando by remember { mutableStateOf(true) }
+    var errorCarga by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                listaNoticias = repository.obtenerNoticias()
+                errorCarga = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                errorCarga = true
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
     // Ordenar las noticias por fecha (más recientes primero)
-    val listaNoticiasOrdenadas = remember {
-        noticias.sortedByDescending { it.getFechaPublicacion() }
+    val listaNoticiasOrdenadas = listaNoticias.sortedByDescending {
+        try {
+            LocalDateTime.parse(it.fechaPublicacion).toLocalDate()
+        } catch (e: Exception) {
+            LocalDate.MIN
+        }
     }
 
     val noticiasHome = listaNoticiasOrdenadas.take(3)
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        items(noticiasHome) { noticia ->
-            NoticiaMiniCard(
-                noticia = noticia,
-                alHacerClick = { navController.navigate("detalle_noticia/${noticia.id}") }
-            )
+        if (cargando) {
+            Text("Cargando noticias...", color = Color.White)
+        } else if (errorCarga) {
+            Text("Error al cargar noticias", color = Color.Red)
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(noticiasHome) { noticia ->
+                    NoticiaMiniCard(
+                        noticia = noticia,
+                        alHacerClick = { navController.navigate("detalle_noticia/${noticia.idNoticia}") }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 fun NoticiaMiniCard(
-    noticia: Noticia,
+    noticia: NoticiaApiModel,
     alHacerClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth() // tamaño fijo de la card
-            .height(400.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = alHacerClick),
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
@@ -376,7 +422,7 @@ fun NoticiaMiniCard(
             )
 
             // Texto abajo
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = noticia.titulo,
                     color = Color.White,
@@ -388,13 +434,11 @@ fun NoticiaMiniCard(
                     text = noticia.contenido,
                     color = LightGrey,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    modifier = Modifier.padding(vertical = 8.dp),
                     maxLines = 4
                 )
                 Text(
-                    text = noticia.getFechaPublicacion()
-                        ?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                        ?: "Fecha no disponible",
+                    text = noticia.getFechaPublicacionFormateada(),
                     color = LightGrey,
                     fontSize = 12.sp
                 )

@@ -23,6 +23,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 
+data class Noticia(
+    val id: Int, // Agregado para la navegación
+    val titulo: String,
+    val contenido: String,
+    val fechaPublicacion: String,
+    val imagen: String
+)
+
 @Composable
 fun DetalleNoticiasScreen(
     navController: NavController,
