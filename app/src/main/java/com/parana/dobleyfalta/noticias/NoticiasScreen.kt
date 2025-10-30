@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.home.NoticiaMiniCard
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL_NOTICIAS
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import kotlinx.coroutines.launch
@@ -223,7 +224,7 @@ fun NoticiaDestacadaCardApi(
                     .height(200.dp)
             ) {
                 AsyncImage(
-                    model = noticia.imagen,
+                    model = "${BASE_URL_NOTICIAS}${noticia.imagen}",
                     contentDescription = "Imagen de la noticia",
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop

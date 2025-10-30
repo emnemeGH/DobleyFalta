@@ -27,6 +27,18 @@ import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import com.parana.dobleyfalta.retrofit.viewmodels.CrearNoticiaViewModel
 import java.time.Instant
 import java.time.ZoneOffset
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import android.util.Base64
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import java.io.InputStream
+import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +73,6 @@ fun CrearNoticiaScreen(
     var tituloNoticia by remember { mutableStateOf("") }
     var contenidoNoticia by remember { mutableStateOf("") }
     var fechaPublicacion by remember { mutableStateOf("") }
-    var urlNoticia by remember { mutableStateOf("") }
 
     var tituloError by remember { mutableStateOf<String?>(null) }
     var contenidoError by remember { mutableStateOf<String?>(null) }
@@ -77,6 +88,7 @@ fun CrearNoticiaScreen(
             .background(DarkBlue)
             .padding(horizontal = 32.dp)
             .padding(top = 32.dp)
+            .verticalScroll(rememberScrollState())
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -211,35 +223,49 @@ fun CrearNoticiaScreen(
             }
         )
 
-        OutlinedTextField(
-            value = urlNoticia,
-            onValueChange = {
-                urlNoticia = it
-                urlError = null
-            },
-            label = { Text("Imagen URL", color = LightGrey) },
+        val context = LocalContext.current
+        var imagenBase64 by remember { mutableStateOf<String?>(null) }
+        var imagenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
+
+
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent(),
+            onResult = { uri ->
+                if (uri != null) {
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val bytes = inputStream?.readBytes()
+                    inputStream?.close()
+
+                    if (bytes != null) {
+                        imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+
+                        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        imagenPreview = bitmap.asImageBitmap()
+                    }
+                }
+            }
+        )
+
+        Button(
+            onClick = { launcher.launch("image/*") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            singleLine = true,
-            isError = urlError != null,
-            supportingText = {
-                urlError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Seleccionar imagen", color = Color.White, fontWeight = FontWeight.Bold)
+        }
 
-        )
+        imagenPreview?.let { img ->
+            Image(
+                bitmap = img,
+                contentDescription = "Vista previa",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 16.dp)
+            )
+        }
 
         Button(
             onClick = {
@@ -261,20 +287,22 @@ fun CrearNoticiaScreen(
                     fechaError = "La fecha es obligatoria"
                     formValido = false
                 }
-                if (urlNoticia.isBlank()) {
-                    urlError = "La URL es obligatoria"
+                if (imagenBase64 == null) {
+                    urlError = "Debe seleccionar una imagen"
                     formValido = false
                 }
 
                 if (formValido) {
-                    val noticia = CrearNoticiaModel(
-                        titulo = tituloNoticia,
-                        contenido = contenidoNoticia,
-                        fechaPublicacion = fechaPublicacion + "T00:00:00",
-                        imagen = urlNoticia
-                    )
+                    imagenBase64?.let {
+                        val noticia = CrearNoticiaModel(
+                            titulo = tituloNoticia,
+                            contenido = contenidoNoticia,
+                            fechaPublicacion = fechaPublicacion + "T00:00:00",
+                            imagen = it
+                        )
 
-                    viewModel.crearNoticia(noticia)
+                        viewModel.crearNoticia(noticia)
+                    }
                 }
             },
             modifier = Modifier
