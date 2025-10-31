@@ -23,6 +23,10 @@ class NoticiasRepository {
         return api.getNoticiaPorId(id)
     }
 
+    suspend fun actualizarNoticia(id: Int, noticia: CrearNoticiaModel): NoticiaApiModel {
+        return api.actualizarNoticia(id, noticia)
+    }
+
     suspend fun crearNoticia(noticia: CrearNoticiaModel): Response<CrearNoticiaModel> {
         return api.crearNoticia(noticia)
     }

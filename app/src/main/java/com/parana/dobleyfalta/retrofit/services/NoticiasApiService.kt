@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface NoticiasApiService {
@@ -15,6 +16,9 @@ interface NoticiasApiService {
 
     @GET("api/noticias/{id}")
     suspend fun getNoticiaPorId(@Path("id") id: Int): NoticiaApiModel
+
+    @PUT("api/noticias/{id}")
+    suspend fun actualizarNoticia(@Path("id") id: Int, @Body noticia: CrearNoticiaModel): NoticiaApiModel
 
     @POST("api/noticias")
     suspend fun crearNoticia(@Body nuevaNoticia: CrearNoticiaModel): Response<CrearNoticiaModel>

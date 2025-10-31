@@ -142,8 +142,12 @@ fun AppNavHost(
         composable("recuperar_contraseña") {
             RecuperarContraseñaScreen(navController = navController)
         }
-        composable("editar_noticia") {
-            EditarNoticiaScreen(navController = navController)
+        composable(
+            "editar_noticia/{idNoticia}",
+            arguments = listOf(navArgument("idNoticia") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("idNoticia") ?: 0
+            EditarNoticiaScreen(navController = navController, noticiaId = id)
         }
         composable("crear_noticia") {
             CrearNoticiaScreen(navController = navController)

@@ -164,7 +164,7 @@ fun NoticiasScreen(navController: NavController) {
                             alBorrarClick = {
                                 mostrarConfirmacionBorrado = true
                             },
-                            alEditarClick = { navController.navigate("editar_noticia") }
+                            alEditarClick = { navController.navigate("editar_noticia/${noticia.idNoticia}") }
                         )
                     }
                 }
