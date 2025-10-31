@@ -37,6 +37,8 @@ import android.util.Base64
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.window.Dialog
+import com.parana.dobleyfalta.noticias.PrimaryOrange
 import java.io.InputStream
 import java.io.ByteArrayOutputStream
 
@@ -51,7 +53,16 @@ fun CrearNoticiaScreen(
     val success by viewModel.success.collectAsState()
 
     if (loading) {
-        CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
     }
 
     error?.let {

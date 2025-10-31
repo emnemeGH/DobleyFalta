@@ -13,15 +13,14 @@ import retrofit2.Response
  */
 class NoticiasRepository {
 
-    // Obtenemos la instancia del servicio de noticias desde el client
     private val api = RetrofitClientNoticias.noticiasApiService
 
-    /**
-     * Función suspendida → se ejecuta dentro de una coroutine.
-     * Llama al endpoint GET /noticias del backend.
-     */
     suspend fun obtenerNoticias(): List<NoticiaApiModel> {
         return api.getNoticias()
+    }
+
+    suspend fun obtenerNoticiaPorId(id: Int): NoticiaApiModel {
+        return api.getNoticiaPorId(id)
     }
 
     suspend fun crearNoticia(noticia: CrearNoticiaModel): Response<CrearNoticiaModel> {

@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClientNoticias {
     val noticiasApiService: NoticiasApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(ApiConstants.BASE_URL_NOTICIAS)
+            .baseUrl(ApiConstants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(NoticiasApiService::class.java)

@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -28,13 +29,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.home.NoticiaMiniCard
-import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL_NOTICIAS
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import kotlinx.coroutines.launch
@@ -223,12 +225,28 @@ fun NoticiaDestacadaCardApi(
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
+                var cargandoImagen by remember { mutableStateOf(true) }
+
                 AsyncImage(
-                    model = "${BASE_URL_NOTICIAS}${noticia.imagen}",
+                    model = "${BASE_URL}${noticia.imagen}",
                     contentDescription = "Imagen de la noticia",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { cargandoImagen = false },
+                    onLoading = { cargandoImagen = true },
+                    onError = { cargandoImagen = false }
                 )
+
+                if (cargandoImagen) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryOrange)
+                    }
+                }
 
                 Row(
                     modifier = Modifier
@@ -290,7 +308,9 @@ fun NoticiaDestacadaCardApi(
                     text = noticia.contenido,
                     color = LightGrey,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis // Muestra "..." si el texto excede las líneas
                 )
 
                 Text(

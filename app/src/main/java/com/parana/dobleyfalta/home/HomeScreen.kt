@@ -3,18 +3,7 @@ package com.parana.dobleyfalta.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,15 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +27,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -55,6 +40,7 @@ import com.parana.dobleyfalta.jornadas.LiveGreen
 import com.parana.dobleyfalta.jornadas.Partido
 import com.parana.dobleyfalta.jornadas.PrimaryOrange
 import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import com.parana.dobleyfalta.tabla.TablaLiga
@@ -411,15 +397,34 @@ fun NoticiaMiniCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-            // Imagen arriba
-            AsyncImage(
-                model = noticia.imagen,
-                contentDescription = "Imagen de la noticia",
+            var cargandoImagen by remember { mutableStateOf(true) }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp),
-                contentScale = ContentScale.Crop
-            )
+                    .height(200.dp)
+            ) {
+                AsyncImage(
+                    model = "${BASE_URL}${noticia.imagen}",
+                    contentDescription = "Imagen de la noticia",
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { cargandoImagen = false },
+                    onLoading = { cargandoImagen = true },
+                    onError = { cargandoImagen = false }
+                )
+
+                if (cargandoImagen) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
 
             // Texto abajo
             Column(modifier = Modifier.padding(12.dp)) {
@@ -435,7 +440,8 @@ fun NoticiaMiniCard(
                     color = LightGrey,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    maxLines = 4
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = noticia.getFechaPublicacionFormateada(),
