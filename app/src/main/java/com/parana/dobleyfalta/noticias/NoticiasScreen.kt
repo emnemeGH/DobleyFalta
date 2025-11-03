@@ -75,6 +75,7 @@ fun NoticiasScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     var listaNoticias by remember { mutableStateOf(listOf<NoticiaApiModel>()) }
+    var noticiaABorrar by remember { mutableStateOf<NoticiaApiModel?>(null) }
     var cargando by remember { mutableStateOf(true) }
     var errorCarga by remember { mutableStateOf(false) }
 
@@ -162,6 +163,7 @@ fun NoticiasScreen(navController: NavController) {
                             noticia = noticia,
                             alHacerClick = { navController.navigate("detalle_noticia/${noticia.idNoticia}") },
                             alBorrarClick = {
+                                noticiaABorrar = noticia
                                 mostrarConfirmacionBorrado = true
                             },
                             alEditarClick = { navController.navigate("editar_noticia/${noticia.idNoticia}") }
@@ -186,6 +188,19 @@ fun NoticiasScreen(navController: NavController) {
                 Button(
                     onClick = {
                         mostrarConfirmacionBorrado = false
+
+                        noticiaABorrar?.let { noticia ->
+                            scope.launch {
+                                try {
+                                    val exito = repository.eliminarNoticia(noticia.idNoticia)
+                                    if (exito) {
+                                        listaNoticias = listaNoticias.filter { it.idNoticia != noticia.idNoticia }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {

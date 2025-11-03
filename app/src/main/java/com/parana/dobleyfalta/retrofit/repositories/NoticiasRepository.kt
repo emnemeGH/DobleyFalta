@@ -30,4 +30,9 @@ class NoticiasRepository {
     suspend fun crearNoticia(noticia: CrearNoticiaModel): Response<CrearNoticiaModel> {
         return api.crearNoticia(noticia)
     }
+
+    suspend fun eliminarNoticia(id: Int): Boolean {
+        val response = api.eliminarNoticia(id)
+        return response.isSuccessful
+    }
 }
