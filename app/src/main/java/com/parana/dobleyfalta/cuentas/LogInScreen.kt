@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -15,6 +16,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,23 +34,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.MainViewModel
+import com.parana.dobleyfalta.retrofit.viewmodels.LoginViewModel
 import kotlinx.coroutines.delay
-
-data class User(
-    val email: String,
-    val contraseña: String,
-    val rol: String
-)
-
-val usuarios = listOf(
-    User("ad", "ad", "admin"),
-    User("em", "em", "empleado"),
-    User("usu", "usu", "usuario"),
-    User("empleado3@test.com", "3333", "empleado")
-)
 
 @Composable
 fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
@@ -66,6 +58,23 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     var emailError by remember { mutableStateOf<String?>(null) }
     var contraseñaError by remember { mutableStateOf<String?>(null) }
     var mostrarRecuperar by remember { mutableStateOf(false) }
+
+    val viewModel: LoginViewModel = viewModel()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
 
     Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
         modifier = Modifier
@@ -169,6 +178,14 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                 contraseñaError?.let {
                     Text(it, color = Color.Red, fontSize = 12.sp)
                 }
+
+                error?.let {
+                    Text(
+                        text = it,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                    )
+                }
             },
         )
 
@@ -185,19 +202,19 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                 emailError = null
                 contraseñaError = null
 
-                val user = validarLogin(v_email, v_contraseña)
-
                 when {
                     v_email.isBlank() -> emailError = "El email es obligatorio"
                     v_contraseña.isBlank() -> contraseñaError = "La contraseña es obligatoria"
-                    user == null -> contraseñaError = "Credenciales incorrectas"
                     else -> {
-                        mainViewModel.setRol(user.rol)
+                        viewModel.login(v_email, v_contraseña) {
 
-                        if (user.rol == "admin") {
-                            navController.navigate("admin")
-                        } else {
-                            navController.navigate("home")
+                            val rol = viewModel.getRolUsuario()
+
+                            if (rol == "administrador") {
+                                navController.navigate("admin")
+                            } else {
+                                navController.navigate("home")
+                            }
                         }
                     }
                 }
@@ -239,10 +256,6 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
         }
 
     }
-}
-
-fun validarLogin(p_email: String, p_contraseña: String): User? {
-    return usuarios.find { it.email == p_email && it.contraseña == p_contraseña }
 }
 
 
