@@ -136,8 +136,12 @@ fun AppNavHost(
         composable("crear_usuario") {
             CreateUserScreen(navController = navController)
         }
-        composable("admin_editar_usuario") {
-            AdminEditUserScreen(navController = navController)
+        composable(
+            "admin_editar_usuario/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getInt("idUsuario")
+            AdminEditUserScreen(navController = navController, idUsuario = idUsuario ?: 0)
         }
         composable("recuperar_contraseña") {
             RecuperarContraseñaScreen(navController = navController)

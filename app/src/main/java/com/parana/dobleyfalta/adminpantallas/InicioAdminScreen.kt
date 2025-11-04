@@ -9,6 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,10 +21,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.viewmodels.admin.AdminUsuariosViewModel
 
-data class Usuario(val name: String, val email: String)
 
 @Composable
 fun AdminScreen(navController: NavController) {
@@ -31,14 +35,15 @@ fun AdminScreen(navController: NavController) {
     val LightGrey = Color(0xFFA0B3C4)
     val RedDelete = colorResource(id = R.color.red_delete)
 
-    val usuarios = listOf(
-        Usuario("Juan Pérez", "juan@example.com"),
-        Usuario("Ana Gómez", "ana@example.com"),
-        Usuario("Carlos Ruiz", "carlos@example.com"),
-        Usuario("Emanuel Neme", "em@gmail.com"),
-        Usuario("Naomi Kakisu", "na@gmail.com"),
-        Usuario("Conrado Peloso", "co@gmail.com"),
-    )
+    val viewModel: AdminUsuariosViewModel = viewModel()
+
+    val usuarios by viewModel.usuarios.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarUsuarios()
+    }
 
     Column(
         modifier = Modifier
@@ -76,92 +81,108 @@ fun AdminScreen(navController: NavController) {
             }
         }
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = DarkGrey),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (loading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        } else if (error != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(error ?: "", color = Color.Red)
+            }
+        } else {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = DarkGrey),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
-                Text(
-                    "Lista de Usuarios",
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Lista de Usuarios",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
 
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(usuarios) { usuario ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF2C405A), RoundedCornerShape(12.dp))
-                                .padding(12.dp),
-                            //Las propiedades de alineación (horizontalArrangement, verticalAlignment, etc.) afectan solo a los hijos directos del contenedor.
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            //Hay solo 2 Rows que son hijos del Row padre
-                            //De esta forma el primer row queda a la izquierda y el segundo a la derecha
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFA0B3C4)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        //Text() espera un String, no acepta Char
-                                        text = usuario.name.first().toString(),
-                                        color = DarkBlue,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                                Column(modifier = Modifier.padding(start = 12.dp)) {
-                                    Text(
-                                        usuario.name,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        usuario.email,
-                                        color = LightGrey,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            }
-
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(usuarios) { usuario ->
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF2C405A), RoundedCornerShape(12.dp))
+                                    .padding(12.dp),
+                                //Las propiedades de alineación (horizontalArrangement, verticalAlignment, etc.) afectan solo a los hijos directos del contenedor.
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                IconButton(
-                                    onClick = { navController.navigate("admin_editar_usuario") },
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_edit),
-                                        contentDescription = "Editar",
-                                        tint = colorResource(id = R.color.blue_edit),
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                //Hay solo 2 Rows que son hijos del Row padre
+                                //De esta forma el primer row queda a la izquierda y el segundo a la derecha
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFA0B3C4)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            //Text() espera un String, no acepta Char
+                                            text = usuario.nombre.first().toString(),
+                                            color = DarkBlue,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                                        Text(
+                                            usuario.nombre,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            usuario.correo,
+                                            color = LightGrey,
+                                            fontSize = 13.sp
+                                        )
+                                        Text(
+                                            usuario.rol.name,
+                                            color = LightGrey,
+                                            fontSize = 11.sp,
+                                            modifier = Modifier.padding(top = 1.dp)
+                                        )
+                                    }
                                 }
-                                IconButton(
-                                    onClick = { },
-                                    modifier = Modifier.size(36.dp)
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
                                 ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_delete),
-                                        contentDescription = "Eliminar",
-                                        tint = RedDelete,
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                    IconButton(
+                                        onClick = { navController.navigate("admin_editar_usuario/${usuario.idUsuario}") },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_edit),
+                                            contentDescription = "Editar",
+                                            tint = colorResource(id = R.color.blue_edit),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_delete),
+                                            contentDescription = "Eliminar",
+                                            tint = RedDelete,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

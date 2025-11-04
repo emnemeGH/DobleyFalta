@@ -18,8 +18,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.viewmodels.admin.AdminCrearUsuarioViewModel
 
 @Composable
 fun CreateUserScreen(navController: NavController) {
@@ -38,7 +41,27 @@ fun CreateUserScreen(navController: NavController) {
     var emailError by remember { mutableStateOf<String?>(null) }
     var contraseñaError by remember { mutableStateOf<String?>(null) }
 
-    val emailsExistentes = listOf("juan@mail.com", "maria@mail.com")
+    val viewModel: AdminCrearUsuarioViewModel = viewModel()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
+    if (error != null) {
+        contraseñaError = error
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,6 +167,7 @@ fun CreateUserScreen(navController: NavController) {
             onValueChange = {
                 contraseña = it
                 contraseñaError = null
+                viewModel.clearError()
             },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
@@ -217,9 +241,6 @@ fun CreateUserScreen(navController: NavController) {
                 } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     emailError = "El formato del email no es válido"
                     valido = false
-                } else if (emailsExistentes.contains(email.trim())) {
-                    emailError = "Ese email ya está registrado"
-                    valido = false
                 }
 
                 if (contraseña.isBlank()) {
@@ -229,8 +250,11 @@ fun CreateUserScreen(navController: NavController) {
                     contraseñaError = "La contraseña debe tener al menos 6 caracteres"
                     valido = false
                 }
+
                 if (valido) {
-                    navController.navigate("admin")
+                    viewModel.crearEmpleado(usuario, email, contraseña) {
+                        navController.navigate("admin")
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),

@@ -21,17 +21,17 @@ import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 
 @Composable
-fun AdminEditUserScreen(navController: NavController) {
+fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var username by remember { mutableStateOf("Emanuel Neme") }
-    var email by remember { mutableStateOf("em@gmail.com") }
-    var password by remember { mutableStateOf("123456") }
-    val role by remember { mutableStateOf("Usuario") }
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val role by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
