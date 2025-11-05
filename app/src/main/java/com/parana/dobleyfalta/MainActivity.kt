@@ -48,16 +48,6 @@ fun MainScreenWithBottomNav(mainViewModel: MainViewModel) {
     }
 }
 
-@Composable
-fun PantallaPrincipal(navController: androidx.navigation.NavController, mainViewModel: MainViewModel) {
-    androidx.compose.material3.Button(
-        onClick = { navController.navigate("equipos") },
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Text("Ver Equipos")
-    }
-}
-
 // Scaffold
 // Es un "contenedor base" en Jetpack Compose para estructurar la UI de una pantalla.
 // Permite colocar elementos comunes de una app, como:

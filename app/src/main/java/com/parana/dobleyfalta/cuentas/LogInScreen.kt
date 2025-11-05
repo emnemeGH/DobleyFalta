@@ -38,13 +38,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.MainViewModel
 import com.parana.dobleyfalta.retrofit.models.auth.Rol
 import com.parana.dobleyfalta.retrofit.viewmodels.LoginViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun LoginScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)

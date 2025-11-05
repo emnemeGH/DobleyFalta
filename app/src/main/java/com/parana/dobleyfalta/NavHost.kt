@@ -49,17 +49,14 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = "home",
         modifier = Modifier.padding(innerPadding)
     ) {
         composable("login") {
-            LoginScreen(navController, mainViewModel)
+            LoginScreen(navController)
         }
         composable("registro") {
             RegistroScreen(navController)
-        }
-        composable("principal") {
-            PantallaPrincipal(navController, mainViewModel)
         }
         composable("home") {
             HomeScreen(navController, mainViewModel)
