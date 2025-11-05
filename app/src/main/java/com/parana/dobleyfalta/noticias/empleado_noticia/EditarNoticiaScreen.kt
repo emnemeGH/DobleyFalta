@@ -141,8 +141,6 @@ fun EditarNoticiaScreen(navController: NavController, noticiaId: Int) {
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
-
         Text(
             text = "Editar Noticia",
             fontSize = 28.sp,

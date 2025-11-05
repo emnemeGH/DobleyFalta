@@ -189,7 +189,7 @@ fun EquipoFila(equipo: EquipoTabla) {
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(equipo.nombre, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text(equipo.nombre, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
         }
         CeldaEquipo(equipo.puntos.toString(), Modifier.width(60.dp))
         CeldaEquipo(equipo.pj.toString(), Modifier.width(50.dp))

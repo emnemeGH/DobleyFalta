@@ -15,14 +15,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.parana.dobleyfalta.ui.theme.DobleYFaltaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val mainViewModel: MainViewModel = viewModel()
-            // Usa una Surface en lugar de un tema específico para un ejemplo genérico.
-            Surface(color = MaterialTheme.colorScheme.background) {
+            DobleYFaltaTheme {
                 MainScreenWithBottomNav(mainViewModel)
             }
         }
@@ -44,7 +44,11 @@ fun MainScreenWithBottomNav(mainViewModel: MainViewModel) {
         }
     ) { innerPadding ->
         // Coloca el NavHost en el slot de content y pasa el padding a los composables hijos
-        AppNavHost(navController = navController, innerPadding = innerPadding, mainViewModel = mainViewModel)
+        AppNavHost(
+            navController = navController,
+            innerPadding = innerPadding,
+            mainViewModel = mainViewModel
+        )
     }
 }
 

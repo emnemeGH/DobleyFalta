@@ -56,7 +56,7 @@ fun RecuperarContraseñaScreen(navController: NavController) {
     ) {
         Text(
             text = "Recuperar Contraseña",
-            fontSize = 32.sp,
+            fontSize = 28.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 32.dp)
