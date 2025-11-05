@@ -12,6 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +28,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.models.auth.Usuario
+import com.parana.dobleyfalta.retrofit.repositories.UsuariosRepository
 import com.parana.dobleyfalta.retrofit.viewmodels.admin.AdminUsuariosViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -40,6 +47,12 @@ fun AdminScreen(navController: NavController) {
     val usuarios by viewModel.usuarios.collectAsState()
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    var usuarioABorrar by remember { mutableStateOf<Usuario?>(null) }
+    var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
+
+    val repository = remember { UsuariosRepository() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.cargarUsuarios()
@@ -173,7 +186,10 @@ fun AdminScreen(navController: NavController) {
                                         )
                                     }
                                     IconButton(
-                                        onClick = { },
+                                        onClick = {
+                                            usuarioABorrar = usuario
+                                            mostrarConfirmacionBorrado = true
+                                        },
                                         modifier = Modifier.size(36.dp)
                                     ) {
                                         Icon(
@@ -187,38 +203,49 @@ fun AdminScreen(navController: NavController) {
                             }
                         }
                     }
+                    if (mostrarConfirmacionBorrado) {
+                        AlertDialog(
+                            onDismissRequest = { mostrarConfirmacionBorrado = false },
+                            title = {
+                                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
+                            },
+                            text = {
+                                Text("¿Seguro que quieres eliminar este usuario?", color = LightGrey)
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        mostrarConfirmacionBorrado = false
+
+                                        usuarioABorrar?.let { usuario ->
+                                            scope.launch {
+                                                try {
+                                                    val exito = repository.eliminarUsuario(usuario.idUsuario)
+                                                    if (exito) {
+                                                        viewModel.cargarUsuarios()
+                                                    }
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                }
+                                            }
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                ) {
+                                    Text("Borrar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { mostrarConfirmacionBorrado = false }) {
+                                    Text("Cancelar", color = PrimaryOrange)
+                                }
+                            },
+                            containerColor = DarkGrey,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-//GLOSARIO
-
-//LazyColumn
-//es un componente que muestra una lista vertical (lazy).
-//lazy significa que solo renderiza en pantalla los elementos visibles, no todos al mismo tiempo
-//LazyColumn está pensado principalmente para listas largas de elementos que se muestran en forma vertical.
-//El nombre "Lazy" viene de que no renderiza todos los ítems al mismo tiempo, sino solo los que entran en
-// pantalla, y a medida que hacés scroll va creando / destruyendo los demás.
-// Esto ahorra mucha memoria y mejora el rendimiento.
-//no acepta composables sueltos. El compilador espera llamadas a item { ... } o items(...) { ... }.
-
-//verticalArrangement = Arrangement.spacedBy(8.dp)
-//verticalArrangement → controla cómo se acomodan los elementos en el eje vertical.
-//Arrangement.spacedBy(8.dp) → agrega un espaciado fijo de 8dp entre cada item de la lista.
-
-//items(usuarios)
-// dibujá un ítem por cada elemento de la lista usuarios.
-
-//{ Usuario -> ... }
-//Es una lambda con un parámetro. (las funciones lambda usan -> para separar los parametros del cuerpo)
-//Ese parámetro es cada elemento de la lista usuarios que se está procesando en ese momento.
-
-//Box
-//Es un contenedor de layout que se usa principalmente para superponer elementos
-// (uno arriba del otro), o para tener un solo hijo posicionado dentro.
-
-//first()
-//es una función que devuelve el primer elemento de una colección o secuencia.
-//Pero en este caso no se una sobre una lista, sino sobre un String.

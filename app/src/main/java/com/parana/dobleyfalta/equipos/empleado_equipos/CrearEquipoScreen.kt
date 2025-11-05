@@ -201,35 +201,3 @@ private fun CampoDeTexto(
     )
 }
 
-// popBackStack()
-// Es un método del NavController que elimina (pop) la pantalla actual de la pila de navegación
-// y vuelve a la pantalla anterior.
-// Sintaxis básica:
-// navController.popBackStack()
-// Ejemplo:
-// Pantalla A -> Pantalla B -> Pantalla C
-// Si estando en C se ejecuta navController.popBackStack(),
-// se elimina C y se vuelve a B.
-
-//Qué hace OutlinedTextField
-//OutlinedTextField(
-//    value = ciudad,
-//    onValueChange = { nuevoTexto -> ciudad = nuevoTexto }
-//)
-//value → el texto que se va a mostrar en la UI.
-//onValueChange → una función que se ejecuta cuando el usuario escribe algo.
-//Compose no devuelve nada, solo llama a la función que vos le pasaste.
-//Esa función recibe como parámetro el nuevo texto.
-
-//Uso de it
-//Si la lambda (funcion anonima {}) tiene un solo parámetro, Kotlin permite usar it en vez de declarar un nombre:
-//OutlinedTextField(
-//    value = ciudad,
-//    onValueChange = {
-//        ciudad = it       // 'it' es el nuevo valor que escribió el usuario
-//    }
-//)
-//Aca it representa el texto que entró en el campo.
-//No lo devuelve OutlinedTextField, simplemente lo pasa como argumento a la lambda que vos definiste.
-//OutlinedTextField no devuelve nada, su trabajo es llamar a tu lambda cada vez que cambie el texto.
-//Lo que vos hagas dentro de la lambda (ej: actualizar ciudad) es tu responsabilidad.

@@ -15,11 +15,17 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.viewmodels.admin.AdminEditarUsuarioViewModel
+import kotlin.text.isBlank
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
@@ -28,10 +34,48 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var username by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val role by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
+    var mostrarContraseña by remember { mutableStateOf(false) }
+
+    var nombreError by remember { mutableStateOf<String?>(null) }
+    var correoError by remember { mutableStateOf<String?>(null) }
+    var contraseñaError by remember { mutableStateOf<String?>(null) }
+
+    val roles = listOf("Registrado", "Empleado")
+    var expanded by remember { mutableStateOf(false) }
+    var rolSeleccionado by remember { mutableStateOf(roles[0]) }
+
+    val viewModel: AdminEditarUsuarioViewModel = viewModel()
+    val usuario by viewModel.usuario.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    LaunchedEffect(idUsuario) {
+        viewModel.cargarUsuario(idUsuario)
+    }
+
+    LaunchedEffect(usuario) {
+        usuario?.let {
+            nombre = it.nombre
+            correo = it.correo
+            rolSeleccionado = it.rol.name
+        }
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -50,7 +94,7 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
             horizontalArrangement = Arrangement.Start
         ) {
             IconButton(
-                onClick = { navController.navigate("admin") },
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.padding(0.dp)
             ) {
                 Icon(
@@ -73,13 +117,22 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
         )
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
+            value = nombre,
+            onValueChange = {
+                nombre = it
+                nombreError = null
+            },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
+            isError = nombreError != null,
+            supportingText = {
+                nombreError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -92,13 +145,22 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
         )
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = correo,
+            onValueChange = {
+                correo = it
+                correoError = null
+            },
             label = { Text("Correo electrónico", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
+            isError = correoError != null,
+            supportingText = {
+                correoError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -111,14 +173,37 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
         )
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = contraseña,
+            onValueChange = {
+                contraseña = it
+                contraseñaError = null
+            },
             label = { Text("Contraseña", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
-            visualTransformation = PasswordVisualTransformation(),
+            isError = contraseñaError != null,
+            supportingText = {
+                contraseñaError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            },
+            visualTransformation = if (mostrarContraseña) VisualTransformation.None
+            else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { mostrarContraseña = !mostrarContraseña }) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (mostrarContraseña) R.drawable.hidden
+                            else R.drawable.eye_open
+                        ),
+                        contentDescription = "Mostrar/Ocultar",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Black
+                    )
+                }
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = DarkGrey,
                 unfocusedContainerColor = DarkGrey,
@@ -130,26 +215,87 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
             )
         )
 
-        OutlinedTextField(
-            value = role,
-            onValueChange = {},
-            enabled = false,
-            label = { Text("Rol", color = LightGrey) },
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                disabledTextColor = Color.Gray,
-                disabledContainerColor = DarkGrey
+                .padding(bottom = 32.dp)
+        ) {
+            OutlinedTextField(
+                value = rolSeleccionado,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Rol", color = LightGrey) },
+                modifier = Modifier
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = DarkGrey,
+                    unfocusedContainerColor = DarkGrey,
+                    unfocusedBorderColor = DarkGrey,
+                    focusedBorderColor = PrimaryOrange,
+                    cursorColor = PrimaryOrange,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    disabledTextColor = Color.Gray,
+                    disabledContainerColor = DarkGrey,
+                )
             )
-        )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                roles.forEach { rol ->
+                    DropdownMenuItem(
+                        text = { Text(rol) },
+                        onClick = {
+                            rolSeleccionado = rol
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
 
         Button(
-            onClick = { },
+            onClick = {
+
+                var valido = true
+
+                if (nombre.isBlank()) {
+                    nombreError = "El nombre es obligatorio"
+                    valido = false
+                }
+
+                if (correo.isBlank()) {
+                    correoError = "El email es obligatorio"
+                    valido = false
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+                    correoError = "El formato del email no es válido"
+                    valido = false
+                }
+
+                if (contraseña.length < 6 && contraseña.length >= 1) {
+                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
+                    valido = false
+                }
+
+                if (valido) {
+                    viewModel.actualizarUsuario(
+                        id = idUsuario,
+                        nombre = nombre,
+                        correo = correo,
+                        nuevaContrasena = contraseña,
+                        rol = rolSeleccionado
+                    ) {
+                        navController.navigate("admin")
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp),
@@ -160,6 +306,5 @@ fun AdminEditUserScreen(navController: NavController, idUsuario: Int) {
         }
     }
 }
-
 
 

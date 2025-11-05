@@ -2,6 +2,7 @@ package com.parana.dobleyfalta.retrofit.services
 
 import com.parana.dobleyfalta.retrofit.models.auth.Usuario
 import com.parana.dobleyfalta.retrofit.models.usuarios.CrearUsuarioModel
+import com.parana.dobleyfalta.retrofit.models.usuarios.UsuarioUpdateModel
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -19,7 +20,7 @@ interface UsuariosApiService {
     @PUT("api/usuarios/{id}")
     suspend fun actualizarUsuario(
         @Path("id") id: Int,
-        @Body usuario: CrearUsuarioModel
+        @Body usuario: UsuarioUpdateModel
     ): Response<Usuario>
 
     @DELETE("api/usuarios/{id}")

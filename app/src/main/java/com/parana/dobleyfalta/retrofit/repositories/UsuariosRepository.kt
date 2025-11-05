@@ -3,6 +3,7 @@ package com.parana.dobleyfalta.retrofit.repositories
 import com.parana.dobleyfalta.retrofit.clients.RetrofitClientUsuarios
 import com.parana.dobleyfalta.retrofit.models.auth.Usuario
 import com.parana.dobleyfalta.retrofit.models.usuarios.CrearUsuarioModel
+import com.parana.dobleyfalta.retrofit.models.usuarios.UsuarioUpdateModel
 import retrofit2.Response
 
 class UsuariosRepository {
@@ -21,7 +22,7 @@ class UsuariosRepository {
         return api.crearUsuario(usuario)
     }
 
-    suspend fun actualizarUsuario(id: Int, usuario: CrearUsuarioModel): Response<Usuario> {
+    suspend fun actualizarUsuario(id: Int, usuario: UsuarioUpdateModel): Response<Usuario> {
         return api.actualizarUsuario(id, usuario)
     }
 
