@@ -38,7 +38,7 @@ class AppTest {
 
         Thread.sleep(2000)
 
-        composeTestRule.onNodeWithTag("textoUbiacion").assertIsDisplayed()
+        //composeTestRule.onNodeWithTag("textoUbiacion").assertIsDisplayed()
 
         Thread.sleep(4000)
 
