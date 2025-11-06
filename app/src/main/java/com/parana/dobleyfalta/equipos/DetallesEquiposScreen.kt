@@ -1,7 +1,9 @@
 package com.parana.dobleyfalta.equipos
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -70,7 +73,7 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
         EquipoDetalles(
             "CAE",
             R.drawable.escudo_cae,
-            "El Club Atlético Estudiantes es una institución deportiva de la ciudad Argentina de Paraná en la Provincia de Entre Ríos.El Club Atlético Estudiantes (CAE) fue fundado el 5 de mayo de 1905. El club nació para jugar al fútbol y su primer nombre fue “Estudiantes Football Club”, hasta mediados de la década del 30 que se dejó de practicar dicho deporte y por ende el club fue renombrado como en la actualidad y su principal deporte actualmente es el rugby, por el cual es reconocido nacionalmente",
+            "El Club Atlético Estudiantes es una institución deportiva de la ciudad Argentina de Paraná en la Provincia de Entre Ríos.El Club Atlético Estudiantes (CAE) fue fundado el 5 de mayo de 1905. \n \n El club nació para jugar al fútbol y su primer nombre fue “Estudiantes Football Club”, hasta mediados de la década del 30 que se dejó de practicar dicho deporte y por ende el club fue renombrado como en la actualidad y su principal deporte actualmente es el rugby, por el cual es reconocido nacionalmente",
             "Los Vascos 729",
             3,
             -31.7199324, -60.5372966
@@ -82,7 +85,7 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Informacion", color = TextWhite) },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -92,38 +95,37 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBlue)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    navigationIconContentColor = Color.White
+                )
             )
         },
         containerColor = DarkBlue
-    ) { innerPadding ->
+    ) {
         if (equipo != null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Aplica el padding del Scaffold
                     .verticalScroll(rememberScrollState()), // Permite el scroll vertical
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Escudo
                 Image(
                     painter = painterResource(id = equipo.escudoUrl),
                     contentDescription = "Escudo de ${equipo.nombre}",
                     modifier = Modifier
-                        .size(180.dp)
-                        .padding(top = 20.dp)
+                        .size(200.dp)
+                        .padding(top = 50.dp)
                 )
 
-                // Nombre
                 Text(
                     text = equipo.nombre,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PrimaryOrange,
+                    color = Color.White,
                     modifier = Modifier.padding(top = 16.dp)
                 )
 
-                // Card para la descripción
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,12 +139,15 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                     Text(
                         text = equipo.descripcion,
                         fontSize = 16.sp,
-                        color = TextWhite,
-                        modifier = Modifier.padding(16.dp)
+                        lineHeight = 22.sp,
+                        color = TextWhite.copy(alpha = 0.95f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .border(BorderStroke(2.dp, Color.White.copy(alpha = 0.85f)), RoundedCornerShape(16.dp))
+                            .padding(16.dp)
                     )
                 }
 
-                // Card para la ubicación y el mapa
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -157,19 +162,20 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .border(BorderStroke(2.dp, Color.White.copy(alpha = 0.85f)), RoundedCornerShape(16.dp))
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Ubicación: ${equipo.ubicacion}",
+                            text = "Direccion: ${equipo.ubicacion}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = PrimaryOrange,
+                            color = Color.White,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.testTag("textoUbicacion")
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         val paranaLatLng = LatLng(equipo.lat, equipo.lng)
                         val cameraPositionState = rememberCameraPositionState {

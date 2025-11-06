@@ -1,5 +1,9 @@
 package com.parana.dobleyfalta.equipos.empleado_equipos
 
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,6 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -20,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.models.equipos.CrearEquipoModel
 
 @Composable
 fun CrearEquipoScreen(navController: NavController) {
@@ -32,18 +40,44 @@ fun CrearEquipoScreen(navController: NavController) {
     var nombreEquipo by remember { mutableStateOf("") }
     var ciudad by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
-    var logoUrl by remember { mutableStateOf("") }
+    var descripcionEquipo by remember { mutableStateOf("") }
+    var imagenBase64 by remember { mutableStateOf<String?>(null) }
+
+    var imagenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
 
     var nombreError by remember { mutableStateOf<String?>(null) }
     var ciudadError by remember { mutableStateOf<String?>(null) }
     var direccionError by remember { mutableStateOf<String?>(null) }
-    var logoUrlError by remember { mutableStateOf<String?>(null) }
+    var descripcionError by remember { mutableStateOf<String?>(null) }
+    var logoError by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            if (uri != null) {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bytes = inputStream?.readBytes()
+                inputStream?.close()
+
+                if (bytes != null) {
+                    imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    imagenPreview = bitmap.asImageBitmap()
+                    logoError = null
+                }
+            }
+        }
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
             .padding(horizontal = 32.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState())
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -104,15 +138,61 @@ fun CrearEquipoScreen(navController: NavController) {
             error = direccionError
         )
 
-        CampoDeTexto(
-            valor = logoUrl,
-            alCambiarValor = {
-                logoUrl = it
-                logoUrlError = null
+        OutlinedTextField(
+            value = descripcionEquipo,
+            onValueChange = {
+                descripcionEquipo = it
+                descripcionError = null
             },
-            etiqueta = "URL del Logo",
-            error = logoUrlError
+            label = { Text("Descripción", color = LightGrey) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 180.dp, max = 300.dp)
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
+                unfocusedBorderColor = CardBackground,
+                focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            isError = descripcionError != null,
+            supportingText = {
+                descripcionError?.let {
+                    Text(it, color = Color.Red, fontSize = 12.sp)
+                }
+            }
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = { launcher.launch("image/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(text = "Seleccionar imagen", color = Color.White, fontWeight = FontWeight.Bold)
+        }
+
+        imagenPreview?.let { img ->
+            Image(
+                bitmap = img,
+                contentDescription = "Vista previa",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+        logoError?.let {
+            Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -121,33 +201,47 @@ fun CrearEquipoScreen(navController: NavController) {
                 nombreError = null
                 ciudadError = null
                 direccionError = null
-                logoUrlError = null
+                logoError = null
                 var esValido = true
 
-                if (nombreEquipo.isBlank()) {
+                if (nombreEquipo.isNullOrBlank()) {
                     nombreError = "El nombre es obligatorio"
                     esValido = false
                 }
-                if (ciudad.isBlank()) {
+                if (ciudad.isNullOrBlank()) {
                     ciudadError = "La ciudad es obligatoria"
                     esValido = false
                 }
-                if (direccion.isBlank()) {
+                if (direccion.isNullOrBlank()) {
                     direccionError = "La dirección es obligatoria"
                     esValido = false
                 }
-                if (logoUrl.isBlank()) {
-                    logoUrlError = "La URL del logo es obligatoria"
+                if (descripcionEquipo.isNullOrBlank()) {
+                    descripcionError = "La descripción es obligatoria"
+                    esValido = false
+                }
+                if (imagenBase64.isNullOrBlank()) {
+                    logoError = "El logo es obligatorio"
                     esValido = false
                 }
 
                 if (esValido) {
+                    val nuevo = CrearEquipoModel(
+                        nombre = nombreEquipo,
+                        ciudad = ciudad,
+                        direccion = direccion,
+                        descripcion = direccion,
+                        logo = imagenBase64,
+                        idLiga = null,
+                        lat = null,
+                        lng = null
+                    )
                     navController.popBackStack()
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp),
+                .height(40.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -180,7 +274,7 @@ private fun CampoDeTexto(
         label = { Text(etiqueta, color = LightGrey) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = 8.dp),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = CardBackground,
