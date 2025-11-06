@@ -77,7 +77,7 @@ fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewM
                         }
                     } else {
                         IconButton(
-                            onClick = { navController.navigate("principal") },
+                            onClick = { navController.navigate("home") },
                             modifier = Modifier.padding(0.dp)
                         ) {
                             Icon(

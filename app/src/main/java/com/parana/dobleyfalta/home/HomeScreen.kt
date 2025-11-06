@@ -3,18 +3,7 @@ package com.parana.dobleyfalta.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,10 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +27,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -49,16 +39,20 @@ import com.parana.dobleyfalta.jornadas.LightGrey
 import com.parana.dobleyfalta.jornadas.LiveGreen
 import com.parana.dobleyfalta.jornadas.Partido
 import com.parana.dobleyfalta.jornadas.PrimaryOrange
-import com.parana.dobleyfalta.noticias.Noticia
-import com.parana.dobleyfalta.noticias.getFechaPublicacion
-import com.parana.dobleyfalta.noticias.noticias
+import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
+import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import com.parana.dobleyfalta.tabla.TablaLiga
 import com.parana.dobleyfalta.tabla.equiposTabla
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 @Composable
 fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
+
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
@@ -70,7 +64,8 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             .fillMaxSize()
             .background(DarkBlue)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(horizontal = 24.dp)
+            .padding(top = 24.dp)
     ) {
 
         //SECCIÓN DE PARTIDOS
@@ -169,7 +164,7 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             NoticiasSection(navController)
         }
 
-        Spacer(modifier = Modifier.height(80.dp))
+//        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -297,8 +292,8 @@ val partidosProximos = listOf(
         id = 1,
         equipo1 = "ROWING",
         equipo2 = "CAE",
-        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=SR",
-        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=EQ",
+        escudo1 = R.drawable.escudo_rowing,
+        escudo2 = R.drawable.escudo_cae,
         score1 = 0,
         score2 = 0,
         status = "Próximo",
@@ -311,10 +306,10 @@ val partidosProximos = listOf(
     ),
     Partido(
         id = 2,
-        equipo1 = "EQUIPO A",
-        equipo2 = "EQUIPO B",
-        escudo1 = "https://placehold.co/60x60/FFFFFF/1A375E?text=A",
-        escudo2 = "https://placehold.co/60x60/FFFFFF/1A375E?text=B",
+        equipo1 = "CICLISTA",
+        equipo2 = "OLIMPIA",
+        escudo1 = R.drawable.escudo_ciclista,
+        escudo2 = R.drawable.escudo_olimpia,
         score1 = 0,
         score2 = 0,
         status = "Próximo",
@@ -329,54 +324,110 @@ val partidosProximos = listOf(
 
 @Composable
 fun NoticiasSection(navController: NavController) {
+
+    val repository = remember { NoticiasRepository() }
+    val scope = rememberCoroutineScope()
+
+    var listaNoticias by remember { mutableStateOf(listOf<NoticiaApiModel>()) }
+    var cargando by remember { mutableStateOf(true) }
+    var errorCarga by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                listaNoticias = repository.obtenerNoticias()
+                errorCarga = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                errorCarga = true
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
     // Ordenar las noticias por fecha (más recientes primero)
-    val listaNoticiasOrdenadas = remember {
-        noticias.sortedByDescending { it.getFechaPublicacion() }
+    val listaNoticiasOrdenadas = listaNoticias.sortedByDescending {
+        try {
+            LocalDateTime.parse(it.fechaPublicacion).toLocalDate()
+        } catch (e: Exception) {
+            LocalDate.MIN
+        }
     }
 
     val noticiasHome = listaNoticiasOrdenadas.take(3)
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        items(noticiasHome) { noticia ->
-            NoticiaMiniCard(
-                noticia = noticia,
-                alHacerClick = { navController.navigate("detalle_noticia/${noticia.id}") }
-            )
+        if (cargando) {
+            Text("Cargando noticias...", color = Color.White)
+        } else if (errorCarga) {
+            Text("Error al cargar noticias", color = Color.Red)
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(noticiasHome) { noticia ->
+                    NoticiaMiniCard(
+                        noticia = noticia,
+                        alHacerClick = { navController.navigate("detalle_noticia/${noticia.idNoticia}") }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 fun NoticiaMiniCard(
-    noticia: Noticia,
+    noticia: NoticiaApiModel,
     alHacerClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth() // tamaño fijo de la card
-            .height(400.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = alHacerClick),
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-            // Imagen arriba
-            AsyncImage(
-                model = noticia.imagen,
-                contentDescription = "Imagen de la noticia",
+            var cargandoImagen by remember { mutableStateOf(true) }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp),
-                contentScale = ContentScale.Crop
-            )
+                    .height(200.dp)
+            ) {
+                AsyncImage(
+                    model = "${BASE_URL}${noticia.imagen}",
+                    contentDescription = "Imagen de la noticia",
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { cargandoImagen = false },
+                    onLoading = { cargandoImagen = true },
+                    onError = { cargandoImagen = false }
+                )
+
+                if (cargandoImagen) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
 
             // Texto abajo
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = noticia.titulo,
                     color = Color.White,
@@ -388,13 +439,12 @@ fun NoticiaMiniCard(
                     text = noticia.contenido,
                     color = LightGrey,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    maxLines = 4
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = noticia.getFechaPublicacion()
-                        ?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                        ?: "Fecha no disponible",
+                    text = noticia.getFechaPublicacionFormateada(),
                     color = LightGrey,
                     fontSize = 12.sp
                 )

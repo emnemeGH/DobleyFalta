@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,7 +26,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.viewmodels.miperfil.PerfilViewModel
 
 @Composable
 fun ChangePasswordScreen(navController: NavController) {
@@ -33,7 +40,14 @@ fun ChangePasswordScreen(navController: NavController) {
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var contraseña by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+    val idUsuario = sessionManager.getIdUsuario()
+
+    val viewModel: PerfilViewModel = viewModel()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     var new_contraseña by remember { mutableStateOf("") }
     var verif_contraseña by remember { mutableStateOf("") }
 
@@ -43,9 +57,27 @@ fun ChangePasswordScreen(navController: NavController) {
     var mostrarContraseña by remember { mutableStateOf(false) }
     var mostrarContraseñaVerif by remember { mutableStateOf(false) }
 
-    var contraseñaError by remember { mutableStateOf<String?>(null) }
     var newContraseñaError by remember { mutableStateOf<String?>(null) }
     var verifContraseñaError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(error) {
+        if (error != null) {
+            verifContraseñaError = error
+        }
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -85,35 +117,6 @@ fun ChangePasswordScreen(navController: NavController) {
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        OutlinedTextField(
-            value = contraseña,
-            onValueChange = {
-                contraseña = it
-                contraseñaError = null
-            },
-            label = { Text("Contraseña Actual", color = LightGrey) },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            isError = contraseñaError != null,
-            supportingText = {
-                contraseñaError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            }
         )
 
         OutlinedTextField(
@@ -205,28 +208,16 @@ fun ChangePasswordScreen(navController: NavController) {
 
         Button(
             onClick = {
-                contraseñaError = null
                 newContraseñaError = null
                 verifContraseñaError = null
 
                 var valido = true
-
-                if (contraseña.isBlank()) {
-                    contraseñaError = "La contraseña actual es obligatoria"
-                    valido = false
-                } else if (contraseña.length < 6) {
-                    contraseñaError = "La contraseña debe tener al menos 6 caracteres"
-                    valido = false
-                }
 
                 if (new_contraseña.isBlank()) {
                     newContraseñaError = "La nueva contraseña es obligatoria"
                     valido = false
                 } else if (new_contraseña.length < 6) {
                     newContraseñaError = "La nueva contraseña debe tener al menos 6 caracteres"
-                    valido = false
-                } else if (new_contraseña == contraseña) {
-                    newContraseñaError = "La nueva contraseña no puede ser igual a la actual"
                     valido = false
                 }
 
@@ -238,8 +229,19 @@ fun ChangePasswordScreen(navController: NavController) {
                     valido = false
                 }
 
-                if (valido) {
-                    navController.navigate("miperfil")
+                if (!valido) return@Button
+
+                if (idUsuario != null) {
+                    viewModel.actualizarUsuario(idUsuario, nombre = null, correo = null, nuevaContrasena = new_contraseña) {
+                        viewModel.usuario.value?.let { usuarioActualizado ->
+                            sessionManager.saveUsuario(usuarioActualizado)
+                        }
+
+                        sessionManager.clearSession()
+                        navController.navigate("login") {
+                            popUpTo(0)
+                        }
+                    }
                 }
             },
             modifier = Modifier
@@ -252,45 +254,3 @@ fun ChangePasswordScreen(navController: NavController) {
         }
     }
 }
-
-//GLOSARIO
-
-//var contraseña by remember { mutableStateOf("") }
-
-    //mutableStateOf("")
-    //Crea un objeto especial de tipo MutableState<String> (Observable).
-    //Contiene un valor (value) que empieza como "".
-    //Cuando el usuario escribe, cambia el value y Compose redibuja la UI automáticamente con lo nuevo
-    // (podes ver en el input lo que vas escribiendo).
-
-    //remember { ... }
-    //remember = “acordate de este valor mientras la pantalla siga viva”.
-    //Si no lo usás, cada vez que Compose redibuja, la variable vuelve a estar vacía.
-
-    //by
-    //Cada variable en Kotlin tiene implícitamente dos cosas:
-    //get → qué pasa cuando lees el valor (val x = contraseña)
-    //set → qué pasa cuando escribís un valor (contraseña = "hola")
-    //Normalmente Kotlin hace esto automáticamente, pero podés personalizarlo con el by.
-    //ya no le decís a Kotlin “guardá el valor en tu propia caja”.
-    //Le decís: “cada vez que leas o escribas esta variable, usa el objeto mutableStateOf("") para manejarlo”.
-    //Entonces:
-    //get contraseña → automáticamente hace mutableState.value
-    //set contraseña = "hola" → automáticamente hace mutableState.value = "hola"
-    //El by conecta los get/set de la variable con los get/set del objeto.
-    //Basciamente Ahorra tener que poner contraseña.value para acceder al valor.
-    //Con by, contraseña escrito solo, significa contraseña.value
-
-//value = contraseña
-//Este es el valor que se muestra en el campo de texto.
-//Cada vez que Compose dibuja la pantalla, mira value para saber qué poner dentro del TextField.
-
-//onValueChange = { contraseña = it }
-//Esto es lo que pasa cuando el usuario escribe algo en el TextField.
-//it es el nuevo texto que el usuario tipeó.
-//La línea { contraseña = it } actualiza la variable contraseña con lo nuevo que el usuario tipeo.
-//Asi al escrbir en el textField se cambia la variable contraseña que con el mutableState redibuja
-//el textField para simplemente ver lo que se esta escribiendo
-
-//PasswordVisualTransformation()
-//Hace que se vea con puntitos en vez de verse la contraseña

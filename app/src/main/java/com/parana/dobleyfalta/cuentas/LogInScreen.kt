@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -15,6 +16,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
@@ -32,26 +35,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.MainViewModel
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.models.auth.Rol
+import com.parana.dobleyfalta.retrofit.viewmodels.LoginViewModel
 import kotlinx.coroutines.delay
 
-data class User(
-    val email: String,
-    val contraseña: String,
-    val rol: String
-)
-
-val usuarios = listOf(
-    User("ad", "ad", "admin"),
-    User("em", "em", "empleado"),
-    User("usu", "usu", "usuario"),
-    User("empleado3@test.com", "3333", "empleado")
-)
-
 @Composable
-fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun LoginScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
@@ -62,16 +56,38 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     var v_contraseña by remember { mutableStateOf("") }
     var mostrarContraseña by remember { mutableStateOf(false) }
 
-// El tipo es String? porque puede contener un String (mensaje de error) o null (sin error).
     var emailError by remember { mutableStateOf<String?>(null) }
     var contraseñaError by remember { mutableStateOf<String?>(null) }
     var mostrarRecuperar by remember { mutableStateOf(false) }
 
-    Column( //dentro de los parentesis de column van los parametros, despues van las llaves donde van todos los elemntos que estan dentro de la columna
+    val viewModel: LoginViewModel = viewModel()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+
+    if(error != null) {
+        contraseñaError = error
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            //Aquí 32.dp convierte el número 32 en un valor Dp que padding() entiende. Es equivalente a: 32.toDp() (internamente).
             .padding(32.dp)
             .clickable(
                 indication = null,
@@ -123,7 +139,6 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                 }
             },
         )
-//        Spacer sirve para aplicar margenes
         Spacer(
             modifier = Modifier.height(5.dp)
         )
@@ -132,6 +147,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
             onValueChange = {
                 v_contraseña = it
                 contraseñaError = null
+                viewModel.clearError()
             },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
@@ -163,18 +179,12 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
             ),
             isError = contraseñaError != null,
             supportingText = {
-                //let es una función que sirve para ejecutar un bloque de código sobre un objeto (en este caso string).
-                //Dentro de ese bloque, puedes acceder al objeto a través de un parámetro implícito llamado it
-                //El valor de errorMessage es un string, asi que it representa lo que haya en ese string
                 contraseñaError?.let {
                     Text(it, color = Color.Red, fontSize = 12.sp)
                 }
+
             },
         )
-
-        //El operador ?. significa "ejecuta esto solo si no es null".
-        //Si errorMessage == null → no entra al let.
-        //Si errorMessage tiene un valor → entra al let.
 
         Spacer(
             modifier = Modifier.height(32.dp)
@@ -185,19 +195,19 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                 emailError = null
                 contraseñaError = null
 
-                val user = validarLogin(v_email, v_contraseña)
-
                 when {
                     v_email.isBlank() -> emailError = "El email es obligatorio"
                     v_contraseña.isBlank() -> contraseñaError = "La contraseña es obligatoria"
-                    user == null -> contraseñaError = "Credenciales incorrectas"
                     else -> {
-                        mainViewModel.setRol(user.rol)
+                        viewModel.login(v_email, v_contraseña) {
 
-                        if (user.rol == "admin") {
-                            navController.navigate("admin")
-                        } else {
-                            navController.navigate("home")
+                            val rol = sessionManager.getRolUsuario()
+
+                            if (rol == Rol.Administrador) {
+                                navController.navigate("admin")
+                            } else {
+                                navController.navigate("home")
+                            }
                         }
                     }
                 }
@@ -220,7 +230,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
         LaunchedEffect(contraseñaError) {
             if (contraseñaError != null) {
-                delay(2500)
+                delay(1000)
                 mostrarRecuperar = true
             }
         }
@@ -241,109 +251,4 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     }
 }
 
-fun validarLogin(p_email: String, p_contraseña: String): User? {
-    return usuarios.find { it.email == p_email && it.contraseña == p_contraseña }
-}
 
-
-//Glosario
-
-//LaunchedEffect
-// es una API de Compose que te permite ejecutar código asíncrono (como delay(), llamadas a APIs,
-// o animaciones) dentro de una composición
-
-//Sintaxis
-//LaunchedEffect(key) {
-//    // Código asíncrono
-//}
-//key es el parámetro que desencadena el efecto. Cuando cambia, el bloque de código dentro
-//de LaunchedEffect se vuelve a ejecutar.
-
-//.find
-//La función find { ... } devuelve el primer elemento de la lista que cumpla la condición del predicado.
-
-//it
-//es un objeto User en cada iteración.
-
-//@Composable
-//Es una anotación de Jetpack Compose.
-//Significa que esta función dibuja UI (interfaz de usuario) en la pantalla.
-//Compose funciona declarando funciones que "pintan" componentes en lugar de usar XML como antes
-
-//fun LoginScreen(...)
-//Es simplemente una función de Kotlin llamada LoginScreen.
-//En Compose, en lugar de hacer actividades con XML, defines pantallas como funciones.
-
-//navController: NavController
-//Aquí la función recibe un parámetro llamado navController.
-//NavController es un objeto que controla la navegación entre pantallas en Jetpack Compose
-// (por ejemplo, pasar de la pantalla de login a la pantalla de registro).
-//Dentro de la función LoginScreen, puedes usarlo para hacer algo como:
-//navController.navigate("HomeScreen")
-//Eso cambiaría de pantalla al HomeScreen.
-
-//LocalFocusManager.current → es una variable especial de Compose que te da acceso al administrador de foco de la pantalla.
-//Ese focusManager sirve para manejar qué componente (ej: un TextField) tiene el foco.
-
-//Column
-//En Compose, Column es un composable que organiza sus elementos hijos uno debajo del otro, en forma de columna (vertical).
-//Es el equivalente a un LinearLayout con orientación vertical en XML.
-
-//modifier = Modifier.fillMaxSize()
-// "modifier" es la variable y el parámetro de la función Column, Modifier.fillMaxSize() es el objeto que le pasamos a la variable
-
-//.fillMaxSize() es una función de Modifier que le dice al composable que ocupe todo el espacio disponible
-// tanto en ancho como en alto dentro de su contenedor padre.
-
-//.clickable(...) { ... }
-//Es un modifier de Compose.
-//Se lo aplicás a cualquier componente (ej: Column, Box, etc.) para que responda a un clic.
-//Lo que pongas en las llaves { ... } es la acción que se ejecuta al hacer clic.
-
-//indication = null
-//Normalmente, .clickable muestra una animación
-//Con indication = null, desactivás ese efecto visual.
-//Sirve para que parezca que “no pasa nada”, aunque igual se ejecute el código.
-
-//interactionSource = remember { MutableInteractionSource() }
-//clickable necesita una interactionSource para manejar estados como “presionado”, “enfocado”, etc.
-//En este caso se crea una fuente vacía (MutableInteractionSource()) y se guarda con remember para que no se regenere en cada render.
-//Es necesario cuando usás indication = null, porque Compose pide igual un interactionSource.
-
-//clearFocus()
-// quita el foco de donde esté (ej: el OutlinedTextField), lo cual hace que se desmarque el borde naranja
-// y, si hay teclado abierto, también se oculte.
-
-//horizontalAlignment → Alinea a los hijos horizontalmente (izquierda, centro, derecha).
-//Valores comunes: Alignment.Start (izquierda) Alignment.CenterHorizontally (centro) Alignment.End (derecha)
-
-//verticalArrangement → Define cómo se distribuyen los hijos verticalmente dentro de la columna.
-//Valores comunes: Arrangement.Top (arriba) Arrangement.Center (centro) Arrangement.Bottom (abajo) Arrangement.SpaceBetween, Arrangement.SpaceAround, etc.
-
-//painter
-//Define qué imagen o icono mostrar. Aquí se usa painterResource(id = R.drawable.ic_basketball_ball) para cargar un recurso drawable.
-
-//OutlinedTextField
-//Es un composable que permite al usuario ingresar texto.
-//Tiene un borde visible (de ahí lo de "Outlined") y admite personalización de colores, forma, etc.
-
-//value
-//El texto actual que contiene el campo. Aquí está vacío "".
-
-//onValueChange
-//Funcion Lambda que se ejecuta cada vez que cambia el texto. Aquí está vacío {} pero normalmente actualizarías un state.
-//Es un parametro obligatorio
-
-//label
-//Texto que aparece dentro del borde como etiqueta. Se pasa como composable. Ej: { Text("Email", color = LightGrey) }.
-// Seria un placeholder "Email"
-
-//shape
-//Forma de los bordes. Ej: RoundedCornerShape(12.dp) hace esquinas redondeadas de 12 dp
-
-//colors	Personaliza colores del campo usando OutlinedTextFieldDefaults.colors(). Puedes cambiar:
-//focusedContainerColor → fondo cuando el campo está enfocado
-//unfocusedContainerColor → fondo cuando no está enfocado
-//focusedBorderColor → color del borde enfocado
-//unfocusedBorderColor → color del borde sin enfocar
-//cursorColor → color del cursor de escritura |

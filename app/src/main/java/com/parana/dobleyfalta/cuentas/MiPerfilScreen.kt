@@ -25,13 +25,23 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.repositories.UsuariosRepository
+import com.parana.dobleyfalta.retrofit.viewmodels.miperfil.PerfilViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -42,6 +52,36 @@ fun ProfileScreen(navController: NavController) {
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val RedColor = colorResource(id = R.color.red_delete)
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+
+    val repository = remember { UsuariosRepository() }
+    val scope = rememberCoroutineScope()
+
+    val idUsuario = sessionManager.getIdUsuario()
+
+    val viewModel: PerfilViewModel = viewModel()
+
+    val usuario by viewModel.usuario.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        idUsuario?.let { viewModel.cargarUsuario(it) }
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -85,14 +125,14 @@ fun ProfileScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(25.dp))
             Column {
                 Text(
-                    "Usuario Registrado",
+                    usuario?.nombre ?: "",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
                 Text(
-                    "usuario@example.com",
+                    usuario?.correo ?: "",
                     color = LightGrey,
                     fontSize = 14.sp
                 )
@@ -102,7 +142,7 @@ fun ProfileScreen(navController: NavController) {
                         .background(Color.Blue, RoundedCornerShape(50))
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
-                    Text("Usuario", color = Color.White, fontSize = 12.sp)
+                    Text(usuario?.rol?.name ?: "", color = Color.White, fontSize = 12.sp)
                 }
             }
         }
@@ -186,7 +226,12 @@ fun ProfileScreen(navController: NavController) {
                 OpcionPerfilPeligro(
                     text = "Cerrar Sesión",
                     icon = painterResource(id = R.drawable.logout),
-                    onClick = { navController.navigate("login") }
+                    onClick = {
+                        sessionManager.clearSession()
+                        navController.navigate("login") {
+                            popUpTo(0)
+                        }
+                    }
                 )
 
                 HorizontalDivider(
@@ -207,40 +252,55 @@ fun ProfileScreen(navController: NavController) {
     }
 
     if (mostrarConfirmacionBorrado) {
-    AlertDialog(
-        onDismissRequest = {
-            mostrarConfirmacionBorrado = false
-        },
-        title = {
-            Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
-        },
-        text = {
-            Text(stringResource(R.string.delete), color = LightGrey)
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    mostrarConfirmacionBorrado = false
-                    navController.navigate("login")
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = RedColor)
-            ) {
-                Text("Borrar")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    mostrarConfirmacionBorrado = false
+        AlertDialog(
+            onDismissRequest = {
+                mostrarConfirmacionBorrado = false
+            },
+            title = {
+                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
+            },
+            text = {
+                Text(stringResource(R.string.delete), color = LightGrey)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarConfirmacionBorrado = false
+                        navController.navigate("login")
+
+                        usuario?.let { usuario ->
+                            scope.launch {
+                                try {
+                                    val exito = repository.eliminarUsuario(usuario.idUsuario)
+                                    if (exito) {
+                                        navController.navigate("login") {
+                                            popUpTo(0)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = RedColor)
+                ) {
+                    Text("Borrar")
                 }
-            ) {
-                Text("Cancelar", color = PrimaryOrange)
-            }
-        },
-        containerColor = DarkGrey,
-        shape = RoundedCornerShape(16.dp)
-    )
-}
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarConfirmacionBorrado = false
+                    }
+                ) {
+                    Text("Cancelar", color = PrimaryOrange)
+                }
+            },
+            containerColor = DarkGrey,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @Composable
@@ -255,10 +315,10 @@ fun OpcionPerfil(text: String, onClick: () -> Unit) {
             //clickable() hace que el row reaccione a clicks
             //Recibe un bloque de código { en este caso es la funcion que le pasemos por parametro}
             // que se ejecuta cuando el usuario toca ese componente
-            .clickable (
+            .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
-            ){ onClick() }
+            ) { onClick() }
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

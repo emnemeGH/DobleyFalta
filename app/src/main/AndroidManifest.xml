@@ -11,7 +11,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DobleYFalta"
+        android:theme="@style/Theme.DobleYFaltaNight"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <!-- 🔑 Agregar la API Key de Google Maps aquí -->

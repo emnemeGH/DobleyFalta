@@ -18,14 +18,63 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.clients.RetrofitClientNoticias
+import com.parana.dobleyfalta.retrofit.models.noticia.CrearNoticiaModel
+import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
+import com.parana.dobleyfalta.retrofit.viewmodels.CrearNoticiaViewModel
 import java.time.Instant
 import java.time.ZoneOffset
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import android.util.Base64
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.window.Dialog
+import com.parana.dobleyfalta.noticias.PrimaryOrange
+import java.io.InputStream
+import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearNoticiaScreen(navController: NavController) {
+fun CrearNoticiaScreen(
+    navController: NavController,
+    viewModel: CrearNoticiaViewModel = viewModel()
+) {
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val success by viewModel.success.collectAsState()
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
+    error?.let {
+        Text("Error: $it", color = Color.Red)
+    }
+
+    if (success) {
+        LaunchedEffect(Unit) {
+            navController.navigate("noticias")
+        }
+    }
+
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val DarkGrey = Color(0xFF1A375E)
@@ -35,8 +84,6 @@ fun CrearNoticiaScreen(navController: NavController) {
     var tituloNoticia by remember { mutableStateOf("") }
     var contenidoNoticia by remember { mutableStateOf("") }
     var fechaPublicacion by remember { mutableStateOf("") }
-    var urlNoticia by remember { mutableStateOf("") }
-
 
     var tituloError by remember { mutableStateOf<String?>(null) }
     var contenidoError by remember { mutableStateOf<String?>(null) }
@@ -50,7 +97,9 @@ fun CrearNoticiaScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            .padding(32.dp)
+            .padding(horizontal = 32.dp)
+            .padding(top = 32.dp)
+            .verticalScroll(rememberScrollState())
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -185,40 +234,55 @@ fun CrearNoticiaScreen(navController: NavController) {
             }
         )
 
-        OutlinedTextField(
-            value = urlNoticia,
-            onValueChange = {
-                urlNoticia = it
-                urlError = null
-            },
-            label = { Text("Imagen URL", color = LightGrey) },
+        val context = LocalContext.current
+        var imagenBase64 by remember { mutableStateOf<String?>(null) }
+        var imagenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
+
+
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent(),
+            onResult = { uri ->
+                if (uri != null) {
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val bytes = inputStream?.readBytes()
+                    inputStream?.close()
+
+                    if (bytes != null) {
+                        imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+
+                        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        imagenPreview = bitmap.asImageBitmap()
+                    }
+                }
+            }
+        )
+
+        Button(
+            onClick = { launcher.launch("image/*") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            singleLine = true,
-            isError = urlError != null,
-            supportingText = {
-                urlError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Seleccionar imagen", color = Color.White, fontWeight = FontWeight.Bold)
+        }
 
-        )
+        imagenPreview?.let { img ->
+            Image(
+                bitmap = img,
+                contentDescription = "Vista previa",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 16.dp)
+            )
+        }
 
         Button(
             onClick = {
                 tituloError = null
                 contenidoError = null
+                fechaError = null
                 urlError = null
                 var formValido = true
 
@@ -234,18 +298,27 @@ fun CrearNoticiaScreen(navController: NavController) {
                     fechaError = "La fecha es obligatoria"
                     formValido = false
                 }
-                if (urlNoticia.isBlank()) {
-                    urlError = "La URL es obligatoria"
+                if (imagenBase64 == null) {
+                    urlError = "Debe seleccionar una imagen"
                     formValido = false
                 }
 
                 if (formValido) {
-                    navController.navigate("noticias")
+                    imagenBase64?.let {
+                        val noticia = CrearNoticiaModel(
+                            titulo = tituloNoticia,
+                            contenido = contenidoNoticia,
+                            fechaPublicacion = fechaPublicacion + "T00:00:00",
+                            imagen = it
+                        )
+
+                        viewModel.crearNoticia(noticia)
+                    }
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp),
+                .padding(top = 6.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(12.dp)

@@ -19,8 +19,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.viewmodels.RegistroViewModel
 
 @Composable
 fun RegistroScreen(navController: NavController) {
@@ -39,8 +42,26 @@ fun RegistroScreen(navController: NavController) {
     var emailError by remember { mutableStateOf<String?>(null) }
     var contraseñaError by remember { mutableStateOf<String?>(null) }
 
-    val usuariosExistentes = listOf("juan", "maria")
-    val emailsExistentes = listOf("juan@mail.com", "maria@mail.com")
+    val viewModel: RegistroViewModel = viewModel()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
+    if (error != null) {
+        contraseñaError = error
+    }
 
     Column(
         modifier = Modifier
@@ -131,6 +152,7 @@ fun RegistroScreen(navController: NavController) {
             onValueChange = {
                 contraseña = it
                 contraseñaError = null
+                viewModel.clearError()
             },
             label = { Text("Contraseña", color = LightGrey) },
             visualTransformation = if (mostrarContraseña) VisualTransformation.None
@@ -176,24 +198,14 @@ fun RegistroScreen(navController: NavController) {
                 contraseñaError = null
 
                 usuarioError = validarCampoNoVacio(usuario, "Usuario")
-
-                if (usuarioError == null) {
-                    usuarioError = validarUnicidad(usuario, usuariosExistentes, "usuario")
-                }
-
                 emailError = validarCampoNoVacio(email, "Email")
+                contraseñaError = validarCampoNoVacio(contraseña, "Contraseña")
 
                 //Hay que hacer esta estructura de ifs, si no, si la primer validacion da error pero la segunda no
                 //se sobreeescriben los errores
                 if (emailError == null) {
                     emailError = validarEmail(email)
                 }
-
-                if (emailError == null) {
-                    emailError = validarUnicidad(email, emailsExistentes, "email")
-                }
-
-                contraseñaError = validarCampoNoVacio(contraseña, "Contraseña")
 
                 if (contraseñaError == null) {
                     contraseñaError = validarLongitudContraseña(contraseña)
@@ -202,7 +214,9 @@ fun RegistroScreen(navController: NavController) {
                 val valido = usuarioError == null && emailError == null && contraseñaError == null
 
                 if (valido) {
-                    navController.navigate("miperfil")
+                    viewModel.registrarUsuario(usuario, email, contraseña) {
+                        navController.navigate("login")
+                    }
                 }
             },
             modifier = Modifier
@@ -258,18 +272,6 @@ fun validarLongitudContraseña(contraseña: String): String? {
     return if (contraseña.length < 6) {
         "La contraseña debe tener al menos 6 caracteres"
     } else null
-}
-
-/**
- * Valida que un valor no exista dentro de una lista (ej: usuarios o emails existentes).
- * @param valor El valor a validar.
- * @param lista Lista de valores existentes.
- * @param mensaje Mensaje de error a mostrar si existe.
- * @return String con mensaje de error si ya existe, o null si es válido.
- */
-//Esta validacion debe hacerse en el back
-fun validarUnicidad(valor: String, lista: List<String>, nombreCampo: String): String? {
-    return if (lista.contains(valor.trim())) "El $nombreCampo ya existe" else null
 }
 
 //GLOSARIO

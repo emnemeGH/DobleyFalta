@@ -16,6 +16,8 @@ kotlin-compiler-extension = "1.5.3"
 navigationCompose = "2.7.7"
 coil = "2.4.0"
 composeTestJunit4 = "1.6.7"
+retrofit = "2.9.0"
+gson-converter = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,7 +39,8 @@ play-services-maps = { module = "com.google.android.gms:play-services-maps", ver
 maps-compose = { module = "com.google.maps.android:maps-compose", version = "2.11.0" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composeTestJunit4" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "composeTestJunit4" }
-
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "gson-converter" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

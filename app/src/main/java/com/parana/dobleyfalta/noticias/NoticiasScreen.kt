@@ -1,10 +1,10 @@
 package com.parana.dobleyfalta.noticias
 
-import android.text.Layout
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -28,13 +29,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.home.NoticiaMiniCard
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
+import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.Locale
 
 val DarkBlue = Color(0xFF102B4E)
@@ -42,63 +51,49 @@ val DarkGrey = Color(0xFF1A375E)
 val PrimaryOrange = Color(0xFFFF6600)
 val LightGrey = Color(0xFFA0B3C4)
 
-data class Noticia(
-    val id: Int, // Agregado para la navegación
-    val titulo: String,
-    val contenido: String,
-    val fechaPublicacion: String,
-    val imagen: String
-)
-
-val noticias = listOf(
-    Noticia(
-        id = 1,
-        titulo = "Scacchi es nuevo refuerzo de Norte",
-        contenido = "Juan Cruz Scacchi se conviertió en la nueva incorporación del Deportivo Norte para ser parte del plantel del elenco de Armstrong en la temporada 2025/2026 de La Liga Argentina.",
-        fechaPublicacion = "2025-08-24",
-        imagen = "https://www.laliganacional.com.ar/uploadsfotos/imagen_juan_cruz_scacchi_4.jpg"
-    ),
-    Noticia(
-        id = 2,
-        titulo = "Provincial se aseguró las continuidades de Santiago López y Gastón Gerbaudo",
-        contenido = "El nicoleño y el mariajuanense compartirán nuevamente el perímetro en el Rojo y son las primeras renovaciones en confirmarse para el plantel que conducirá Esteban Gatti.",
-        fechaPublicacion = "2025-08-23",
-        imagen = "https://www.laliganacional.com.ar/uploadsfotos/dsc_1894__1_.jpg"
-    ),
-    Noticia(
-        id = 3,
-        titulo = "Renovaciones, regresos y apuestas en Villa San Martín",
-        contenido = "Continúa Simondi, vuelve el joven Emir Pérez Barrios, llega el brasilero Gusmao y el base Santiago Rath. Con estas confirmaciones va tomando forma lo que promete ser un equipo muy interesante para la temporada. El “Tricolor” es el único representante chaqueño en la categoría.",
-        fechaPublicacion = "2025-08-22",
-        imagen = "https://www.laliganacional.com.ar/uploadsfotos/romulo_j9.jpg"
-    )
-)
-
 //Metodo que transforma el string que tienen las noticias como fecha en un objeto localDate para
 //poder usar los metodos especiales que tiene localDate
-fun Noticia.getFechaPublicacion(): LocalDate? {
+fun NoticiaApiModel.getFechaPublicacionFormateada(): String {
     return try {
-        LocalDate.parse(this.fechaPublicacion)
-    } catch (e: Exception) {
-        null
+        val fechaHora = LocalDateTime.parse(this.fechaPublicacion)
+
+        val formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy", Locale("es", "ES"))
+
+        val soloFecha = fechaHora.toLocalDate()
+
+        soloFecha.format(formatter)
+
+    } catch (e: DateTimeParseException) {
+        "Fecha no disponible"
     }
 }
 
 @Composable
 fun NoticiasScreen(navController: NavController) {
 
-    //Si se agrega o elimina una noticia, al ser un mutableState, se redibuja la UI
-    var listaNoticias by remember { mutableStateOf(noticias) }
+    val repository = remember { NoticiasRepository() }
+    val scope = rememberCoroutineScope()
 
-    //Ordenamos las noticias de mas recientes a mas antiguas
-    //Por que usé remember?
-    //Si no se pone remember, cada vez que Compose redibuja la pantalla, se recalcularía listaNoticias.sortedByDescending(...).
-    val listaNoticiasOrdenadas = remember(listaNoticias) {
-        listaNoticias.sortedByDescending { it.getFechaPublicacion() }
+    var listaNoticias by remember { mutableStateOf(listOf<NoticiaApiModel>()) }
+    var noticiaABorrar by remember { mutableStateOf<NoticiaApiModel?>(null) }
+    var cargando by remember { mutableStateOf(true) }
+    var errorCarga by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                listaNoticias = repository.obtenerNoticias()
+                errorCarga = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                errorCarga = true
+            } finally {
+                cargando = false
+            }
+        }
     }
 
     var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
-    var noticiaAEliminar by remember { mutableStateOf<Noticia?>(null) }
 
     Column(
         modifier = Modifier
@@ -106,7 +101,6 @@ fun NoticiasScreen(navController: NavController) {
             .background(DarkBlue)
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp)
-            .verticalScroll(rememberScrollState())
     ) {
         Row(
             modifier = Modifier
@@ -141,22 +135,47 @@ fun NoticiasScreen(navController: NavController) {
             }
         }
 
-        listaNoticiasOrdenadas.forEach { noticia ->
-            NoticiaDestacadaCard(
-                noticia = noticia,
-                alHacerClick = { navController.navigate("detalle_noticia/${noticia.id}") },
-                alBorrarClick = {
-                    noticiaAEliminar = noticia
-                    mostrarConfirmacionBorrado = true
-                },
-                alEditarClick = { navController.navigate("editar_noticia")}
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+        val listaNoticiasOrdenadas = listaNoticias.sortedByDescending {
+            try {
+                LocalDateTime.parse(it.fechaPublicacion).toLocalDate()
+            } catch (e: Exception) {
+                LocalDate.MIN
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (cargando) {
+                Text("Cargando noticias...", color = Color.White)
+            } else if (errorCarga) {
+                Text("Error al cargar noticias", color = Color.Red)
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(listaNoticiasOrdenadas) { noticia ->
+                        NoticiaDestacadaCardApi(
+                            noticia = noticia,
+                            alHacerClick = { navController.navigate("detalle_noticia/${noticia.idNoticia}") },
+                            alBorrarClick = {
+                                noticiaABorrar = noticia
+                                mostrarConfirmacionBorrado = true
+                            },
+                            alEditarClick = { navController.navigate("editar_noticia/${noticia.idNoticia}") }
+                        )
+                    }
+                }
+            }
         }
     }
 
     //Si apretamos en el boton de borrar aparece este dialgo
-    if (mostrarConfirmacionBorrado && noticiaAEliminar != null) {
+    if (mostrarConfirmacionBorrado) {
         AlertDialog(
             onDismissRequest = { mostrarConfirmacionBorrado = false },
             title = {
@@ -168,10 +187,20 @@ fun NoticiasScreen(navController: NavController) {
             confirmButton = {
                 Button(
                     onClick = {
-                        noticiaAEliminar?.let {
-                            listaNoticias = listaNoticias.filter { n -> n.id != it.id }
-                        }
                         mostrarConfirmacionBorrado = false
+
+                        noticiaABorrar?.let { noticia ->
+                            scope.launch {
+                                try {
+                                    val exito = repository.eliminarNoticia(noticia.idNoticia)
+                                    if (exito) {
+                                        listaNoticias = listaNoticias.filter { it.idNoticia != noticia.idNoticia }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
@@ -190,8 +219,8 @@ fun NoticiasScreen(navController: NavController) {
 }
 
 @Composable
-fun NoticiaDestacadaCard(
-    noticia: Noticia,
+fun NoticiaDestacadaCardApi(
+    noticia: NoticiaApiModel,
     alHacerClick: () -> Unit,
     alBorrarClick: () -> Unit,
     alEditarClick: () -> Unit
@@ -206,19 +235,33 @@ fun NoticiaDestacadaCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-            //Caja que contiene la imagen e iconos
-            //Box es util para superponer elementos
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
+                var cargandoImagen by remember { mutableStateOf(true) }
+
                 AsyncImage(
-                    model = noticia.imagen,
+                    model = "${BASE_URL}${noticia.imagen}",
                     contentDescription = "Imagen de la noticia",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { cargandoImagen = false },
+                    onLoading = { cargandoImagen = true },
+                    onError = { cargandoImagen = false }
                 )
+
+                if (cargandoImagen) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryOrange)
+                    }
+                }
 
                 Row(
                     modifier = Modifier
@@ -251,7 +294,6 @@ fun NoticiaDestacadaCard(
                         onClick = { alBorrarClick() },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        //caja que contiene el fondo y el icono
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
@@ -281,24 +323,13 @@ fun NoticiaDestacadaCard(
                     text = noticia.contenido,
                     color = LightGrey,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis // Muestra "..." si el texto excede las líneas
                 )
 
-                //La estrcutura del formateador
-                val formatter =
-                    DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy", Locale("es", "ES"))
-                //Nos traemos la fecha
-                val fecha = noticia.getFechaPublicacion()
-                //Si la fecha no es null la formateamos a texto mas estetico para el usuario
-                val fechaFormateada = fecha?.format(formatter) ?: "Fecha no disponible"
-
-                //?:
-                //operador Elvis.
-                //Si lo de la izquierda es null, devuelve lo de la derecha.
-                //Si lo de la izquierda tiene un valor, devuelve ese valor.
-
                 Text(
-                    text = fechaFormateada,
+                    text = noticia.getFechaPublicacionFormateada(),
                     color = LightGrey,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Light
@@ -384,40 +415,3 @@ fun NoticiaDestacadaCard(
 //Resultado: el número no cambia en pantalla, siempre ves 0.
 //Sin mutableStateOf, cualquier cambio de la variable no se refleja en pantalla porque Compose no lo “escucha”.
 
-//DateTimeFormatter.ofPattern
-//crea un formateador de fechas. Es un objeto que le dice a Kotlin cómo leer o escribir fechas en texto.
-
-//¿Qué es DateTimeFormatter?
-//Es una clase de Kotlin que sirve para convertir fechas en texto y texto en fechas.
-//Se usa junto con LocalDate, LocalDateTime, etc.
-//Si tenés un objeto de fecha (LocalDate) y lo querés mostrar como string → usás format.
-//Si tenés un string de fecha y lo querés convertir en objeto de fecha → usás parse.
-//Con el método ofPattern, le decís qué formato vas a usar.
-//Ejemplo:
-//val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-//Ese formateador entiende cosas como "22/08/2025".
-
-//"dd 'de' MMMM, yyyy"
-//dd → día con dos dígitos. Ejemplo: 01, 09, 24
-//'de' → el texto literal "de". Los apóstrofes ' ' indican que no es parte de la fecha,
-//  sino que debe aparecer tal cual.
-//MMMM → nombre completo del mes, según el locale (idioma).
-//Con Locale("es", "ES") → "Agosto", "Septiembre", "Octubre".
-//Si fuera inglés (Locale.ENGLISH) sería "August", "September", etc.
-//, (coma) → carácter literal coma, que también debe estar en el texto.
-//yyyy → año con 4 dígitos. Ejemplo: 2025
-
-//Locale("es", "ES")
-//Locale define el idioma/región que se va a usar para interpretar y mostrar las fechas.
-//"es", "ES" = Español de España.
-
-//fun Noticia.getFechaPublicacion()
-//Esto es una funcion de extension.
-//Es una forma de agregar una función a una clase existente sin modificar el código original de la clase.
-//En este caso, le estamos “agregando” getFechaPublicacion() a la clase Noticia.
-
-//LocalDate.parse(...)
-//convierte el String (ej: "23-08-2025") en un objeto de tipo LocalDate (2025-08-23).
-
-//format es un método de LocalDate.
-//Lo que hace es recibir un objeto DateTimeFormatter y devolver un String con la fecha en ese formato.

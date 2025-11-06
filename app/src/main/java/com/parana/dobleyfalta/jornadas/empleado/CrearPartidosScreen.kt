@@ -134,7 +134,8 @@ fun CrearPartidosScreen(navController: NavController, mainViewModel: MainViewMod
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            .padding(32.dp)
+            .padding(horizontal = 32.dp)
+            .padding(top = 16.dp)
             .clickable(
                 indication = null,
                 interactionSource = interactionSource
@@ -159,8 +160,6 @@ fun CrearPartidosScreen(navController: NavController, mainViewModel: MainViewMod
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(40.dp))
 
         Text(
             text = "Crear Partido",
@@ -407,7 +406,7 @@ fun CrearPartidosScreen(navController: NavController, mainViewModel: MainViewMod
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp),
+                .padding(top = 12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(12.dp)

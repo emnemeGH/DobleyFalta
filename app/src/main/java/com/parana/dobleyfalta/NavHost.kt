@@ -50,17 +50,14 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = "home",
         modifier = Modifier.padding(innerPadding)
     ) {
         composable("login") {
-            LoginScreen(navController, mainViewModel)
+            LoginScreen(navController)
         }
         composable("registro") {
             RegistroScreen(navController)
-        }
-        composable("principal") {
-            PantallaPrincipal(navController, mainViewModel)
         }
         composable("home") {
             HomeScreen(navController, mainViewModel)
@@ -137,14 +134,22 @@ fun AppNavHost(
         composable("crear_usuario") {
             CreateUserScreen(navController = navController)
         }
-        composable("admin_editar_usuario") {
-            AdminEditUserScreen(navController = navController)
+        composable(
+            "admin_editar_usuario/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getInt("idUsuario")
+            AdminEditUserScreen(navController = navController, idUsuario = idUsuario ?: 0)
         }
         composable("recuperar_contraseña") {
             RecuperarContraseñaScreen(navController = navController)
         }
-        composable("editar_noticia") {
-            EditarNoticiaScreen(navController = navController)
+        composable(
+            "editar_noticia/{idNoticia}",
+            arguments = listOf(navArgument("idNoticia") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("idNoticia") ?: 0
+            EditarNoticiaScreen(navController = navController, noticiaId = id)
         }
         composable("crear_noticia") {
             CrearNoticiaScreen(navController = navController)
