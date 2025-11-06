@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
@@ -38,6 +39,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.retrofit.models.auth.Rol
 import com.parana.dobleyfalta.retrofit.viewmodels.LoginViewModel
 import kotlinx.coroutines.delay
@@ -61,6 +63,9 @@ fun LoginScreen(navController: NavController) {
     val viewModel: LoginViewModel = viewModel()
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
 
     if(error != null) {
         contraseñaError = error
@@ -196,7 +201,7 @@ fun LoginScreen(navController: NavController) {
                     else -> {
                         viewModel.login(v_email, v_contraseña) {
 
-                            val rol = viewModel.getRolUsuario()
+                            val rol = sessionManager.getRolUsuario()
 
                             if (rol == Rol.Administrador) {
                                 navController.navigate("admin")

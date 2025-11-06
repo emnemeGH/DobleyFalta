@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.retrofit.models.auth.LoginRequest
-import com.parana.dobleyfalta.retrofit.models.auth.Rol
-import com.parana.dobleyfalta.retrofit.models.auth.Usuario
 import com.parana.dobleyfalta.retrofit.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,21 +48,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 _loading.value = false
             }
         }
-    }
-
-    fun getUsuarioActual(): Usuario? {
-        val usuarioJson = sessionManager.getUsuario()
-        return if (usuarioJson != null) {
-            gson.fromJson(usuarioJson, Usuario::class.java)
-        } else {
-            null
-        }
-    }
-
-    fun getRolUsuario(): Rol? {
-        val usuarioJson = sessionManager.getUsuario() ?: return null
-        val usuario = gson.fromJson(usuarioJson, Usuario::class.java)
-        return usuario.rol
     }
 
     fun clearError() {

@@ -4,5 +4,5 @@ data class UsuarioUpdateModel(
     val nombre: String?,
     val correo: String?,
     val nuevaContrasena: String?,
-    val rol: String
+    val rol: String?
 )

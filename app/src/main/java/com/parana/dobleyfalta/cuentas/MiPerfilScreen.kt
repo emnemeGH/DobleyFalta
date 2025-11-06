@@ -25,13 +25,20 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.viewmodels.miperfil.PerfilViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -42,6 +49,33 @@ fun ProfileScreen(navController: NavController) {
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
     val RedColor = colorResource(id = R.color.red_delete)
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+
+    val idUsuario = sessionManager.getIdUsuario()
+
+    val viewModel: PerfilViewModel = viewModel()
+
+    val usuario by viewModel.usuario.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        idUsuario?.let { viewModel.cargarUsuario(it) }
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -85,14 +119,14 @@ fun ProfileScreen(navController: NavController) {
             Spacer(modifier = Modifier.width(25.dp))
             Column {
                 Text(
-                    "Usuario Registrado",
+                    usuario?.nombre ?: "",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
                 Text(
-                    "usuario@example.com",
+                    usuario?.correo ?: "",
                     color = LightGrey,
                     fontSize = 14.sp
                 )
@@ -102,7 +136,7 @@ fun ProfileScreen(navController: NavController) {
                         .background(Color.Blue, RoundedCornerShape(50))
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
-                    Text("Usuario", color = Color.White, fontSize = 12.sp)
+                    Text(usuario?.rol?.name ?: "", color = Color.White, fontSize = 12.sp)
                 }
             }
         }

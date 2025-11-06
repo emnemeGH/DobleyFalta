@@ -18,8 +18,6 @@ val CompactTypography = Typography(
 @Composable
 fun DobleYFaltaTheme(content: @Composable () -> Unit) {
     val darkColorScheme = darkColorScheme(
-//        primary = Color(0xFFBB86FC),
-//        secondary = Color(0xFF03DAC5),
         background = Color.Black,
         onPrimary = Color.Black,
         error = Color(0xFFCC1F3F)

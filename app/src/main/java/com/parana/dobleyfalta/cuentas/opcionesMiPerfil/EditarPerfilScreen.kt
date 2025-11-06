@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,7 +24,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.gson.Gson
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.viewmodels.miperfil.PerfilViewModel
 
 @Composable
 fun EditProfileScreen(navController: NavController) {
@@ -31,17 +39,51 @@ fun EditProfileScreen(navController: NavController) {
     val LightGrey = Color(0xFFA0B3C4)
     val focusManager = LocalFocusManager.current
 
-    var usuario by remember { mutableStateOf("EmanuelNeme") }
-    var email by remember { mutableStateOf("ema@gmail.com") }
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
 
-    //Si deja el mail y el usuario igual no se debe guardar nada
-    val usuarioOriginal = "EmanuelNeme"
-    val emailOriginal = "ema@gmail.com"
+    val idUsuario = sessionManager.getIdUsuario()
 
-    var usuarioError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
+    val viewModel: PerfilViewModel = viewModel()
 
-    val emailsExistentes = listOf("ema@gmail.com", "na@gmail.com", "co@gmail.com")
+    val usuario by viewModel.usuario.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    var nombre by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+
+    var nombreError by remember { mutableStateOf<String?>(null) }
+    var correoError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        idUsuario?.let { viewModel.cargarUsuario(it) }
+    }
+
+    LaunchedEffect(usuario) {
+        usuario?.let {
+            nombre = it.nombre
+            correo = it.correo
+        }
+    }
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
+    if (error != null) {
+        correoError = error
+    }
+
     Column(
         modifier = Modifier
             // El Column ocupa todo el fillMaxSize() con el fondo DarkBlue
@@ -61,7 +103,7 @@ fun EditProfileScreen(navController: NavController) {
             horizontalArrangement = Arrangement.Start
         ) {
             IconButton(
-                onClick = { navController.navigate("miperfil") },
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.padding(0.dp)
             ) {
                 Icon(
@@ -83,11 +125,20 @@ fun EditProfileScreen(navController: NavController) {
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
+        if (error != null && usuario == null) {
+            Text(
+                text = error ?: "Error al cargar el perfil",
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
         OutlinedTextField(
-            value = usuario,
+            value = nombre,
             onValueChange = {
-                usuario = it
-                usuarioError = null
+                nombre = it
+                nombreError = null
             },
             label = { Text("Nombre de Usuario", color = LightGrey) },
             modifier = Modifier
@@ -103,20 +154,21 @@ fun EditProfileScreen(navController: NavController) {
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
-            isError = usuarioError != null,
+            isError = nombreError != null,
             supportingText = {
-                usuarioError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+                nombreError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
             },
             singleLine = true
         )
 
         OutlinedTextField(
-            value = email,
+            value = correo,
             onValueChange = {
-                email = it
-                emailError = null
+                correo = it
+                correoError = null
+                viewModel.clearError()
             },
-            label = { Text("Email", color = LightGrey) },
+            label = { Text("Correo", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -130,42 +182,44 @@ fun EditProfileScreen(navController: NavController) {
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
-            isError = emailError != null,
+            isError = correoError != null,
             supportingText = {
-                emailError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+                correoError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
             },
             singleLine = true
         )
 
         Button(
             onClick = {
-                usuarioError = null
-                emailError = null
+                nombreError = null
+                correoError = null
+
                 var valido = true
 
-                if (usuario.isBlank()) {
-                    usuarioError = "El nombre de usuario es obligatorio"
-                    valido = false
-                }
-                else if (usuario == usuarioOriginal) {
-                    usuarioError = "Ese nombre de usuario ya existe"
+                if (nombre.isBlank()) {
+                    nombreError = "El nombre de usuario es obligatorio"
                     valido = false
                 }
 
-                if (email.isBlank()) {
-                    emailError = "El email es obligatorio"
+                if (correo.isBlank()) {
+                    correoError = "El correo es obligatorio"
                     valido = false
-                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    emailError = "El formato del email no es válido"
-                    valido = false
-                }
-                else if (email == emailOriginal || emailsExistentes.contains(email.trim())) {
-                    emailError = "Ese email ya está registrado"
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+                    correoError = "El formato del correo no es válido"
                     valido = false
                 }
 
-                if (valido) {
-                    navController.navigate("miperfil")
+                if (valido && idUsuario != null) {
+                    viewModel.actualizarUsuario(idUsuario, nombre, correo) {
+                        val gson = Gson()
+                        val usuarioActualizadoJson = gson.toJson(viewModel.usuario.value)
+                        sessionManager.saveLogin(
+                            sessionManager.getToken() ?: "",
+                            usuarioActualizadoJson
+                        )
+
+                        navController.navigate("miperfil")
+                    }
                 }
             },
             modifier = Modifier
