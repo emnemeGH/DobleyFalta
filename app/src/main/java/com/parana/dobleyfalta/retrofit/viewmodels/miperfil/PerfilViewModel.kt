@@ -41,14 +41,14 @@ class PerfilViewModel : ViewModel() {
         }
     }
 
-    fun actualizarUsuario(id: Int, nombre: String, correo: String, onSuccess: () -> Unit) {
+    fun actualizarUsuario(id: Int, nombre: String?, correo: String?, nuevaContrasena: String?, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _loading.value = true
             try {
                 val body = UsuarioUpdateModel(
                     nombre = nombre,
                     correo = correo,
-                    nuevaContrasena = null,
+                    nuevaContrasena = nuevaContrasena,
                     rol = null
                 )
                 val response: Response<Usuario> = repository.actualizarUsuario(id, body)

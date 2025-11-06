@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.gson.Gson
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.retrofit.viewmodels.miperfil.PerfilViewModel
@@ -210,13 +209,11 @@ fun EditProfileScreen(navController: NavController) {
                 }
 
                 if (valido && idUsuario != null) {
-                    viewModel.actualizarUsuario(idUsuario, nombre, correo) {
-                        val gson = Gson()
-                        val usuarioActualizadoJson = gson.toJson(viewModel.usuario.value)
-                        sessionManager.saveLogin(
-                            sessionManager.getToken() ?: "",
-                            usuarioActualizadoJson
-                        )
+                    viewModel.actualizarUsuario(idUsuario, nombre, correo, null) {
+
+                        viewModel.usuario.value?.let { usuarioActualizado ->
+                            sessionManager.saveUsuario(usuarioActualizado)
+                        }
 
                         navController.navigate("miperfil")
                     }

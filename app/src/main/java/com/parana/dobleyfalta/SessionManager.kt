@@ -9,7 +9,7 @@ class SessionManager(context: Context) {
 
     private val prefs = context.getSharedPreferences("session_prefs", Context.MODE_PRIVATE)
 
-    val gson = Gson()
+    private val gson = Gson()
 
     //JSON no es un objeto, es texto (una cadena de caracteres) que representa un objeto.
     fun saveLogin(token: String, usuarioJson: String) {
@@ -39,6 +39,11 @@ class SessionManager(context: Context) {
 
     fun getIdUsuario(): Int? {
         return getObjetoUsuario()?.idUsuario
+    }
+
+    fun saveUsuario(usuario: Usuario) {
+        val usuarioJson = gson.toJson(usuario)
+        prefs.edit().putString("USUARIO", usuarioJson).apply()
     }
 
     fun clearSession() {

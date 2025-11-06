@@ -46,13 +46,14 @@ fun MenuLateral(
                 )
                     Box(
                         modifier = Modifier
-                            .width(170.dp)
+                            .width(150.dp)
                             .align(Alignment.CenterEnd)
                             .background(
                                 DarkGrey,
                                 RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
                             )
-                            .padding(16.dp)
+                            .padding(vertical = 8.dp)
+                            .padding(start = 8.dp)
                     ) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(18.dp),
