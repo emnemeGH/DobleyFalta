@@ -49,6 +49,7 @@ class AdminCrearUsuarioViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _error.value = "Error de conexión"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }

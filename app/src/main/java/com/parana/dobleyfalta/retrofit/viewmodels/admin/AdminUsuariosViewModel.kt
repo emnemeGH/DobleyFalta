@@ -28,6 +28,7 @@ class AdminUsuariosViewModel : ViewModel() {
                 _usuarios.value = repository.obtenerUsuarios()
             } catch (e: Exception) {
                 _error.value = "Error al cargar los usuarios"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }

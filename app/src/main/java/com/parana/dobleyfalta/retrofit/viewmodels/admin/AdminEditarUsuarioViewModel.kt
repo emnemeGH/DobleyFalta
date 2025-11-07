@@ -30,6 +30,7 @@ class AdminEditarUsuarioViewModel : ViewModel() {
                 _usuario.value = usuario
             } catch (e: Exception) {
                 _error.value = "Error al cargar el usuario"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }
@@ -57,6 +58,7 @@ class AdminEditarUsuarioViewModel : ViewModel() {
                 onSuccess()
             } catch (e: Exception) {
                 _error.value = "Error al actualizar: ${e.message}"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }

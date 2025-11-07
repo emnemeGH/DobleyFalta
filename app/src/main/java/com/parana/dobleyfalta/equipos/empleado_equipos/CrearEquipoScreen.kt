@@ -25,10 +25,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.retrofit.models.equipos.CrearEquipoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrearEquipoScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
@@ -40,7 +43,7 @@ fun CrearEquipoScreen(navController: NavController) {
     var nombreEquipo by remember { mutableStateOf("") }
     var ciudad by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
-    var descripcionEquipo by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
     var imagenBase64 by remember { mutableStateOf<String?>(null) }
 
     var imagenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -71,6 +74,19 @@ fun CrearEquipoScreen(navController: NavController) {
             }
         }
     )
+
+    val ligasViewModel: LigasViewModel = viewModel()
+    val ligas by ligasViewModel.ligas.collectAsState()
+    val loadingLigas by ligasViewModel.loading.collectAsState()
+    val errorLigas by ligasViewModel.error.collectAsState()
+
+    var expanded by remember { mutableStateOf(false) }
+    var nombreLigaSeleccionada by remember { mutableStateOf("") }
+    var idLigaSeleccionada by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(Unit) {
+        ligasViewModel.cargarLigas()
+    }
 
     Column(
         modifier = Modifier
@@ -139,9 +155,9 @@ fun CrearEquipoScreen(navController: NavController) {
         )
 
         OutlinedTextField(
-            value = descripcionEquipo,
+            value = descripcion,
             onValueChange = {
-                descripcionEquipo = it
+                descripcion = it
                 descripcionError = null
             },
             label = { Text("Descripción", color = LightGrey) },
@@ -166,6 +182,65 @@ fun CrearEquipoScreen(navController: NavController) {
                 }
             }
         )
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            OutlinedTextField(
+                value = nombreLigaSeleccionada,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Seleccionar liga", color = LightGrey) },
+                modifier = Modifier
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = CardBackground,
+                    unfocusedContainerColor = CardBackground,
+                    unfocusedBorderColor = CardBackground,
+                    focusedBorderColor = PrimaryOrange,
+                    cursorColor = PrimaryOrange,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    disabledTextColor = Color.Gray,
+                    disabledContainerColor = CardBackground,
+                )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (loadingLigas) {
+                    DropdownMenuItem(
+                        text = { Text("Cargando ligas...") },
+                        onClick = {}
+                    )
+                } else if (errorLigas != null) {
+                    DropdownMenuItem(
+                        text = { Text("Error al cargar ligas") },
+                        onClick = {}
+                    )
+                } else {
+                    ligas.forEach { liga ->
+                        DropdownMenuItem(
+                            text = { Text(liga.nombre) },
+                            onClick = {
+                                nombreLigaSeleccionada = liga.nombre
+                                idLigaSeleccionada = liga.idLiga
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -216,7 +291,7 @@ fun CrearEquipoScreen(navController: NavController) {
                     direccionError = "La dirección es obligatoria"
                     esValido = false
                 }
-                if (descripcionEquipo.isNullOrBlank()) {
+                if (descripcion.isNullOrBlank()) {
                     descripcionError = "La descripción es obligatoria"
                     esValido = false
                 }
@@ -230,9 +305,9 @@ fun CrearEquipoScreen(navController: NavController) {
                         nombre = nombreEquipo,
                         ciudad = ciudad,
                         direccion = direccion,
-                        descripcion = direccion,
+                        descripcion = descripcion,
                         logo = imagenBase64,
-                        idLiga = null,
+                        idLiga = idLigaSeleccionada,
                         lat = null,
                         lng = null
                     )

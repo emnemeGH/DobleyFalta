@@ -29,8 +29,8 @@ class LigasViewModel : ViewModel() {
             try {
                 _ligas.value = repository.obtenerLigas()
             } catch (e: Exception) {
+                _error.value = "Error al obtener ligas: ${e.message}"
                 e.printStackTrace()
-                _error.value = "Error al obtener ligas: {e.message}"
             } finally {
                 _loading.value = false
             }
@@ -50,6 +50,7 @@ class LigasViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _error.value = "Error de conexión"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }
@@ -69,6 +70,7 @@ class LigasViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _error.value = "Error de conexión"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }
@@ -87,6 +89,7 @@ class LigasViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _error.value = "Error de conexión"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }

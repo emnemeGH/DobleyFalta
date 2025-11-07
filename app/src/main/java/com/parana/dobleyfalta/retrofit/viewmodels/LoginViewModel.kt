@@ -44,6 +44,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 _error.value = "Error al conectar con el servidor"
+                e.printStackTrace()
             } finally {
                 _loading.value = false
             }
