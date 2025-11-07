@@ -22,14 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
-
-data class Equipo(
-    val id: Int,
-    val nombre: String,
-    val escudoUrl: Int
-)
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.equipos.EquipoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.equipos.EquiposViewModel
 
 val CardBackground = Color(0xFF1A375E)
 val PrimaryOrange = Color(0xFFFF6600)
@@ -39,23 +38,16 @@ val LightGrey = Color(0xFFA0B3C4)
 fun EquiposScreen(navController: NavController) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
 
-    val equipos = listOf(
-        Equipo(1, "Paracao", R.drawable.escudo_paracao),
-        Equipo(2, "Rowing", R.drawable.escudo_rowing),
-        Equipo(3, "CAE", R.drawable.escudo_cae),
-        Equipo(4, "Ciclista", R.drawable.escudo_ciclista),
-        Equipo(5, "Olimpia", R.drawable.escudo_olimpia),
-        Equipo(6, "Echagüe", R.drawable.escudo_echague),
-        Equipo(7, "Bancario", R.drawable.escudo_bancario)
-    )
+    val viewModel = remember { EquiposViewModel() }
+    val equipos by viewModel.equipos.collectAsState()
+    val cargando by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-
-    var listaEquipos by remember { mutableStateOf(equipos) }
     var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
-    var equipoAEliminar by remember { mutableStateOf<Equipo?>(null) }
+    var equipoAEliminar by remember { mutableStateOf<EquipoModel?>(null) }
 
-    val listaEquiposOrdenada = remember(listaEquipos) {
-        listaEquipos.sortedBy { it.nombre }
+    LaunchedEffect(Unit) {
+        viewModel.cargarEquipos()
     }
 
     Column(
@@ -93,65 +85,94 @@ fun EquiposScreen(navController: NavController) {
             }
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(listaEquiposOrdenada) { equipo ->
-                EquipoGridCard(
-                    equipo = equipo,
-                    alEditarClick = {
-                        navController.navigate("editar_equipo")
-                    },
-                    alBorrarClick = {
-                        equipoAEliminar = equipo
-                        mostrarConfirmacionBorrado = true
-                    },
-                    alHacerClick = { navController.navigate("detalles/${equipo.id}") }
-                )
+        when {
+            cargando -> {
+                Dialog(onDismissRequest = {}) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryOrange)
+                    }
+                }
+            }
+
+            error != null -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(error ?: "Error desconocido", color = Color.Red)
+                }
+            }
+
+            else -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(equipos.sortedBy { it.nombre }) { equipo ->
+                        EquipoCard(
+                            equipo = equipo,
+                            alEditarClick = {
+                                navController.navigate("editar_equipo/${equipo.idEquipo}")
+                            },
+                            alBorrarClick = {
+                                equipoAEliminar = equipo
+                                mostrarConfirmacionBorrado = true
+                            },
+                            alHacerClick = {
+                                navController.navigate("detalles/${equipo.idEquipo}")
+                            }
+                        )
+                    }
+                }
             }
         }
-    }
 
-    if (mostrarConfirmacionBorrado && equipoAEliminar != null) {
-        AlertDialog(
-            onDismissRequest = { mostrarConfirmacionBorrado = false },
-            title = {
-                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
-            },
-            text = {
-                Text("¿Seguro que quieres eliminar este equipo?", color = LightGrey)
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        equipoAEliminar?.let { equipo ->
-                            listaEquipos = listaEquipos.filter { it.id != equipo.id }
-                        }
-                        mostrarConfirmacionBorrado = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                    modifier = Modifier.testTag("confirmarEliminar")
-                ) {
-                    Text("Borrar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { mostrarConfirmacionBorrado = false }) {
-                    Text("Cancelar", color = PrimaryOrange)
-                }
-            },
-            containerColor = CardBackground,
-            shape = RoundedCornerShape(16.dp)
-        )
+        if (mostrarConfirmacionBorrado && equipoAEliminar != null) {
+            AlertDialog(
+                onDismissRequest = { mostrarConfirmacionBorrado = false },
+                title = {
+                    Text(
+                        "Confirmar eliminación",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                text = {
+                    Text("¿Seguro que quieres eliminar este equipo?", color = LightGrey)
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            equipoAEliminar?.let { equipo ->
+                                viewModel.eliminarEquipo(equipo.idEquipo) {
+                                    mostrarConfirmacionBorrado = false
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        modifier = Modifier.testTag("confirmarEliminar")
+                    ) {
+                        Text("Borrar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrarConfirmacionBorrado = false }) {
+                        Text("Cancelar", color = PrimaryOrange)
+                    }
+                },
+                containerColor = CardBackground,
+                shape = RoundedCornerShape(16.dp)
+            )
+        }
     }
 }
 
-
 @Composable
-fun EquipoGridCard(
-    equipo: Equipo,
+fun EquipoCard(
+    equipo: EquipoModel,
     alEditarClick: () -> Unit,
     alBorrarClick: () -> Unit,
     alHacerClick: () -> Unit
@@ -168,11 +189,10 @@ fun EquipoGridCard(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = equipo.escudoUrl),
-                contentDescription = "Escudo de ${equipo.nombre}",
-                modifier = Modifier
-                    .size(80.dp),
+            AsyncImage(
+                model = "${BASE_URL}${equipo.logo}",
+                contentDescription = "Logo de ${equipo.nombre}",
+                modifier = Modifier.size(80.dp),
                 contentScale = ContentScale.Fit
             )
 
@@ -188,14 +208,10 @@ fun EquipoGridCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(
                     onClick = alEditarClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("editarEquipo")
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_edit),
@@ -207,9 +223,7 @@ fun EquipoGridCard(
 
                 IconButton(
                     onClick = alBorrarClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("eliminarEquipo")
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),
@@ -223,18 +237,3 @@ fun EquipoGridCard(
     }
 }
 
-//Glosario
-
-//LazyVerticalGrid
-// es un composable que te permite mostrar una lista de elementos en forma de rejilla (grid) de forma lazy
-//Sintaxis Basica:
-//LazyVerticalGrid(
-//    columns = GridCells.Fixed(2), // cantidad de columnas
-//    verticalArrangement = Arrangement.spacedBy(8.dp), // espacio entre filas
-//    horizontalArrangement = Arrangement.spacedBy(8.dp), // espacio entre columnas
-//    contentPadding = PaddingValues(8.dp) // padding alrededor de la grilla
-//) {
-//    items(lista) { item ->
-//        // Aca va el contenido de cada celda
-//    }
-//}

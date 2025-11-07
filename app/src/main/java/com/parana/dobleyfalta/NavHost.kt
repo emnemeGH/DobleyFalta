@@ -167,8 +167,12 @@ fun AppNavHost(
         composable("crear_equipo") {
             CrearEquipoScreen(navController = navController)
         }
-        composable("editar_equipo") {
-            EditarEquipoScreen(navController = navController)
+        composable(
+            "editar_equipo/{idEquipo}",
+            arguments = listOf(navArgument("idEquipo") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("idEquipo") ?: 0
+            EditarEquipoScreen(navController = navController, idEquipo = id)
         }
         composable("tabla") {
             TablaScreen(navController = navController)

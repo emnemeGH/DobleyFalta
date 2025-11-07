@@ -23,7 +23,7 @@ import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
 
 @Composable
-fun EditarEquipoScreen(navController: NavController) {
+fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val LightGrey = Color(0xFFA0B3C4)

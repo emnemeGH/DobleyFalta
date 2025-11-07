@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -25,10 +26,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.retrofit.models.equipos.CrearEquipoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.equipos.CrearEquipoViewModel
 import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +95,33 @@ fun CrearEquipoScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         ligasViewModel.cargarLigas()
+    }
+
+    var latitud by remember { mutableStateOf<Double?>(null) }
+    var longitud by remember { mutableStateOf<Double?>(null) }
+
+    val defaultLocation = LatLng(-31.74, -60.52)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(defaultLocation, 13f)
+    }
+
+    var markerPosition by remember { mutableStateOf(defaultLocation) }
+
+    val crearEquipoViewModel: CrearEquipoViewModel = viewModel()
+    val loading by crearEquipoViewModel.loading.collectAsState()
+    val error by crearEquipoViewModel.error.collectAsState()
+
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
     }
 
     Column(
@@ -157,13 +193,15 @@ fun CrearEquipoScreen(navController: NavController) {
         OutlinedTextField(
             value = descripcion,
             onValueChange = {
-                descripcion = it
-                descripcionError = null
+                if (it.length <= 255) {
+                    descripcion = it
+                    descripcionError = null
+                }
             },
             label = { Text("Descripción", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 180.dp, max = 300.dp)
+                .heightIn(min = 100.dp, max = 180.dp)
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -248,7 +286,7 @@ fun CrearEquipoScreen(navController: NavController) {
             onClick = { launcher.launch("image/*") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange.copy(alpha = 0.9f)),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -267,6 +305,37 @@ fun CrearEquipoScreen(navController: NavController) {
 
         logoError?.let {
             Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+        }
+
+        Text(
+            text = "Seleccioná la ubicación del club:",
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
+                .padding(top = 16.dp)
+        )
+
+        GoogleMap(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .clip(RoundedCornerShape(10.dp)),
+            cameraPositionState = cameraPositionState,
+            onMapClick = { latLng ->
+                markerPosition = latLng
+                latitud = latLng.latitude
+                longitud = latLng.longitude
+            }
+        ) {
+            Marker(
+                state = MarkerState(position = markerPosition),
+                title = "Ubicación del equipo"
+            )
+        }
+
+        error?.let {
+            Text(text = it, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -300,6 +369,11 @@ fun CrearEquipoScreen(navController: NavController) {
                     esValido = false
                 }
 
+                if (latitud == null || longitud == null) {
+                    direccionError = "Seleccioná una ubicación en el mapa"
+                    esValido = false
+                }
+
                 if (esValido) {
                     val nuevo = CrearEquipoModel(
                         nombre = nombreEquipo,
@@ -308,10 +382,12 @@ fun CrearEquipoScreen(navController: NavController) {
                         descripcion = descripcion,
                         logo = imagenBase64,
                         idLiga = idLigaSeleccionada,
-                        lat = null,
-                        lng = null
+                        lat = latitud,
+                        lng = longitud
                     )
-                    navController.popBackStack()
+                    crearEquipoViewModel.crearEquipo(nuevo) {
+                        navController.popBackStack()
+                    }
                 }
             },
             modifier = Modifier
