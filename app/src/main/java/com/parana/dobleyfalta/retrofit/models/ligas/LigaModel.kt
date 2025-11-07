@@ -1,11 +1,12 @@
 package com.parana.dobleyfalta.retrofit.models.ligas
 
-import java.sql.Date
+import com.parana.dobleyfalta.retrofit.models.jornadas.JornadaModel
 
 data class LigaModel(
     val idLiga: Int,
     val nombre: String,
-    val fechaInicio: Date,
-    val fechaFin: Date,
-    val anio: Int
+    val fechaInicio: String,
+    val fechaFin: String,
+    val anio: Int,
+    val jornadas: List<JornadaModel> = emptyList()
 )

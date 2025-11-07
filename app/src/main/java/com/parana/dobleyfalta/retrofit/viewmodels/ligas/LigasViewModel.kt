@@ -29,7 +29,8 @@ class LigasViewModel : ViewModel() {
             try {
                 _ligas.value = repository.obtenerLigas()
             } catch (e: Exception) {
-                _error.value = "Error al obtener ligas"
+                e.printStackTrace()
+                _error.value = "Error al obtener ligas: {e.message}"
             } finally {
                 _loading.value = false
             }

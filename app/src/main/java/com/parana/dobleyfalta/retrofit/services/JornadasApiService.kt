@@ -2,6 +2,7 @@ package com.parana.dobleyfalta.retrofit.services
 
 import com.parana.dobleyfalta.retrofit.models.jornadas.CrearJornadaModel
 import com.parana.dobleyfalta.retrofit.models.jornadas.JornadaModel
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -24,4 +25,11 @@ interface JornadasApiService {
 
     @DELETE("api/jornada/{id}")
     suspend fun eliminarJornada(@Path("id") id: Int): Response<Unit>
+
+    // --- NUEVOS MÉTODOS ---
+    @GET("api/jornada/ligas/{ligaId}")   // Endpoint que devuelva las jornadas de una liga
+    suspend fun getJornadasPorLiga(@Path("ligaId") ligaId: Int): List<JornadaModel>
+
+    @GET("api/partidos/jornada/{jornadaId}")  // Endpoint que devuelva los partidos de una jornada
+    suspend fun getPartidosPorJornada(@Path("jornadaId") jornadaId: Int): List<PartidoModel>
 }

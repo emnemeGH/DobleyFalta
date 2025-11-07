@@ -14,10 +14,6 @@ class LigasRepository {
         return api.getLigas()
     }
 
-    suspend fun obtenerLigaPorId(id: Int): LigaModel {
-        return api.getLigaPorId(id)
-    }
-
     suspend fun crearLiga(liga: CrearLigaModel): Response<LigaModel> {
         return api.crearLiga(liga)
     }

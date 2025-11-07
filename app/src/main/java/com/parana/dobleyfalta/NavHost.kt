@@ -32,14 +32,13 @@ import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearPartidosScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
-import com.parana.dobleyfalta.jornadas.empleado.JornadasPorLigaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
 import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
-import com.parana.dobleyfalta.tienda.DetalleProductoScreen
+import com.parana.dobleyfalta.screens.JornadasPorLigaScreen
 
 @Composable
 fun AppNavHost(
@@ -81,7 +80,7 @@ fun AppNavHost(
             }
         }
         composable("jornadas_por_liga_screen") {
-            JornadasPorLigaScreen(navController, mainViewModel)
+            JornadasPorLigaScreen(navController)
         }
 
         composable("crear_liga") {
@@ -157,21 +156,11 @@ fun AppNavHost(
         composable("tienda") {
             TiendaScreen(navController = navController)
         }
-        /*
-        composable(
-            "detalle_producto/{productId}"
-        ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull()
-            if (productId != null) {
-                DetalleProductoScreen(
-                    productId = productId,
-                    navController = navController,
-                    onAddToCart = { id -> mainViewModel.addToCart(id) }
-                )
-            }
-        }
-        */
-
+        /*composable("detalle_producto/{productId}") {
+            backStackEntry ->
+            val productoId = backStackEntry.arguments?.getInt("productoId")
+            DetalleProductoScreen(navController = navController, product = productoId ?:0)
+        }*/
         composable("carrito") {
             CarritoScreen(navController = navController)
         }
@@ -186,4 +175,3 @@ fun AppNavHost(
         }
     }
 }
-

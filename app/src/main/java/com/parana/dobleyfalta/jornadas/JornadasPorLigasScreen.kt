@@ -1,331 +1,167 @@
-package com.parana.dobleyfalta.jornadas.empleado
+package com.parana.dobleyfalta.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.MainViewModel
-import com.parana.dobleyfalta.R
-
-// Definición de colores
-val CardBackground = Color(0xFF1A375E)
-val TextWhite = Color.White
+import com.parana.dobleyfalta.retrofit.models.ligas.LigaModel
+import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JornadasPorLigaScreen(navController: NavController, mainViewModel: MainViewModel) {
-    // Inicialización de los colores dentro de la función Composable
-    val DarkBlue = colorResource(id = R.color.darkBlue)
-    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
-    val BlueEdit = colorResource(id = R.color.blue_edit)
-    val RedDelete = colorResource(id = R.color.red_delete)
+fun JornadasPorLigaScreen(navController: NavController) {
 
-    var selectedLiga by remember { mutableStateOf<String?>(null) }
-    val rol = mainViewModel.rolUsuario.value
-    val ligas = mainViewModel.ligas
+    // ViewModel de Ligas
+    val ligasViewModel: LigasViewModel = viewModel()
+    val ligas by ligasViewModel.ligas.collectAsState()
+    val loading by ligasViewModel.loading.collectAsState()
+    val error by ligasViewModel.error.collectAsState()
 
-    // Estado para controlar el diálogo de eliminación de ligas
-    var mostrarConfirmacionBorradoLiga by remember { mutableStateOf(false) }
-    var ligaAEliminar by remember { mutableStateOf<String?>(null) }
+    // Estado: liga seleccionada
+    var selectedLiga by remember { mutableStateOf<LigaModel?>(null) }
+    val scope = rememberCoroutineScope()
 
-    // Estado para controlar el diálogo de eliminación de jornadas
-    var mostrarConfirmacionBorradoJornada by remember { mutableStateOf(false) }
-    var jornadaAEliminar by remember { mutableStateOf<Int?>(null) }
-
-    // Lista mutable para las jornadas para poder eliminarlas
-    val jornadas = remember { mutableStateListOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10) }
-
+    // Cargar ligas al entrar
+    LaunchedEffect(Unit) {
+        ligasViewModel.cargarLigas()
+    }
 
     Scaffold(
-        containerColor = DarkBlue,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = selectedLiga ?: "Selecciona una Liga",
-                        color = TextWhite
-                    )
-                },
-                navigationIcon = {
-                    if (selectedLiga != null) {
-                        IconButton(
-                            onClick = { selectedLiga = null },
-                            modifier = Modifier.padding(0.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.back),
-                                contentDescription = "Volver a ligas",
-                                tint = Color.White,
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = { navController.navigate("home") },
-                            modifier = Modifier.padding(0.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.back),
-                                contentDescription = "Volver a principal",
-                                tint = Color.White,
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    // Botón para crear liga o agregar jornada
-                    if (rol == "empleado") {
-                        val onClickAction = if (selectedLiga == null) {
-                            { navController.navigate("crear_liga") }
-                        } else {
-                            { navController.navigate("crear_jornada") }
-                        }
-                        val contentDescription = if (selectedLiga == null) "Crear Liga" else "Agregar jornada"
-
-                        IconButton(
-                            onClick = onClickAction,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(PrimaryOrange, RoundedCornerShape(24.dp))
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_add),
-                                contentDescription = contentDescription,
-                                modifier = Modifier.size(16.dp),
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = DarkBlue
+            TopAppBar(title = {
+                Text(
+                    if (selectedLiga == null) "Selecciona una Liga"
+                    else "Ligas → ${selectedLiga?.nombre}"
                 )
-            )
+            })
         }
-    ) { innerPadding ->
-        Column(
+    ) { padding ->
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
+                .padding(16.dp)
         ) {
-            if (selectedLiga == null) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    ligas.forEach { liga ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedLiga = liga },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardBackground)
-                        ) {
-                            Row(
+
+            when {
+                loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                error != null -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = error ?: "Error desconocido",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { ligasViewModel.cargarLigas() }) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
+
+                selectedLiga == null -> {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(ligas) { liga ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = liga,
-                                    color = TextWhite,
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                // Botones de edición y eliminación para empleados
-                                if (rol == "empleado") {
-                                    IconButton(onClick = { navController.navigate("editar_liga") }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_edit),
-                                            contentDescription = "Editar Liga",
-                                            tint = BlueEdit,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                    IconButton(
-                                        onClick = {
-                                            ligaAEliminar = liga
-                                            mostrarConfirmacionBorradoLiga = true
+                                    .clickable {
+                                        selectedLiga = liga
+                                        // Próximo paso: cargar jornadas de esta liga
+                                        scope.launch {
+                                            // viewModelJornada.cargarJornadasPorLiga(liga.idLiga)
                                         }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_delete),
-                                            contentDescription = "Eliminar Liga",
-                                            tint = RedDelete,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = liga.nombre,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = "Año: ${liga.anio}",
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = "Inicio: ${liga.fechaInicio}",
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                    Text(
+                                        text = "Fin: ${liga.fechaFin}",
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
                                 }
                             }
                         }
                     }
                 }
-            } else {
-                Text(
-                    text = "Selecciona una jornada",
-                    color = TextWhite,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(jornadas) { jornadaNumero: Int ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    navController.navigate("jornadas_screen/$jornadaNumero")
-                                },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardBackground)
+
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Jornadas de ${selectedLiga?.nombre}",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Jornada $jornadaNumero",
-                                    color = TextWhite,
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                // Botones de edición y eliminación para empleados
-                                if (rol == "empleado") {
-                                    IconButton(onClick = { navController.navigate("editar_jornada") }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_edit),
-                                            contentDescription = "Editar Jornada",
-                                            tint = BlueEdit,
-                                            modifier = Modifier.size(18.dp)
+                            items(selectedLiga?.jornadas ?: emptyList()) { jornada ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp),
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            "Jornada Nº ${jornada.numero}",
+                                            style = MaterialTheme.typography.titleMedium
                                         )
-                                    }
-                                    IconButton(
-                                        onClick = {
-                                            jornadaAEliminar = jornadaNumero
-                                            mostrarConfirmacionBorradoJornada = true
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_delete),
-                                            contentDescription = "Eliminar Jornada",
-                                            tint = RedDelete,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text("Inicio: ${jornada.fechaInicio}")
+                                        Text("Fin: ${jornada.fechaFin}")
                                     }
                                 }
                             }
+                        }
+
+                        Button(
+                            onClick = { selectedLiga = null },
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text("Volver a Ligas")
                         }
                     }
                 }
             }
         }
-    }
-
-    // Diálogo de confirmación de eliminación de Ligas
-    if (mostrarConfirmacionBorradoLiga && ligaAEliminar != null) {
-        AlertDialog(
-            onDismissRequest = {
-                mostrarConfirmacionBorradoLiga = false
-                ligaAEliminar = null
-            },
-            title = {
-                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
-            },
-            text = {
-                Text("¿Seguro que quieres eliminar la liga ${ligaAEliminar}?", color = LightGrey)
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        ligaAEliminar?.let { mainViewModel.eliminarLiga(it) }
-                        mostrarConfirmacionBorradoLiga = false
-                        ligaAEliminar = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Borrar")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarConfirmacionBorradoLiga = false
-                        ligaAEliminar = null
-                    }) {
-                    Text("Cancelar", color = PrimaryOrange)
-                }
-            },
-            containerColor = CardBackground,
-            shape = RoundedCornerShape(16.dp)
-        )
-    }
-
-    // Diálogo de confirmación de eliminación de Jornadas
-    if (mostrarConfirmacionBorradoJornada && jornadaAEliminar != null) {
-        AlertDialog(
-            onDismissRequest = {
-                mostrarConfirmacionBorradoJornada = false
-                jornadaAEliminar = null
-            },
-            title = {
-                Text("Confirmar eliminación", fontWeight = FontWeight.Bold, color = Color.White)
-            },
-            text = {
-                Text("¿Seguro que quieres eliminar la jornada ${jornadaAEliminar}?", color = LightGrey)
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        jornadaAEliminar?.let { jornadas.remove(it) }
-                        mostrarConfirmacionBorradoJornada = false
-                        jornadaAEliminar = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Borrar")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarConfirmacionBorradoJornada = false
-                        jornadaAEliminar = null
-                    }) {
-                    Text("Cancelar", color = PrimaryOrange)
-                }
-            },
-            containerColor = CardBackground,
-            shape = RoundedCornerShape(16.dp)
-        )
     }
 }
