@@ -2,53 +2,52 @@ package com.parana.dobleyfalta.retrofit.viewmodels.equipos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.parana.dobleyfalta.retrofit.models.equipos.CrearEquipoModel
 import com.parana.dobleyfalta.retrofit.models.equipos.EquipoModel
 import com.parana.dobleyfalta.retrofit.repositories.EquiposRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class EquiposViewModel : ViewModel() {
-
+class EditarEquipoViewModel : ViewModel() {
     private val repository = EquiposRepository()
 
-    private val _equipos = MutableStateFlow<List<EquipoModel>>(emptyList())
-    val equipos = _equipos.asStateFlow()
+    private val _equipo = MutableStateFlow<EquipoModel?>(null)
+    val equipo: StateFlow<EquipoModel?> = _equipo
 
     private val _loading = MutableStateFlow(false)
-    val loading = _loading.asStateFlow()
+    val loading: StateFlow<Boolean> = _loading
 
     private val _error = MutableStateFlow<String?>(null)
-    val error = _error.asStateFlow()
+    val error: StateFlow<String?> = _error
 
-    fun cargarEquipos() {
+    fun cargarEquipo(id: Int) {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
             try {
-                _equipos.value = repository.obtenerEquipos()
+                _equipo.value = repository.obtenerEquipoPorId(id)
             } catch (e: Exception) {
-                _error.value = "Error al cargar equipos"
                 e.printStackTrace()
+                _error.value = "Error al cargar equipo"
             } finally {
                 _loading.value = false
             }
         }
     }
 
-    fun eliminarEquipo(id: Int, onSuccess: () -> Unit) {
+    fun actualizarEquipo(id: Int, equipo: CrearEquipoModel, onSuccess: () -> Unit) {
         viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
             try {
-                val exito = repository.eliminarEquipo(id)
-                if (exito) {
-                    _equipos.value = _equipos.value.filter { it.idEquipo != id }
-                    onSuccess()
-                } else {
-                    _error.value = "Error al eliminar el equipo"
-                }
+                repository.actualizarEquipo(id, equipo)
+                onSuccess()
             } catch (e: Exception) {
-                _error.value = "Error al eliminar equipo"
                 e.printStackTrace()
+                _error.value = "Error al actualizar el equipo"
+            } finally {
+                _loading.value = false
             }
         }
     }

@@ -37,7 +37,7 @@ class CrearEquipoViewModel : ViewModel() {
                     _error.value = "Error al crear equipo (${response.code()})"
                 }
             } catch (e: Exception) {
-                _error.value = "Error al crear equipo: ${e.message}"
+                _error.value = "Error al crear equipo"
                 e.printStackTrace()
             } finally {
                 _loading.value = false

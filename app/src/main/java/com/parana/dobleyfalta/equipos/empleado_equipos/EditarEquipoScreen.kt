@@ -1,5 +1,9 @@
 package com.parana.dobleyfalta.equipos.empleado_equipos
 
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,9 +13,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
@@ -19,9 +28,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.models.equipos.CrearEquipoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.equipos.EditarEquipoViewModel
+import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
     val DarkBlue = colorResource(id = R.color.darkBlue)
@@ -31,17 +52,87 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
 
-    var nombreEquipo by remember { mutableStateOf("Club Atlético Paracao") }
-    var ciudad by remember { mutableStateOf("Paraná") }
-    var direccion by remember { mutableStateOf("Av. de los Constituyentes 123") }
-    var logoUrl by remember { mutableStateOf("https://example.com/logo.png") }
-    var descripcion by remember { mutableStateOf("El Paraná Rowing Club es un club deportivo ubicado en la Ciudad de Paraná, capital de la provincia de Entre Ríos, en Argentina.Fue fundado en 1917 con el fin de practicar remo y natación, pero luego amplió sus actividades a otros deportes como rugby, básquet, hockey Sobre césped, pelota paleta, vóley, esgrima y tenis, entre otros.") }
+    var nombreEquipo by remember { mutableStateOf("") }
+    var ciudad by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
 
     var nombreError by remember { mutableStateOf<String?>(null) }
     var ciudadError by remember { mutableStateOf<String?>(null) }
     var direccionError by remember { mutableStateOf<String?>(null) }
-    var logoUrlError by remember { mutableStateOf<String?>(null) }
     var descripcionError by remember { mutableStateOf<String?>(null) }
+    var logoError by remember { mutableStateOf<String?>(null) }
+
+    val ligasViewModel: LigasViewModel = viewModel()
+    val ligas by ligasViewModel.ligas.collectAsState()
+    val loadingLigas by ligasViewModel.loading.collectAsState()
+    val errorLigas by ligasViewModel.error.collectAsState()
+
+    var expanded by remember { mutableStateOf(false) }
+    var nombreLigaSeleccionada by remember { mutableStateOf("") }
+    var idLigaSeleccionada by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(Unit) {
+        ligasViewModel.cargarLigas()
+    }
+
+    var imagenBase64 by remember { mutableStateOf<String?>(null) }
+    var imagenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            if (uri != null) {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bytes = inputStream?.readBytes()
+                inputStream?.close()
+
+                if (bytes != null) {
+                    imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    imagenPreview = bitmap.asImageBitmap()
+                    logoError = null
+                }
+            }
+        }
+    )
+
+    var latitud by remember { mutableStateOf<Double?>(null) }
+    var longitud by remember { mutableStateOf<Double?>(null) }
+
+    val cameraPositionState = rememberCameraPositionState()
+
+    var markerPosition by remember { mutableStateOf<LatLng?>(null) }
+
+    val editarEquipoViewModel: EditarEquipoViewModel = viewModel()
+    val equipo by editarEquipoViewModel.equipo.collectAsState()
+    val loading by editarEquipoViewModel.loading.collectAsState()
+    val error by editarEquipoViewModel.error.collectAsState()
+
+    LaunchedEffect(idEquipo) {
+        editarEquipoViewModel.cargarEquipo(idEquipo)
+    }
+
+    LaunchedEffect(equipo) {
+        equipo?.let {
+            nombreEquipo = it.nombre
+            ciudad = it.ciudad
+            direccion = it.direccion
+            descripcion = it.descripcion
+            imagenBase64 = it.logo
+            idLigaSeleccionada = it.idLiga
+            val ligaSeleccionada = ligas.find { liga -> liga.idLiga == it.idLiga }
+            nombreLigaSeleccionada = ligaSeleccionada?.nombre ?: ""
+            latitud = it.lat
+            longitud = it.lng
+            markerPosition = LatLng(it.lat, it.lng)
+
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.lat, it.lng), 13f)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -109,26 +200,18 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
             error = direccionError
         )
 
-        CampoDeTexto(
-            valor = logoUrl,
-            alCambiarValor = {
-                logoUrl = it
-                logoUrlError = null
-            },
-            etiqueta = "URL del Logo",
-            error = logoUrlError
-        )
-
         OutlinedTextField(
             value = descripcion,
             onValueChange = {
-                descripcion = it
-                descripcionError = null
+                if (it.length <= 255) {
+                    descripcion = it
+                    descripcionError = null
+                }
             },
             label = { Text("Descripción", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 100.dp, max = 200.dp)
+                .heightIn(min = 100.dp, max = 180.dp)
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -138,7 +221,7 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
                 focusedBorderColor = PrimaryOrange,
                 cursorColor = PrimaryOrange,
                 focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             isError = descripcionError != null,
             supportingText = {
@@ -148,6 +231,122 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
             }
         )
 
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            OutlinedTextField(
+                value = nombreLigaSeleccionada,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Seleccionar liga", color = LightGrey) },
+                modifier = Modifier
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = CardBackground,
+                    unfocusedContainerColor = CardBackground,
+                    unfocusedBorderColor = CardBackground,
+                    focusedBorderColor = PrimaryOrange,
+                    cursorColor = PrimaryOrange,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    disabledTextColor = Color.Gray,
+                    disabledContainerColor = CardBackground,
+                )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (loadingLigas) {
+                    DropdownMenuItem(
+                        text = { Text("Cargando ligas...") },
+                        onClick = {}
+                    )
+                } else if (errorLigas != null) {
+                    DropdownMenuItem(
+                        text = { Text("Error al cargar ligas") },
+                        onClick = {}
+                    )
+                } else {
+                    ligas.forEach { liga ->
+                        DropdownMenuItem(
+                            text = { Text(liga.nombre) },
+                            onClick = {
+                                nombreLigaSeleccionada = liga.nombre
+                                idLigaSeleccionada = liga.idLiga
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = { launcher.launch("image/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(text = "Seleccionar imagen", color = Color.White, fontWeight = FontWeight.Bold)
+        }
+
+        imagenPreview?.let { img ->
+            Image(
+                bitmap = img,
+                contentDescription = "Vista previa",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+        logoError?.let {
+            Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+        }
+
+        Text(
+            text = "Ubicación del club:",
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
+                .padding(top = 16.dp)
+        )
+
+        GoogleMap(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .clip(RoundedCornerShape(10.dp)),
+            cameraPositionState = cameraPositionState,
+            onMapClick = { latLng ->
+                markerPosition = latLng
+                latitud = latLng.latitude
+                longitud = latLng.longitude
+            }
+        ) {
+            markerPosition?.let {
+                Marker(
+                    state = MarkerState(position = it),
+                    title = "Ubicación del equipo"
+                )
+            }
+        }
+
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
@@ -155,32 +354,54 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
                 nombreError = null
                 ciudadError = null
                 direccionError = null
-                logoUrlError = null
+                logoError = null
                 var esValido = true
 
-                if (nombreEquipo.isBlank()) {
+                if (nombreEquipo.isNullOrBlank()) {
                     nombreError = "El nombre es obligatorio"
                     esValido = false
                 }
-                if (ciudad.isBlank()) {
+                if (ciudad.isNullOrBlank()) {
                     ciudadError = "La ciudad es obligatoria"
                     esValido = false
                 }
-                if (direccion.isBlank()) {
+                if (direccion.isNullOrBlank()) {
                     direccionError = "La dirección es obligatoria"
                     esValido = false
                 }
-                if (logoUrl.isBlank()) {
-                    logoUrlError = "La URL del logo es obligatoria"
+                if (descripcion.isNullOrBlank()) {
+                    descripcionError = "La descripción es obligatoria"
                     esValido = false
                 }
-                if (descripcion.isBlank()) {
-                    descripcionError = "La descripción es obligatoria"
+                if (imagenBase64.isNullOrBlank()) {
+                    logoError = "El logo es obligatorio"
+                    esValido = false
+                }
+
+                if (latitud == null || longitud == null) {
+                    direccionError = "Seleccioná una ubicación en el mapa"
                     esValido = false
                 }
 
                 if (esValido) {
-                    navController.popBackStack()
+                    val equipoActualizado = CrearEquipoModel(
+                        nombre = nombreEquipo,
+                        ciudad = ciudad,
+                        direccion = direccion,
+                        logo = if (imagenPreview != null) imagenBase64 else null,
+                        descripcion = descripcion,
+                        idLiga = idLigaSeleccionada,
+                        lat = latitud,
+                        lng = longitud
+                    )
+
+                    editarEquipoViewModel.actualizarEquipo(
+                        id = idEquipo,
+                        equipo = equipoActualizado,
+                        onSuccess = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             },
             modifier = Modifier
@@ -233,56 +454,3 @@ private fun CampoDeTexto(
         singleLine = true
     )
 }
-
-//rememberScrollState()
-// es un Composable que te permite recordar y manejar el estado de scroll (posición de desplazamiento)
-// para componentes que usan scroll manual (no lazy), por ejemplo Column, Row o OutlinedTextField
-//
-// Sintaxis Básica:
-// val scrollState = rememberScrollState()
-//
-// Uso típico:
-// Column(
-//     modifier = Modifier.verticalScroll(scrollState) // asocia el estado al scroll
-// ) {
-//     // Contenido que puede superar el alto de la pantalla
-// }
-//
-// Notas:
-// - scrollState guarda la posición actual del scroll, así que si el composable se recompone
-//   no pierde en qué lugar estaba el usuario.
-// - Lo necesitás siempre que uses verticalScroll() o horizontalScroll()
-// - Si no lo usás, el contenido no va a scrollear aunque lo envuelvas en verticalScroll()
-// - Es parecido a remember { mutableStateOf() } porque recuerda el valor a través de recomposiciones,
-//   pero en vez de guardar datos, guarda la posición del scroll.
-//Otra definicion
-//Crea un estado de desplazamiento que Compose recuerda mientras la composición viva.
-//Este estado contiene información de dónde está actualmente el scroll.
-//Si no usaras remember, Compose crearía un nuevo estado cada vez que la pantalla se redibuja,
-// y el scroll volvería a la posición inicial constantemente.
-
-//.verticalScroll() y .horizontalScroll()
-// son Modifiers que habilitan el desplazamiento (scroll) en el eje vertical u horizontal
-// para composables que pueden expandirse más allá del espacio disponible.
-// Se usan junto con un ScrollState (generalmente rememberScrollState()).
-//
-// Sintaxis Básica:
-// val scrollState = rememberScrollState()
-//
-// Column(
-//     modifier = Modifier.verticalScroll(scrollState) // permite scrollear verticalmente
-// ) {
-//     // Contenido largo que exceda el tamaño visible
-// }
-//
-// Row(
-//     modifier = Modifier.horizontalScroll(scrollState) // permite scrollear horizontalmente
-// ) {
-//     // Contenido ancho que exceda el tamaño visible
-// }
-//
-// Notas:
-// - A diferencia de LazyColumn o LazyRow, estos no son "lazy": todo el contenido se dibuja de golpe.
-// - Requieren pasar un ScrollState, si no, no funcionará el scroll.
-// - Ideal para formularios o pantallas con pocos elementos que pueden crecer en tamaño.
-// - Si el contenido no excede el tamaño del contenedor, no se genera scroll (no hace nada).
