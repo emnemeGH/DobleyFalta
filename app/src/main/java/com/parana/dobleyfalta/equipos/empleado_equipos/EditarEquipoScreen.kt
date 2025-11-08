@@ -134,6 +134,19 @@ fun EditarEquipoScreen(navController: NavController, idEquipo: Int) {
         }
     }
 
+    if (loading) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
