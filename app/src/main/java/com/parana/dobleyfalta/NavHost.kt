@@ -130,7 +130,7 @@ fun AppNavHost(
         composable("admin") {
             AdminScreen(navController = navController)
         }
-        composable("crear_usuario") {
+        composable("admin_crear_usuario") {
             CreateUserScreen(navController = navController)
         }
         composable(

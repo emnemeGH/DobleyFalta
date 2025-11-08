@@ -204,7 +204,9 @@ fun LoginScreen(navController: NavController) {
                             val rol = sessionManager.getRolUsuario()
 
                             if (rol == Rol.Administrador) {
-                                navController.navigate("admin")
+                                navController.navigate("admin") {
+                                    popUpTo("login") { inclusive = true }
+                                }
                             } else {
                                 navController.navigate("home")
                             }
@@ -247,8 +249,14 @@ fun LoginScreen(navController: NavController) {
                 textDecoration = TextDecoration.Underline
             )
         }
-
     }
 }
 
+fun validarCampos(email: String, password: String): String? {
+    return when {
+        email.isBlank() -> "El email es obligatorio"
+        password.isBlank() -> "La contraseña es obligatoria"
+        else -> null
+    }
+}
 

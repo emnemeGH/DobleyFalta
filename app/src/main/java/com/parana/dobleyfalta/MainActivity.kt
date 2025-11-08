@@ -32,15 +32,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreenWithBottomNav(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
-
-    // Obtiene la ruta actual para saber qué ícono de la barra debe estar seleccionado
+    
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
-        // Coloca la barra de navegación inferior en el slot de bottomBar
         bottomBar = {
-            AppBottomNavigationBar(navController = navController, currentRoute = currentRoute ?: "")
+            if (currentRoute?.startsWith("admin") == false) {
+                AppBottomNavigationBar(navController = navController, currentRoute = currentRoute)
+            }
         }
     ) { innerPadding ->
         // Coloca el NavHost en el slot de content y pasa el padding a los composables hijos

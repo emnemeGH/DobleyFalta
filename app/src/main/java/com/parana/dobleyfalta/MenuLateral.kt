@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,6 +56,10 @@ fun MenuLateral(
                             .padding(vertical = 8.dp)
                             .padding(start = 8.dp)
                     ) {
+                        val context = LocalContext.current
+                        val sessionManager = remember { SessionManager(context.applicationContext) }
+                        val usuarioLogueado = sessionManager.getObjetoUsuario() != null
+
                         Column(
                             verticalArrangement = Arrangement.spacedBy(18.dp),
                             horizontalAlignment = Alignment.Start
@@ -67,17 +72,16 @@ fun MenuLateral(
                                 navController.navigate("tienda")
                                 onDismiss()
                             }
-                            MenuItem(painterResource(id = R.drawable.icon_tabla), "Tabla") {
-                                navController.navigate("tabla")
-                                onDismiss()
-                            }
-                            MenuItem(Icons.Default.Person, "Mi Perfil") {
-                                navController.navigate("miperfil")
-                                onDismiss()
-                            }
-                            MenuItem(Icons.Default.Person, "AdminNo") {
-                                navController.navigate("admin")
-                                onDismiss()
+                            if (usuarioLogueado) {
+                                MenuItem(Icons.Default.Person, "Mi Perfil") {
+                                    navController.navigate("miperfil")
+                                    onDismiss()
+                                }
+                            } else {
+                                MenuItem(Icons.Default.Person, "Login") {
+                                    navController.navigate("login")
+                                    onDismiss()
+                                }
                             }
                     }
                 }

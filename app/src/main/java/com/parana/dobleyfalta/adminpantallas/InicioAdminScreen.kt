@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.retrofit.models.auth.Usuario
 import com.parana.dobleyfalta.retrofit.repositories.UsuariosRepository
 import com.parana.dobleyfalta.retrofit.viewmodels.admin.AdminUsuariosViewModel
@@ -54,6 +56,9 @@ fun AdminScreen(navController: NavController) {
     val repository = remember { UsuariosRepository() }
     val scope = rememberCoroutineScope()
 
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+
     LaunchedEffect(Unit) {
         viewModel.cargarUsuarios()
     }
@@ -71,15 +76,29 @@ fun AdminScreen(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Panel de Admin",
-                fontSize = 22.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                Text(
+                    text = "Panel de Admin",
+                    fontSize = 22.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                TextButton(
+                    onClick = {
+                        sessionManager.clearSession()
+
+                        navController.navigate("login") {
+                            popUpTo(0)
+                        }
+                    }
+                ) {
+                    Text("Cerrar sesión", color = PrimaryOrange, fontSize = 14.sp)
+                }
+            }
 
             Button(
-                onClick = { navController.navigate("crear_usuario") },
+                onClick = { navController.navigate("admin_crear_usuario") },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
                 shape = RoundedCornerShape(12.dp)
             ) {

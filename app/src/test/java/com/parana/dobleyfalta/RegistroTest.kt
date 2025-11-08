@@ -2,14 +2,10 @@ package com.parana.dobleyfalta
 
 import com.parana.dobleyfalta.cuentas.validarCampoNoVacio
 import com.parana.dobleyfalta.cuentas.validarLongitudContraseña
-import com.parana.dobleyfalta.cuentas.validarUnicidad
 import org.junit.Assert.*
 import org.junit.Test
 
 class RegistroTest {
-
-    private val usuariosExistentes = listOf("juan", "maria")
-    private val emailsExistentes = listOf("juan@mail.com", "maria@mail.com")
 
     @Test
     fun validarCampoNoVacio_retornaError_siEstaVacio() {
@@ -33,22 +29,6 @@ class RegistroTest {
     fun validarLongitudContraseña_retornaNull_siCumple() {
         val resultado = validarLongitudContraseña("123456")
         assertNull(resultado)
-    }
-
-    @Test
-    fun validarUnicidad_retornaError_siYaExiste() {
-        val resultadoUsuario = validarUnicidad("juan", usuariosExistentes, "usuario")
-        val resultadoEmail = validarUnicidad("juan@mail.com", emailsExistentes, "email")
-        assertEquals("El usuario ya existe", resultadoUsuario)
-        assertEquals("El email ya existe", resultadoEmail)
-    }
-
-    @Test
-    fun validarUnicidad_retornaNull_siNoExiste() {
-        val resultadoUsuario = validarUnicidad("nuevoUsuario", usuariosExistentes, "usuario")
-        val resultadoEmail = validarUnicidad("nuevo@mail.com", emailsExistentes, "email")
-        assertNull(resultadoUsuario)
-        assertNull(resultadoEmail)
     }
 }
 

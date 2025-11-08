@@ -122,25 +122,27 @@ fun AppBottomNavigationBar(
 
             // Login
             NavigationBarItem(
-                selected = currentRoute == "login",
+                selected = currentRoute == "tabla",
                 onClick = {
-                    navController.navigate("login") {
+                    navController.navigate("tabla") {
                         popUpTo(navController.graph.startDestinationId)
                         launchSingleTop = true
                     }
                 },
                 icon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.user),
-                        contentDescription = "Login",
-                        tint = if (currentRoute == "login") PrimaryOrange else Color.White,
-                        modifier = Modifier.size(28.dp)
+                        painter = painterResource(id = R.drawable.icon_tabla),
+                        contentDescription = "Tabla",
+                        tint = if (currentRoute == "tabla") PrimaryOrange else Color.White,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("tabla-icon")
                     )
                 },
                 label = {
                     Text(
-                        text = "Login",
-                        color = if (currentRoute == "login") PrimaryOrange else Color.White
+                        text = "Tabla",
+                        color = if (currentRoute == "tabla") PrimaryOrange else Color.White
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)

@@ -1,6 +1,5 @@
 package com.parana.dobleyfalta
 
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -22,9 +21,16 @@ class AppTest {
 
     @Test
     fun login_exitoso_redirige_aPerfil() {
-        composeTestRule.onNodeWithText("Email").performTextInput("em")
 
-        composeTestRule.onNodeWithText("Contraseña").performTextInput("em")
+        composeTestRule.onNodeWithTag("login-icon").performClick()
+
+        Thread.sleep(2000)
+
+        composeTestRule.onNodeWithText("Email").performTextInput("em@gm.com")
+
+        composeTestRule.onNodeWithText("Contraseña").performTextInput("123456")
+
+        Thread.sleep(2000)
 
         composeTestRule.onNodeWithTag("loginBoton").performClick()
 
