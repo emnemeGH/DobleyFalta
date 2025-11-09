@@ -1,9 +1,8 @@
 package com.parana.dobleyfalta.retrofit.repositories
 
+import PartidoModel
 import com.parana.dobleyfalta.retrofit.clients.RetrofitClientPartidos
 import com.parana.dobleyfalta.retrofit.models.partidos.CrearPartidoModel
-import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
-import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
 import retrofit2.Response
 
 class PartidosRepository {
@@ -16,6 +15,10 @@ class PartidosRepository {
 
     suspend fun obtenerPartidoPorId(id: Int): PartidoModel {
         return api.getPartidoPorId(id)
+    }
+
+    suspend fun obtenerPartidosPorJornada(jornadaId: Int): List<PartidoModel> {
+        return api.getPartidosPorJornada(jornadaId)
     }
 
     suspend fun crearPartido(partido: CrearPartidoModel): Response<PartidoModel> {
@@ -31,8 +34,4 @@ class PartidosRepository {
         return response.isSuccessful
     }
 
-    // Si tienes endpoint que devuelve Partidos con equipos embebidos, descomenta y adapta:
-    // suspend fun obtenerPartidosConEquipos(): List<PartidoDTOModel> {
-    //     return api.getPartidosConEquipos()
-    // }
 }

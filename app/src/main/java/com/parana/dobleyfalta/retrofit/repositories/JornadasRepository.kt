@@ -13,8 +13,8 @@ class JornadasRepository {
         return api.getJornadas()
     }
 
-    suspend fun obtenerJornadaPorId(id: Int): JornadaModel {
-        return api.getJornadaPorId(id)
+    suspend fun obtenerJornadasPorLiga(ligaId: Int): List<JornadaModel> {
+        return api.getJornadasPorLiga(ligaId)
     }
 
     suspend fun crearJornada(jornada: CrearJornadaModel): Response<JornadaModel> {

@@ -22,11 +22,8 @@ import com.parana.dobleyfalta.equipos.DetallesEquiposScreen
 import com.parana.dobleyfalta.equipos.EquiposScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.CrearEquipoScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.EditarEquipoScreen
-import com.parana.dobleyfalta.jornadas.EditarPartidosScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
-import com.parana.dobleyfalta.jornadas.JornadasScreen
-import com.parana.dobleyfalta.jornadas.Partido
 import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearPartidosScreen
@@ -38,7 +35,8 @@ import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
 import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
-import com.parana.dobleyfalta.screens.JornadasPorLigaScreen
+import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScreen
+import com.parana.dobleyfalta.jornadas.JornadasScreen
 
 @Composable
 fun AppNavHost(
@@ -90,10 +88,22 @@ fun AppNavHost(
             EditarLigasScreen(navController, mainViewModel)
         }
 
-        composable("jornadas_screen/{jornadaId}") { backStackEntry ->
-            val jornadaId = backStackEntry.arguments?.getString("jornadaId")?.toIntOrNull() ?: 1
-            JornadasScreen(navController = navController, jornadaId = jornadaId)
+        composable(
+            route = "jornadas_screen/{ligaId}/{jornadaNumero}",
+            arguments = listOf(
+                navArgument("ligaId") { type = NavType.IntType },
+                navArgument("jornadaNumero") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val ligaId = backStackEntry.arguments?.getInt("ligaId") ?: 0
+            val jornadaNumero = backStackEntry.arguments?.getInt("jornadaNumero") ?: 1
+
+            JornadasScreen(
+                navController = navController,
+                ligaId = ligaId,
+                jornadaNumeroInicial = jornadaNumero)
         }
+
 
         composable("crear_jornada") {
             CrearJornadaScreen(navController, mainViewModel)
@@ -107,15 +117,15 @@ fun AppNavHost(
             CrearPartidosScreen(navController, mainViewModel)
         }
 
-        composable("editar_partido") { backStackEntry ->
-            val partido = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<Partido>("partido")
-
-            partido?.let {
-                EditarPartidosScreen(navController, mainViewModel, it)
-            }
-        }
+//        composable("editar_partido") { backStackEntry ->
+//            val partido = navController.previousBackStackEntry
+//                ?.savedStateHandle
+//                ?.get<Partido>("partido")
+//
+//            partido?.let {
+//                EditarPartidosScreen(navController, mainViewModel, it)
+//            }
+//        }
 
         composable("noticias") {
             NoticiasScreen(navController = navController)

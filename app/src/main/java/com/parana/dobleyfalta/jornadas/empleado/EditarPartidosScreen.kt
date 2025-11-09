@@ -1,5 +1,6 @@
 package com.parana.dobleyfalta.jornadas
 
+import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,8 +27,32 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.parana.dobleyfalta.DarkBlue
+import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.MainViewModel
+import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.equipos.LightGrey
+import kotlinx.parcelize.Parcelize
+
+// Modelo de Partido actualizado para incluir más detalles
+@Parcelize
+data class Partido(
+    val id: Int,
+    val equipo1: String,
+    val equipo2: String,
+    val escudo1: Int,
+    val escudo2: Int,
+    val score1: Int?,
+    val score2: Int?,
+    val status: String, // e.g., "Terminado", "Próximo", "En curso"
+    val liga: String,
+    val quarterScores1: List<Int>,
+    val quarterScores2: List<Int>,
+    val fecha: String,
+    val hora: String,
+    val estadio: String
+) : Parcelable
 
 
 @Composable

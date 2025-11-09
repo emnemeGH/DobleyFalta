@@ -8,21 +8,21 @@ import retrofit2.http.*
 
 interface LigasApiService {
 
-    @GET("api/liga/all")
+    @GET("api/ligas/all")
     suspend fun getLigas(): List<LigaModel>
 
-    @GET("api/liga/{id}")
+    @GET("api/ligas/{id}")
     suspend fun getLigaPorId(@Path("id") id: Int): LigaModel
 
-    @POST("api/liga/add")
+    @POST("api/ligas/add")
     suspend fun crearLiga(@Body liga: CrearLigaModel): Response<LigaModel>
 
-    @PUT("api/liga/{id}")
+    @PUT("api/ligas/{id}")
     suspend fun actualizarLiga(
         @Path("id") id: Int,
         @Body liga: LigaUpdateModel
     ): Response<LigaModel>
 
-    @DELETE("api/liga/{id}")
+    @DELETE("api/ligas/{id}")
     suspend fun eliminarLiga(@Path("id") id: Int): Response<Unit>
 }

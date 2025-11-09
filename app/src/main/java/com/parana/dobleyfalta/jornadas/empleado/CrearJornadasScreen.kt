@@ -1,7 +1,6 @@
 package com.parana.dobleyfalta.jornadas.empleado
 
 import com.parana.dobleyfalta.DarkGrey
-import com.parana.dobleyfalta.jornadas.LightGrey
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

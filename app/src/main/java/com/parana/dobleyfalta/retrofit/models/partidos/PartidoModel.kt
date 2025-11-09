@@ -1,13 +1,15 @@
-package com.parana.dobleyfalta.retrofit.models.partidos
-
-import java.sql.Date
+import com.parana.dobleyfalta.retrofit.models.jornadas.JornadaModel
 
 data class PartidoModel(
     val idPartido: Int,
-    val fecha: String?,                 // backend usa java.sql.Date -> se recibe como String (ISO) o "yyyy-MM-dd"
+    val fecha: String?,
     val puntosLocal: Int?,
     val puntosVisitante: Int?,
     val idEquipoLocal: Int?,
     val idEquipoVisitante: Int?,
-    val idJornada: Int?
+    val jornada: JornadaModel?, // 💡 Ahora es un objeto embebido
+    val estadoPartido: String,
+    val liga: String = "LIGA REGIONAL DE BÁSQUET",
+    val cuartosLocal: List<Int>? = null,
+    val cuartosVisitante: List<Int>? = null
 )
