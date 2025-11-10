@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +67,7 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp)
+            .testTag("pantalla-home")
     ) {
 
         //SECCIÓN DE PARTIDOS

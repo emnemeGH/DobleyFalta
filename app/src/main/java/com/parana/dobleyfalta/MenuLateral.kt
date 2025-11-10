@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,44 +46,52 @@ fun MenuLateral(
                         .background(Color.Black.copy(alpha = 0.4f))
                         .clickable { onDismiss() }
                 )
-                    Box(
-                        modifier = Modifier
-                            .width(150.dp)
-                            .align(Alignment.CenterEnd)
-                            .background(
-                                DarkGrey,
-                                RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
-                            )
-                            .padding(vertical = 8.dp)
-                            .padding(start = 8.dp)
-                    ) {
-                        val context = LocalContext.current
-                        val sessionManager = remember { SessionManager(context.applicationContext) }
-                        val usuarioLogueado = sessionManager.getObjetoUsuario() != null
+                Box(
+                    modifier = Modifier
+                        .width(150.dp)
+                        .align(Alignment.CenterEnd)
+                        .background(
+                            DarkGrey,
+                            RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
+                        )
+                        .padding(vertical = 8.dp)
+                        .padding(start = 8.dp)
+                ) {
+                    val context = LocalContext.current
+                    val sessionManager = remember { SessionManager(context.applicationContext) }
+                    val usuarioLogueado = sessionManager.getObjetoUsuario() != null
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(18.dp),
-                            horizontalAlignment = Alignment.Start
-                        ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(18.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Box(modifier = Modifier.testTag("menu-equipos")) {
                             MenuItem(painterResource(id = R.drawable.icon_team), "Equipos") {
                                 navController.navigate("equipos")
                                 onDismiss()
                             }
+                        }
+                        Box(modifier = Modifier.testTag("menu-tienda")) {
                             MenuItem(Icons.Default.ShoppingCart, "Tienda") {
                                 navController.navigate("tienda")
                                 onDismiss()
                             }
-                            if (usuarioLogueado) {
+                        }
+                        if (usuarioLogueado) {
+                            Box(modifier = Modifier.testTag("miperfil-icon")) {
                                 MenuItem(Icons.Default.Person, "Mi Perfil") {
                                     navController.navigate("miperfil")
                                     onDismiss()
                                 }
-                            } else {
+                            }
+                        } else {
+                            Box(modifier = Modifier.testTag("login-icon")) {
                                 MenuItem(Icons.Default.Person, "Login") {
                                     navController.navigate("login")
                                     onDismiss()
                                 }
                             }
+                        }
                     }
                 }
             }

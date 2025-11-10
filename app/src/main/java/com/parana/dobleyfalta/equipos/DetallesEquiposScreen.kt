@@ -115,7 +115,8 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .testTag("equipo-detalle"),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     AsyncImage(
@@ -189,7 +190,6 @@ fun DetallesEquiposScreen(navController: NavController, equipoId: Int) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier.testTag("textoUbicacion")
                             )
 
                             Spacer(modifier = Modifier.height(20.dp))

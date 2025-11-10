@@ -92,6 +92,7 @@ fun DetalleNoticiasScreen(
                             .fillMaxSize()
                             .padding(top = 50.dp)
                             .verticalScroll(rememberScrollState())
+                            .testTag("noticia-detalle")
                     ) {
                         var cargandoImagen by remember { mutableStateOf(true) }
 
