@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 import org.junit.Rule
 
 @RunWith(AndroidJUnit4::class)
-class AppTest {
+class AppInstrumentedTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
@@ -99,10 +99,7 @@ class AppTest {
         composeTestRule.onNodeWithTag("miperfil-icon").performClick()
 
 
-        //Esto es para volver para atras, requiere que este en el hilo principal
-//        composeTestRule.activity.runOnUiThread {
-//            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
-//        }
+
     }
 }
 
