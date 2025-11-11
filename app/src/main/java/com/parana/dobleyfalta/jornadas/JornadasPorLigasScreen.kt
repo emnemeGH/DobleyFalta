@@ -1,6 +1,5 @@
 package com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,14 +41,17 @@ fun formatearFecha(fecha: String?): String {
 @Composable
 fun JornadasPorLigaScreen(navController: NavController) {
 
+    // ViewModel de Ligas
     val ligasViewModel: LigasViewModel = viewModel()
     val ligas by ligasViewModel.ligas.collectAsState()
     val loading by ligasViewModel.loading.collectAsState()
     val error by ligasViewModel.error.collectAsState()
 
-    // Restauramos el estado para seleccionar la liga
+    // Estado: liga seleccionada
     var selectedLiga by remember { mutableStateOf<LigaModel?>(null) }
+    val scope = rememberCoroutineScope()
 
+    // Cargar ligas al entrar
     LaunchedEffect(Unit) {
         ligasViewModel.cargarLigas()
     }
