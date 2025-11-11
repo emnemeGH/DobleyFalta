@@ -65,7 +65,8 @@ fun AppBottomNavigationBar(
                         color = if (currentRoute == "noticias") PrimaryOrange else Color.White
                     )
                 },
-                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
+                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
+                modifier = Modifier.testTag("noticias-icon")
             )
 
             // Jornadas
@@ -91,7 +92,8 @@ fun AppBottomNavigationBar(
                         color = if (currentRoute == "jornadas_por_liga_screen") PrimaryOrange else Color.White
                     )
                 },
-                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
+                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
+                modifier = Modifier.testTag("jornadas-icon")
             )
 
             // Home
@@ -136,7 +138,6 @@ fun AppBottomNavigationBar(
                         tint = if (currentRoute == "tabla") PrimaryOrange else Color.White,
                         modifier = Modifier
                             .size(28.dp)
-                            .testTag("tabla-icon")
                     )
                 },
                 label = {
@@ -145,7 +146,8 @@ fun AppBottomNavigationBar(
                         color = if (currentRoute == "tabla") PrimaryOrange else Color.White
                     )
                 },
-                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
+                colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
+                modifier = Modifier.testTag("tabla-icon")
             )
 
             NavigationBarItem(

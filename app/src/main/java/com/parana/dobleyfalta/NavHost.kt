@@ -3,7 +3,9 @@ package com.parana.dobleyfalta
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -38,6 +40,7 @@ import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScre
 import com.parana.dobleyfalta.jornadas.JornadasScreen
 import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
 import com.parana.dobleyfalta.ui.screens.CrearPartidoScreen
+import com.parana.dobleyfalta.retrofit.models.auth.Rol
 
 @Composable
 fun AppNavHost(
@@ -46,9 +49,20 @@ fun AppNavHost(
     mainViewModel: MainViewModel
 ) {
 
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+    val rolUsuario: Rol? = sessionManager.getRolUsuario()
+    var startDestination = ""
+
+    if(rolUsuario == Rol.Administrador) {
+        startDestination = "admin"
+    } else {
+        startDestination = "home"
+    }
+
     NavHost(
         navController = navController,
-        startDestination = "home",
+        startDestination = startDestination,
         modifier = Modifier.padding(innerPadding)
     ) {
         composable("login") {
