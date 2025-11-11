@@ -8,8 +8,10 @@ data class PartidoDTOModel(
     val jornadaId: Int,
     val jornadaNumero: Int,
     val estadoPartido: String?,
-    val equipoLocal: String?,
-    val equipoVisitante: String?,
+    val equipoLocalId: Int,
+    val equipoVisitanteId: Int,
+    val equipoLocalNombre: String?,
+    val equipoVisitanteNombre: String?,
     val logoLocal: String?,
     val logoVisitante: String?
 )

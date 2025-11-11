@@ -1,6 +1,6 @@
 package com.parana.dobleyfalta.retrofit.services
 
-import PartidoModel
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import com.parana.dobleyfalta.retrofit.models.jornadas.CrearJornadaModel
 import com.parana.dobleyfalta.retrofit.models.jornadas.JornadaModel
 import retrofit2.Response

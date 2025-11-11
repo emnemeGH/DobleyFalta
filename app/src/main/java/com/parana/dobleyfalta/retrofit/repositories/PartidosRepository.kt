@@ -1,8 +1,10 @@
 package com.parana.dobleyfalta.retrofit.repositories
 
-import PartidoModel
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import com.parana.dobleyfalta.retrofit.clients.RetrofitClientPartidos
 import com.parana.dobleyfalta.retrofit.models.partidos.CrearPartidoModel
+import com.parana.dobleyfalta.retrofit.models.partidos.MarcadorUpdateRequest
+import com.parana.dobleyfalta.retrofit.viewmodels.partidos.EquipoType
 import retrofit2.Response
 
 class PartidosRepository {
@@ -31,6 +33,28 @@ class PartidosRepository {
 
     suspend fun eliminarPartido(id: Int): Boolean {
         val response = api.eliminarPartido(id)
+        return response.isSuccessful
+    }
+
+    suspend fun actualizarPuntuacion(
+        partidoId: Int,
+        equipo: EquipoType,
+        nuevoPunto: Int
+    ): Boolean {
+        val equipoString = when (equipo) {
+            EquipoType.LOCAL -> "LOCAL"
+            EquipoType.VISITANTE -> "VISITANTE"
+        }
+
+        val requestBody = MarcadorUpdateRequest(
+            equipo = equipoString,
+            puntos = nuevoPunto
+        )
+
+        // Llama a la nueva función del servicio
+        val response = api.actualizarPuntaje(partidoId, requestBody)
+
+        // Devuelve true si la llamada fue exitosa (código de respuesta 2xx)
         return response.isSuccessful
     }
 

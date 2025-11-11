@@ -37,7 +37,6 @@ import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.jornadas.DarkGrey
 import com.parana.dobleyfalta.jornadas.LightGrey
 import com.parana.dobleyfalta.jornadas.LiveGreen
-import com.parana.dobleyfalta.jornadas.Partido
 import com.parana.dobleyfalta.jornadas.PrimaryOrange
 import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
@@ -48,6 +47,22 @@ import com.parana.dobleyfalta.tabla.equiposTabla
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+data class Partido(
+    val id: Int,
+    val equipo1: String,
+    val equipo2: String,
+    val escudo1: Int,
+    val escudo2: Int,
+    val score1: Int?,
+    val score2: Int?,
+    val status: String, // e.g., "Terminado", "Próximo", "En curso"
+    val liga: String,
+    val quarterScores1: List<Int>,
+    val quarterScores2: List<Int>,
+    val fecha: String,
+    val hora: String,
+    val estadio: String)
 
 
 @Composable

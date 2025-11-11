@@ -26,7 +26,6 @@ import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
-import com.parana.dobleyfalta.jornadas.empleado.CrearPartidosScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
@@ -37,6 +36,8 @@ import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
 import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
+import com.parana.dobleyfalta.ui.screens.CrearPartidoScreen
 
 @Composable
 fun AppNavHost(
@@ -113,9 +114,14 @@ fun AppNavHost(
             EditarJornadaScreen(navController, mainViewModel)
         }
 
-        composable("crear_partido") {
-            CrearPartidosScreen(navController, mainViewModel)
+        composable(
+            route = "crear_partido/{jornadaId}",
+            arguments = listOf(navArgument("jornadaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val jornadaId = backStackEntry.arguments?.getInt("jornadaId") ?: 0
+            CrearPartidoScreen(navController = navController, jornadaId = jornadaId)
         }
+
 
 //        composable("editar_partido") { backStackEntry ->
 //            val partido = navController.previousBackStackEntry
@@ -126,6 +132,13 @@ fun AppNavHost(
 //                EditarPartidosScreen(navController, mainViewModel, it)
 //            }
 //        }
+        composable(
+            route = "marcador_partido/{idPartido}",
+            arguments = listOf(navArgument("idPartido") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val idPartido = backStackEntry.arguments?.getInt("idPartido") ?: 0
+            MarcadorPartidoScreen(navController, idPartido = idPartido) // ⬅️ ¡Aquí está el cambio!
+        }
 
         composable("noticias") {
             NoticiasScreen(navController = navController)

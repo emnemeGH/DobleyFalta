@@ -1,6 +1,7 @@
 package com.parana.dobleyfalta.jornadas
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,9 +34,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAccessor
+import com.parana.dobleyfalta.SessionManager
+import com.parana.dobleyfalta.retrofit.models.auth.Rol
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 
 // Colores del diseño deseado
 val DarkBlue = Color(0xFF102B4E)
@@ -53,46 +57,60 @@ fun JornadasScreen(
     partidosViewModel: PartidosViewModel = viewModel(),
     navController: NavHostController,
     ligaId: Int,
-    jornadaNumeroInicial: Int
+    jornadaNumeroInicial: Int,
+    jornadaId: Int
 ) {
     val jornadas by jornadasViewModel.jornadas.collectAsState()
     val jornadaActual by jornadasViewModel.jornadaActual.collectAsState()
     val partidosDTO by partidosViewModel.partidosDTO.collectAsState()
+    val errorViewModel by partidosViewModel.error.collectAsState() // Para manejar errores de eliminación
+
+    // 💡 NUEVO: Variable de estado para el diálogo de error (Paso 1)
+    var mostrarDialogoError by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context.applicationContext) }
+
+    // 💡 NUEVO: Determinar si el usuario tiene permiso de edición/eliminación
+    val userRole = sessionManager.getRolUsuario()
+    // Los botones se muestran si el rol es Empleado O Administrador
+    val canEditDelete = userRole == Rol.Empleado
+
+    // Si la jornada actual no está en la lista de jornadas (ej: la lista está vacía al inicio),
+    // intentamos usar la primera jornada disponible o la inicial.
+    val currentJornadaModel = jornadas.find { it.numero == jornadaActual }
+        ?: jornadas.firstOrNull()
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val nuevoPartidoFlow = savedStateHandle?.getStateFlow<PartidoDTOModel?>("nuevo_partido", null)
+    val nuevoPartido by nuevoPartidoFlow?.collectAsState() ?: remember { mutableStateOf(null) }
 
     // LÓGICA DE CARGA MEJORADA
     LaunchedEffect(Unit) {
         jornadasViewModel.cargarJornadasDeLiga(ligaId)
         jornadasViewModel.setJornadaActual(jornadaNumeroInicial)
-
-        // Pre-cargar partidos de la jornada inicial (si ya se obtuvieron las jornadas)
-        val jornadaInicialModel = jornadas.find { it.numero == jornadaNumeroInicial }
-            ?: jornadas.firstOrNull()
-
-        if (jornadaInicialModel != null) {
-            partidosViewModel.cargarPartidos(jornadaInicialModel.idJornada)
-        }
     }
 
     // EFECTO CLAVE: Recargar partidos al cambiar la jornada
-    LaunchedEffect(jornadaActual, jornadas) {
-        // Aseguramos que las jornadas no estén vacías antes de buscar
-        if (jornadas.isNotEmpty()) {
+    LaunchedEffect(nuevoPartido) {
+        if (nuevoPartido != null) {
+            // Recargar la jornada actual
             val jornadaSeleccionada = jornadas.find { it.numero == jornadaActual }
-
             if (jornadaSeleccionada != null) {
                 partidosViewModel.cargarPartidos(jornadaSeleccionada.idJornada)
-
-                // Desplazar el carrusel a la posición correcta
-                val index = jornadas.indexOf(jornadaSeleccionada)
-                if (index != -1) {
-                    coroutineScope.launch {
-                        // NOTE: Si no estás usando LazyRow para las jornadas, esta línea no hace nada visualmente
-                        listState.animateScrollToItem(index)
-                    }
-                }
+                savedStateHandle?.set("nuevo_partido", null) // limpiar para evitar recargas dobles
             }
+        }
+    }
+
+    // 💡 MODIFICADO: Muestra el diálogo de error si el ViewModel reporta un error (Paso 2)
+    errorViewModel?.let { errorMsg ->
+        // Si el mensaje de error no es nulo/vacío, activamos el diálogo
+        if (errorMsg.isNotEmpty()) {
+            mostrarDialogoError = true
         }
     }
 
@@ -103,11 +121,8 @@ fun JornadasScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBlue)
-            .padding(horizontal = 16.dp) // <- Modificado para mantener padding de 16.dp lateral
+            .padding(horizontal = 16.dp)
     ) {
-        // ----------------------------------------------------------------------
-        // 👇 NUEVO: Título y Navegación entre Jornadas con Flechas
-        // ----------------------------------------------------------------------
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -135,7 +150,7 @@ fun JornadasScreen(
                     painter = painterResource(id = R.drawable.arrow_left),
                     contentDescription = "Jornada anterior",
                     tint = PrimaryOrange,
-                    modifier = Modifier.size(28.dp) // Ajusta el tamaño si es necesario
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
@@ -161,13 +176,10 @@ fun JornadasScreen(
                     painter = painterResource(id = R.drawable.arrow_right),
                     contentDescription = "Jornada siguiente",
                     tint = PrimaryOrange,
-                    modifier = Modifier.size(28.dp) // Ajusta el tamaño si es necesario
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
-        // ----------------------------------------------------------------------
-        // 👆 FIN DEL NUEVO HEADER
-        // ----------------------------------------------------------------------
 
         // Lista de partidos
         val partidosDeJornada = partidosDTO
@@ -176,12 +188,9 @@ fun JornadasScreen(
             items(partidosDeJornada) { partido ->
                 PartidoCard(
                     partido = partido,
+                    canEditDelete = canEditDelete, // 💡 Nuevo parámetro
                     onEditClick = {
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "partido",
-                            partido
-                        )
-                        navController.navigate("editar_partido")
+                        navController.navigate("marcador_partido/${partido.idPartido}")
                     },
                     onDeleteClick = {
                         partidoAEliminar = partido
@@ -191,28 +200,33 @@ fun JornadasScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Botón agregar partido
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Button(
-                        onClick = { navController.navigate("crear_partido") },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = PrimaryOrange
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+            // Botón agregar partido (solo para Empleados/Admin)
+            if (canEditDelete) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "AGREGAR PARTIDO",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        Button(
+                            onClick = {
+                                navController.navigate("crear_partido/$jornadaId")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = PrimaryOrange
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "AGREGAR PARTIDO",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+
                     }
                 }
             }
@@ -221,6 +235,8 @@ fun JornadasScreen(
 
     // Diálogo de confirmación de eliminación
     if (mostrarConfirmacionBorrado && partidoAEliminar != null) {
+        val partido = partidoAEliminar!!
+
         AlertDialog(
             onDismissRequest = { mostrarConfirmacionBorrado = false },
             title = {
@@ -234,9 +250,15 @@ fun JornadasScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // TODO: Implementar la lógica real de eliminación aquí
-                        mostrarConfirmacionBorrado = false
-                        partidoAEliminar = null
+                        // 💡 Implementación de la lógica de eliminación
+                        partidosViewModel.eliminarPartido(
+                            id = partido.idPartido,
+                            jornadaId = partido.jornadaId,
+                            onSuccess = {
+                                mostrarConfirmacionBorrado = false
+                                partidoAEliminar = null
+                            }
+                        )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = RedDelete)
                 ) { Text("Borrar") }
@@ -250,12 +272,41 @@ fun JornadasScreen(
             shape = RoundedCornerShape(16.dp)
         )
     }
+
+    // 💡 NUEVO: Diálogo para mostrar errores de la operación (Paso 3)
+    if (mostrarDialogoError) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoError = false
+                partidosViewModel.clearError() // Limpia el error al tocar fuera
+            },
+            title = {
+                Text(
+                    "Error al realizar la operación",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            },
+            text = { Text(errorViewModel ?: "Error desconocido.", color = LightGrey) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarDialogoError = false
+                        partidosViewModel.clearError() // Limpia el error al presionar "Aceptar"
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
+                ) { Text("Aceptar") }
+            },
+            containerColor = DarkGrey,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
-// PartidoCard remains the same
 @Composable
 fun PartidoCard(
     partido: PartidoDTOModel,
+    canEditDelete: Boolean, // 💡 Nuevo parámetro
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -265,9 +316,7 @@ fun PartidoCard(
     val winnerScoreColor = PrimaryOrange
 
     val (dia, fechaNumerica, hora) = parseFecha(partido.fecha)
-    // --------------------------------------------------------
 
-    // Lógica para determinar el texto visible, el color del header y si se muestran los cuartos
     val estadoDb = partido.estadoPartido?.lowercase()
 
     val (headerText, headerColor, showScores) = when (estadoDb) {
@@ -278,15 +327,14 @@ fun PartidoCard(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // ----------------------------------------------------------------------
-            // 👇 MODIFICADO: Header estado partido (Con Logo de Silbato)
-            // ----------------------------------------------------------------------
+            // Header estado partido
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -326,26 +374,25 @@ fun PartidoCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Equipo local (sin cambios)
+                // Equipo local
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // ... AsyncImage y Text del equipo local ...
                     AsyncImage(
-                        model = partido.logoLocal,
-                        contentDescription = partido.equipoLocal,
+                        model = "${BASE_URL}${partido.logoLocal}",
+                        contentDescription = partido.equipoLocalNombre, // Usar el nombre del equipo
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(60.dp) // Tamaño adecuado para la tarjeta
                             .clip(CircleShape),
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = partido.equipoLocal ?: "",
+                        text = partido.equipoLocalNombre ?: "",
                         color = textStrongColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -383,15 +430,14 @@ fun PartidoCard(
                     }
                 }
 
-                // Equipo visitante (sin cambios)
+                // Equipo visitante
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // ... AsyncImage y Text del equipo visitante ...
                     AsyncImage(
-                        model = partido.logoVisitante,
-                        contentDescription = partido.equipoVisitante,
+                        model = "${BASE_URL}${partido.logoVisitante}",
+                        contentDescription = partido.equipoVisitanteNombre,
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape),
@@ -399,10 +445,10 @@ fun PartidoCard(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = partido.equipoVisitante ?: "",
+                        text = partido.equipoVisitanteNombre ?: "",
                         color = textStrongColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -412,15 +458,11 @@ fun PartidoCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                // 💡 Alineación central
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 💡 Se eliminó la Columna de Logos Pequeños
-
                 // Lado Central: Día, Fecha y Hora
                 Column(
-                    // 💡 Alineación central
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -430,7 +472,6 @@ fun PartidoCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        // 💡 Agregamos "hs" solo a la hora para claridad
                         text = "$fechaNumerica | $hora hs",
                         color = textLightColor,
                         fontSize = 15.sp,
@@ -438,26 +479,30 @@ fun PartidoCard(
                     )
                 }
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                IconButton(onClick = onEditClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Editar",
-                        tint = BlueEdit
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Eliminar",
-                        tint = RedDelete
-                    )
+
+            // 💡 CONTROL DE VISIBILIDAD DE BOTONES
+            if (canEditDelete) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    IconButton(onClick = onEditClick) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Editar",
+                            tint = BlueEdit
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Eliminar",
+                            tint = RedDelete
+                        )
+                    }
                 }
             }
         }
@@ -470,7 +515,6 @@ fun parseFecha(fechaHoraString: String?): Triple<String, String, String> {
         return Triple("Sin Día", "--/--/----", "--:--")
     }
 
-    // Adaptamos a los formatos de Spring/ISO (incluyendo el formato con 'T' si migraste a LocalDateTime)
     val possibleFormats = listOf(
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"), // ISO 8601 (común con Spring/Jackson)
     )
@@ -501,7 +545,7 @@ fun parseFecha(fechaHoraString: String?): Triple<String, String, String> {
         val dia = dateTime.dayOfWeek.getDisplayName(TextStyle.FULL, spanishLocale).replaceFirstChar { it.uppercase() }
         val fecha = dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
-        // 💡 Si solo recibimos la fecha (isDateOnly), la hora es desconocida.
+        // Si solo recibimos la fecha (isDateOnly), la hora es desconocida.
         val horaStr = if (isDateOnly) "" else dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
 
         Triple(dia, fecha, horaStr)

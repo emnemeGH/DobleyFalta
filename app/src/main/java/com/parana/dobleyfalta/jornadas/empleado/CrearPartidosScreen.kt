@@ -1,417 +1,199 @@
-package com.parana.dobleyfalta.jornadas.empleado
+package com.parana.dobleyfalta.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.DarkBlue
-import com.parana.dobleyfalta.DarkGrey
-import com.parana.dobleyfalta.MainViewModel
-import com.parana.dobleyfalta.PrimaryOrange
-import com.parana.dobleyfalta.R
-import com.parana.dobleyfalta.equipos.LightGrey
+import com.parana.dobleyfalta.retrofit.models.partidos.CrearPartidoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.equipos.EquiposViewModel
+import com.parana.dobleyfalta.ui.viewmodels.CrearPartidoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Definición de colores locales para mantener el contexto del archivo
-val DarkGrey = Color(0xFF1A375E)
-val LightGrey = Color(0xFFA0B3C4)
-
-// Información de los equipos y estadios para simular la base de datos
-val equiposConEstadios = mapOf(
-    "ROWING" to "EL GIGANTE DE CALLE LAS HERAS",
-    "CAE" to "Estadio del CAE",
-    "EQUIPO A" to "Estadio del Equipo A",
-    "EQUIPO B" to "Estadio del Equipo B",
-    "CAMIONEROS" to "Estadio de Camioneros",
-    "DEPORTIVO" to "Estadio del Deportivo",
-    "CENTRO" to "Estadio del Centro"
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearPartidosScreen(navController: NavController, mainViewModel: MainViewModel) {
-    val focusManager = LocalFocusManager.current
-    val interactionSource = remember { MutableInteractionSource() }
+fun CrearPartidoScreen(
+    navController: NavController,
+    jornadaId: Int,
+    crearPartidoViewModel: CrearPartidoViewModel = viewModel(),
+    equiposViewModel: EquiposViewModel = viewModel()
+) {
+    val estado by crearPartidoViewModel.estado.collectAsState()
+    val equipos by equiposViewModel.equipos.collectAsState()
+    val partidoCreado by crearPartidoViewModel.partidoCreado.collectAsState()
 
-    // Estados para los campos del formulario
-    var equipoLocal by remember { mutableStateOf("") }
-    var equipoVisitante by remember { mutableStateOf("") }
-    var fechaPartido by remember { mutableStateOf("") }
-    var horaPartido by remember { mutableStateOf("") }
-    var lugarPartido by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-    // Estados para los errores de validación
-    var equipoLocalError by remember { mutableStateOf<String?>(null) }
-    var equipoVisitanteError by remember { mutableStateOf<String?>(null) }
-    var fechaError by remember { mutableStateOf<String?>(null) }
-    var horaError by remember { mutableStateOf<String?>(null) }
-    var lugarError by remember { mutableStateOf<String?>(null) }
+    var equipoLocalSeleccionado by remember { mutableStateOf<Int?>(null) }
+    var equipoVisitanteSeleccionado by remember { mutableStateOf<Int?>(null) }
+    var fechaSeleccionada by remember { mutableStateOf("") }
 
-    // Estados para los selectores de equipos
-    var expandedLocal by remember { mutableStateOf(false) }
-    var expandedVisitante by remember { mutableStateOf(false) }
+    var expandirLocal by remember { mutableStateOf(false) }
+    var expandirVisitante by remember { mutableStateOf(false) }
 
-    // Estados para los selectores de fecha y hora
-    var mostrarSeleccionFecha by remember { mutableStateOf(false) }
-    var mostrarSeleccionHora by remember { mutableStateOf(false) }
+    // Cargar equipos una sola vez
+    LaunchedEffect(Unit) { equiposViewModel.cargarEquipos() }
 
-    // Efecto para pre-llenar el lugar cuando se selecciona el equipo local
-    LaunchedEffect(equipoLocal) {
-        lugarPartido = equiposConEstadios[equipoLocal] ?: ""
+    // Cuando el partido se crea correctamente
+    LaunchedEffect(estado) {
+        if (estado == "ok" && partidoCreado != null) {
+            // guardamos el nuevo partido en el backstack
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set("nuevo_partido", partidoCreado)
+
+            navController.popBackStack() // vuelve a JornadasScreen
+        }
     }
 
-    // Diálogo para seleccionar la fecha
-    if (mostrarSeleccionFecha) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis()
-        )
-        DatePickerDialog(
-            onDismissRequest = { mostrarSeleccionFecha = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val selectedDateMillis = datePickerState.selectedDateMillis
-                        if (selectedDateMillis != null) {
-                            val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            fechaPartido = formatter.format(Date(selectedDateMillis))
-                            fechaError = null
-                        }
-                        mostrarSeleccionFecha = false
-                    }
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text("Crear Partido") })
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            // Equipo local
+            ExposedDropdownMenuBox(
+                expanded = expandirLocal,
+                onExpandedChange = { expandirLocal = !expandirLocal }
+            ) {
+                OutlinedTextField(
+                    value = equipos.find { it.idEquipo == equipoLocalSeleccionado }?.nombre ?: "",
+                    onValueChange = {},
+                    label = { Text("Equipo Local") },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    readOnly = true
+                )
+                ExposedDropdownMenu(
+                    expanded = expandirLocal,
+                    onDismissRequest = { expandirLocal = false }
                 ) {
-                    Text("Aceptar")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    // Diálogo para seleccionar la hora
-    if (mostrarSeleccionHora) {
-        val timePickerState = rememberTimePickerState()
-        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        AlertDialog(
-            onDismissRequest = { mostrarSeleccionHora = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val calendar = Calendar.getInstance().apply {
-                            set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                            set(Calendar.MINUTE, timePickerState.minute)
-                        }
-                        horaPartido = formatter.format(calendar.time)
-                        horaError = null
-                        mostrarSeleccionHora = false
+                    equipos.forEach { equipo ->
+                        DropdownMenuItem(
+                            text = { Text(equipo.nombre) },
+                            onClick = {
+                                equipoLocalSeleccionado = equipo.idEquipo
+                                expandirLocal = false
+                            }
+                        )
                     }
+                }
+            }
+
+            // Equipo visitante
+            ExposedDropdownMenuBox(
+                expanded = expandirVisitante,
+                onExpandedChange = { expandirVisitante = !expandirVisitante }
+            ) {
+                OutlinedTextField(
+                    value = equipos.find { it.idEquipo == equipoVisitanteSeleccionado }?.nombre ?: "",
+                    onValueChange = {},
+                    label = { Text("Equipo Visitante") },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    readOnly = true
+                )
+                ExposedDropdownMenu(
+                    expanded = expandirVisitante,
+                    onDismissRequest = { expandirVisitante = false }
                 ) {
-                    Text("Aceptar")
+                    equipos.forEach { equipo ->
+                        DropdownMenuItem(
+                            text = { Text(equipo.nombre) },
+                            onClick = {
+                                equipoVisitanteSeleccionado = equipo.idEquipo
+                                expandirVisitante = false
+                            }
+                        )
+                    }
                 }
-            },
-            title = { Text("Seleccionar Hora", color = Color.White) },
-            text = { TimePicker(state = timePickerState) },
-            containerColor = DarkGrey,
-            modifier = Modifier.background(DarkGrey)
-        )
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBlue)
-            .padding(horizontal = 32.dp)
-            .padding(top = 16.dp)
-            .clickable(
-                indication = null,
-                interactionSource = interactionSource
-            ) { focusManager.clearFocus() },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        // Botón para volver
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.padding(0.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.back),
-                    contentDescription = "Volver a jornadas",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp)
-                )
             }
-        }
 
-        Text(
-            text = "Crear Partido",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        // Selector de equipo local
-        ExposedDropdownMenuBox(
-            expanded = expandedLocal,
-            onExpandedChange = { expandedLocal = !expandedLocal },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
+            // Fecha y hora
             OutlinedTextField(
-                value = equipoLocal,
+                value = fechaSeleccionada,
                 onValueChange = {},
+                label = { Text("Fecha y hora") },
+                modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                label = { Text("Equipo local", color = LightGrey) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLocal) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DarkGrey,
-                    unfocusedContainerColor = DarkGrey,
-                    unfocusedBorderColor = DarkGrey,
-                    focusedBorderColor = PrimaryOrange,
-                    cursorColor = PrimaryOrange,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    disabledTextColor = Color.White
-                ),
-                isError = equipoLocalError != null,
-                modifier = Modifier.menuAnchor()
+                trailingIcon = {
+                    IconButton(onClick = {
+                        val cal = Calendar.getInstance()
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                TimePickerDialog(
+                                    context,
+                                    { _, hourOfDay, minute ->
+                                        cal.set(year, month, dayOfMonth, hourOfDay, minute)
+                                        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                                        fechaSeleccionada = sdf.format(cal.time)
+                                    },
+                                    cal.get(Calendar.HOUR_OF_DAY),
+                                    cal.get(Calendar.MINUTE),
+                                    true
+                                ).show()
+                            },
+                            cal.get(Calendar.YEAR),
+                            cal.get(Calendar.MONTH),
+                            cal.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    }) {
+                        Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+                    }
+                }
             )
-            ExposedDropdownMenu(
-                expanded = expandedLocal,
-                onDismissRequest = { expandedLocal = false },
-                modifier = Modifier.background(DarkGrey)
-            ) {
-                equiposConEstadios.keys.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption, color = Color.White) },
-                        onClick = {
-                            equipoLocal = selectionOption
-                            equipoLocalError = null
-                            expandedLocal = false
+
+            // Botón guardar
+            Button(
+                onClick = {
+                    when {
+                        equipoLocalSeleccionado == null || equipoVisitanteSeleccionado == null || fechaSeleccionada.isEmpty() -> {
+                            crearPartidoViewModel.setError("Completa todos los campos")
                         }
-                    )
-                }
-            }
-        }
-        equipoLocalError?.let {
-            Text(it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(start = 16.dp))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Selector de equipo visitante
-        ExposedDropdownMenuBox(
-            expanded = expandedVisitante,
-            onExpandedChange = { expandedVisitante = !expandedVisitante },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
-            OutlinedTextField(
-                value = equipoVisitante,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Equipo visitante", color = LightGrey) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedVisitante) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = DarkGrey,
-                    unfocusedContainerColor = DarkGrey,
-                    unfocusedBorderColor = DarkGrey,
-                    focusedBorderColor = PrimaryOrange,
-                    cursorColor = PrimaryOrange,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    disabledTextColor = Color.White
-                ),
-                isError = equipoVisitanteError != null,
-                modifier = Modifier.menuAnchor()
-            )
-            ExposedDropdownMenu(
-                expanded = expandedVisitante,
-                onDismissRequest = { expandedVisitante = false },
-                modifier = Modifier.background(DarkGrey)
-            ) {
-                equiposConEstadios.keys.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption, color = Color.White) },
-                        onClick = {
-                            equipoVisitante = selectionOption
-                            equipoVisitanteError = null
-                            expandedVisitante = false
+                        equipoLocalSeleccionado == equipoVisitanteSeleccionado -> {
+                            crearPartidoViewModel.setError("Los equipos deben ser distintos")
                         }
-                    )
-                }
+                        else -> {
+                            val partido = CrearPartidoModel(
+                                idJornada = jornadaId,
+                                idEquipoLocal = equipoLocalSeleccionado!!,
+                                idEquipoVisitante = equipoVisitanteSeleccionado!!,
+                                fecha = fechaSeleccionada
+                            )
+                            crearPartidoViewModel.crearPartido(partido)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar Partido")
             }
-        }
-        equipoVisitanteError?.let {
-            Text(it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(start = 16.dp))
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de texto para la fecha (con selector)
-        OutlinedTextField(
-            value = fechaPartido,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Fecha del partido", color = LightGrey) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = interactionSource
-                ) { mostrarSeleccionFecha = true },
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                disabledTextColor = Color.White
-            ),
-            isError = fechaError != null,
-            supportingText = {
-                fechaError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Seleccionar fecha del partido",
-                    tint = LightGrey,
-                    modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = interactionSource
-                    ) { mostrarSeleccionFecha = true }
+            estado?.let {
+                Text(
+                    text = it,
+                    color = if (it.startsWith("error")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             }
-        )
-
-        // Campo de texto para la hora (con selector)
-        OutlinedTextField(
-            value = horaPartido,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Hora del partido", color = LightGrey) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = interactionSource
-                ) { mostrarSeleccionHora = true },
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                disabledTextColor = Color.White
-            ),
-            isError = horaError != null,
-            supportingText = {
-                horaError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Seleccionar hora del partido",
-                    tint = LightGrey,
-                    modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = interactionSource
-                    ) { mostrarSeleccionHora = true }
-                )
-            }
-        )
-
-        // Campo de texto para el lugar del partido (editable)
-        OutlinedTextField(
-            value = lugarPartido,
-            onValueChange = {
-                lugarPartido = it
-                lugarError = null
-            },
-            label = { Text("Lugar del partido", color = LightGrey) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            ),
-            isError = lugarError != null,
-            supportingText = {
-                lugarError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            }
-        )
-
-        // Botón para guardar el partido
-        Button(
-            onClick = {
-                // Validar campos
-                equipoLocalError = if (equipoLocal.isBlank()) "El equipo local es obligatorio" else null
-                equipoVisitanteError = if (equipoVisitante.isBlank()) "El equipo visitante es obligatorio" else null
-                fechaError = if (fechaPartido.isBlank()) "La fecha es obligatoria" else null
-                horaError = if (horaPartido.isBlank()) "La hora es obligatoria" else null
-                lugarError = if (lugarPartido.isBlank()) "El lugar es obligatorio" else null
-
-                // Validar que los equipos no sean el mismo
-                if (equipoLocal == equipoVisitante && equipoLocal.isNotBlank()) {
-                    equipoVisitanteError = "Los equipos local y visitante no pueden ser el mismo"
-                }
-
-                if (equipoLocalError == null && equipoVisitanteError == null && fechaError == null && horaError == null && lugarError == null) {
-                    println("Partido creado: Equipo Local='$equipoLocal', Equipo Visitante='$equipoVisitante', Fecha='$fechaPartido', Hora='$horaPartido', Lugar='$lugarPartido'")
-                    navController.popBackStack()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Guardar Partido", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
