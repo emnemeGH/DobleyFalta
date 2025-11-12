@@ -24,6 +24,8 @@ import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.MainViewModel
 import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.jornadas.DarkGrey
+import com.parana.dobleyfalta.jornadas.LightGrey
 import java.text.SimpleDateFormat
 import java.util.*
 

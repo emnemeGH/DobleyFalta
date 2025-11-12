@@ -28,7 +28,6 @@ import coil.compose.AsyncImage
 import com.parana.dobleyfalta.retrofit.viewmodels.JornadasViewModel
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
-import kotlinx.coroutines.launch
 import com.parana.dobleyfalta.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -57,7 +56,6 @@ fun JornadasScreen(
     partidosViewModel: PartidosViewModel = viewModel(),
     navController: NavHostController,
     ligaId: Int,
-    jornadaNumeroInicial: Int,
     jornadaId: Int
 ) {
     val jornadas by jornadasViewModel.jornadas.collectAsState()
@@ -70,6 +68,7 @@ fun JornadasScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+
 
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context.applicationContext) }
@@ -88,11 +87,25 @@ fun JornadasScreen(
     val nuevoPartidoFlow = savedStateHandle?.getStateFlow<PartidoDTOModel?>("nuevo_partido", null)
     val nuevoPartido by nuevoPartidoFlow?.collectAsState() ?: remember { mutableStateOf(null) }
 
-    // LÓGICA DE CARGA MEJORADA
     LaunchedEffect(Unit) {
+        // 1. Cargar la lista de jornadas de la liga (si el ViewModel no lo hace por sí solo)
+        // **IMPORTANTE**: Asume que tu JornadasViewModel tiene un método para esto.
         jornadasViewModel.cargarJornadasDeLiga(ligaId)
-        jornadasViewModel.setJornadaActual(jornadaNumeroInicial)
+
+        // 2. Inicializar la jornada actual del ViewModel con el valor de navegación
+        jornadasViewModel.setJornadaActual(jornadaId)
     }
+
+    // EFECTO CLAVE: Recargar partidos al cambiar la jornada
+    LaunchedEffect(jornadaActual, jornadas) { // Este estaba antes y está OK.
+        // Aseguramos que tenemos la ID de la jornada para realizar la llamada a la API
+        val jornadaIdToLoad = jornadas.find { it.numero == jornadaActual }?.idJornada
+
+        if (jornadaIdToLoad != null) {
+            partidosViewModel.cargarPartidos(jornadaIdToLoad)
+        }
+    }
+
 
     // EFECTO CLAVE: Recargar partidos al cambiar la jornada
     LaunchedEffect(nuevoPartido) {
@@ -211,7 +224,8 @@ fun JornadasScreen(
                     ) {
                         Button(
                             onClick = {
-                                navController.navigate("crear_partido/$jornadaId")
+                                val realJornadaId = currentJornadaModel?.idJornada ?: return@Button
+                                navController.navigate("crear_partido/$realJornadaId")
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,

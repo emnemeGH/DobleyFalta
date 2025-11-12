@@ -129,11 +129,6 @@ class PartidosViewModel : ViewModel() {
         }
     }
 
-
-    fun obtenerPartidosPorJornada(jornadaId: Int): List<PartidoDTOModel> {
-        return _partidosDTO.value.filter { it.jornadaId == jornadaId }
-    }
-
     fun clearError() { _error.value = null }
 
     fun actualizarPuntuacion(
@@ -172,5 +167,4 @@ class PartidosViewModel : ViewModel() {
             }
         }
     }
-
 }

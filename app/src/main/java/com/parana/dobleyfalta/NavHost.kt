@@ -111,13 +111,19 @@ fun AppNavHost(
             )
         ) { backStackEntry ->
             val ligaId = backStackEntry.arguments?.getInt("ligaId") ?: 0
+
+            // ✅ CORREGIDO: Usar "jornadaNumero" que es el argumento definido en la ruta
             val jornadaNumero = backStackEntry.arguments?.getInt("jornadaNumero") ?: 1
 
             JornadasScreen(
                 navController = navController,
                 ligaId = ligaId,
-                jornadaNumeroInicial = jornadaNumero)
+                // Le pasamos el número de jornada, NO el ID, a la pantalla
+                jornadaId = jornadaNumero // Se llama "jornadaId" en el Composable, pero es el número. Es mejor refactorizarlo a "jornadaNumero" si es posible.
+            )
         }
+
+
 
 
         composable("crear_jornada") {

@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.jornadas.LightGrey
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.EquipoType
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
