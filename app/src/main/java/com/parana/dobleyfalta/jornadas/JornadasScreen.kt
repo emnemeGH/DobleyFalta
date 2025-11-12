@@ -28,6 +28,8 @@ import coil.compose.AsyncImage
 import com.parana.dobleyfalta.retrofit.viewmodels.JornadasViewModel
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
+// 💡 CAMBIO CRÍTICO 1: Importar el modelo Parcelable para la navegación
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import com.parana.dobleyfalta.R
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -61,9 +63,8 @@ fun JornadasScreen(
     val jornadas by jornadasViewModel.jornadas.collectAsState()
     val jornadaActual by jornadasViewModel.jornadaActual.collectAsState()
     val partidosDTO by partidosViewModel.partidosDTO.collectAsState()
-    val errorViewModel by partidosViewModel.error.collectAsState() // Para manejar errores de eliminación
+    val errorViewModel by partidosViewModel.error.collectAsState()
 
-    // 💡 NUEVO: Variable de estado para el diálogo de error (Paso 1)
     var mostrarDialogoError by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -73,32 +74,25 @@ fun JornadasScreen(
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context.applicationContext) }
 
-    // 💡 NUEVO: Determinar si el usuario tiene permiso de edición/eliminación
     val userRole = sessionManager.getRolUsuario()
-    // Los botones se muestran si el rol es Empleado O Administrador
     val canEditDelete = userRole == Rol.Empleado
 
-    // Si la jornada actual no está en la lista de jornadas (ej: la lista está vacía al inicio),
-    // intentamos usar la primera jornada disponible o la inicial.
     val currentJornadaModel = jornadas.find { it.numero == jornadaActual }
         ?: jornadas.firstOrNull()
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    val nuevoPartidoFlow = savedStateHandle?.getStateFlow<PartidoDTOModel?>("nuevo_partido", null)
+
+    // 💡 CAMBIO CRÍTICO 2: Corregir el tipo de dato esperado. Debe ser PartidoModel (Parcelable).
+    val nuevoPartidoFlow = savedStateHandle?.getStateFlow<PartidoModel?>("nuevo_partido", null)
     val nuevoPartido by nuevoPartidoFlow?.collectAsState() ?: remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        // 1. Cargar la lista de jornadas de la liga (si el ViewModel no lo hace por sí solo)
-        // **IMPORTANTE**: Asume que tu JornadasViewModel tiene un método para esto.
         jornadasViewModel.cargarJornadasDeLiga(ligaId)
-
-        // 2. Inicializar la jornada actual del ViewModel con el valor de navegación
         jornadasViewModel.setJornadaActual(jornadaId)
     }
 
     // EFECTO CLAVE: Recargar partidos al cambiar la jornada
-    LaunchedEffect(jornadaActual, jornadas) { // Este estaba antes y está OK.
-        // Aseguramos que tenemos la ID de la jornada para realizar la llamada a la API
+    LaunchedEffect(jornadaActual, jornadas) {
         val jornadaIdToLoad = jornadas.find { it.numero == jornadaActual }?.idJornada
 
         if (jornadaIdToLoad != null) {
@@ -107,21 +101,21 @@ fun JornadasScreen(
     }
 
 
-    // EFECTO CLAVE: Recargar partidos al cambiar la jornada
+    // EFECTO CLAVE: Recargar partidos al recibir el nuevo partido desde CrearPartidoScreen
     LaunchedEffect(nuevoPartido) {
         if (nuevoPartido != null) {
-            // Recargar la jornada actual
+            // El PartidosViewModel debe recargar la lista de partidos de la jornada actual.
             val jornadaSeleccionada = jornadas.find { it.numero == jornadaActual }
             if (jornadaSeleccionada != null) {
                 partidosViewModel.cargarPartidos(jornadaSeleccionada.idJornada)
-                savedStateHandle?.set("nuevo_partido", null) // limpiar para evitar recargas dobles
+                // Limpiar el savedStateHandle para que no se dispare de nuevo al girar la pantalla o re-componer.
+                savedStateHandle?.set("nuevo_partido", null)
             }
         }
     }
 
-    // 💡 MODIFICADO: Muestra el diálogo de error si el ViewModel reporta un error (Paso 2)
+    // MODIFICADO: Muestra el diálogo de error si el ViewModel reporta un error
     errorViewModel?.let { errorMsg ->
-        // Si el mensaje de error no es nulo/vacío, activamos el diálogo
         if (errorMsg.isNotEmpty()) {
             mostrarDialogoError = true
         }
@@ -201,7 +195,7 @@ fun JornadasScreen(
             items(partidosDeJornada) { partido ->
                 PartidoCard(
                     partido = partido,
-                    canEditDelete = canEditDelete, // 💡 Nuevo parámetro
+                    canEditDelete = canEditDelete,
                     onEditClick = {
                         navController.navigate("marcador_partido/${partido.idPartido}")
                     },
@@ -264,7 +258,6 @@ fun JornadasScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // 💡 Implementación de la lógica de eliminación
                         partidosViewModel.eliminarPartido(
                             id = partido.idPartido,
                             jornadaId = partido.jornadaId,
@@ -287,12 +280,12 @@ fun JornadasScreen(
         )
     }
 
-    // 💡 NUEVO: Diálogo para mostrar errores de la operación (Paso 3)
+    // Diálogo para mostrar errores de la operación
     if (mostrarDialogoError) {
         AlertDialog(
             onDismissRequest = {
                 mostrarDialogoError = false
-                partidosViewModel.clearError() // Limpia el error al tocar fuera
+                partidosViewModel.clearError()
             },
             title = {
                 Text(
@@ -306,7 +299,7 @@ fun JornadasScreen(
                 Button(
                     onClick = {
                         mostrarDialogoError = false
-                        partidosViewModel.clearError() // Limpia el error al presionar "Aceptar"
+                        partidosViewModel.clearError()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                 ) { Text("Aceptar") }
@@ -320,7 +313,7 @@ fun JornadasScreen(
 @Composable
 fun PartidoCard(
     partido: PartidoDTOModel,
-    canEditDelete: Boolean, // 💡 Nuevo parámetro
+    canEditDelete: Boolean,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -494,7 +487,7 @@ fun PartidoCard(
                 }
             }
 
-            // 💡 CONTROL DE VISIBILIDAD DE BOTONES
+            // CONTROL DE VISIBILIDAD DE BOTONES
             if (canEditDelete) {
                 Row(
                     modifier = Modifier

@@ -97,10 +97,25 @@ fun AppNavHost(
         }
 
         composable("crear_liga") {
-            CrearLigaScreen(navController, mainViewModel)
+            CrearLigaScreen(navController)
         }
-        composable("editar_liga") {
-            EditarLigasScreen(navController, mainViewModel)
+        composable(
+            // 1. Definimos la ruta con el argumento. ¡Importante el tipo!
+            route = "editar_liga/{idLiga}",
+            arguments = listOf(
+                navArgument("idLiga") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            // 2. Extraemos el argumento
+            val idLiga = backStackEntry.arguments?.getInt("idLiga") ?: 0
+
+            // 3. Llamamos al Composable con el argumento extraído
+            EditarLigasScreen(
+                navController = navController,
+                idLiga = idLiga // Suponiendo que has renombrado el mainViewModel por ligasViewModel o usas Hilt/Koin
+            )
         }
 
         composable(

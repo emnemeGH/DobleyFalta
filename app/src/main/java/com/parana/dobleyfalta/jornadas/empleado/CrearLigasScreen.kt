@@ -18,29 +18,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
-import com.parana.dobleyfalta.MainViewModel
 import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.equipos.LightGrey
-import java.text.SimpleDateFormat
-import java.util.*
+import com.parana.dobleyfalta.retrofit.models.ligas.CrearLigaModel
+import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoField
+import java.util.Calendar
 
-
+// --------------------------- COMPOSABLE DE PANTALLA ---------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun CrearLigaScreen(
+    navController: NavController,
+    ligasViewModel: LigasViewModel = viewModel()
+) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
 
-    // Estados para los campos del formulario
+    // Estados para almacenar el valor en milisegundos (la fuente de verdad de la fecha)
     var nombreLiga by remember { mutableStateOf("") }
-    var fechaInicioLiga by remember { mutableStateOf("") }
-    var fechaFinalizacionLiga by remember { mutableStateOf("") }
+    var fechaInicioMillis by remember { mutableStateOf<Long?>(null) }
+    var fechaFinMillis by remember { mutableStateOf<Long?>(null) }
 
-    // Estados para los errores de validación
+    // Estados calculados para la UI (Muestra DD/MM/YYYY)
+    val fechaInicioLiga = remember(fechaInicioMillis) {
+        fechaInicioMillis?.let { convertMillisToUIDate(it) } ?: ""
+    }
+    val fechaFinalizacionLiga = remember(fechaFinMillis) {
+        fechaFinMillis?.let { convertMillisToUIDate(it) } ?: ""
+    }
+    val anioLiga = remember(fechaInicioMillis) {
+        fechaInicioMillis?.let { getYearFromMillis(it).toString() } ?: Calendar.getInstance().get(Calendar.YEAR).toString()
+    }
+
+    // Estados para los errores
     var nombreError by remember { mutableStateOf<String?>(null) }
     var fechaInicioError by remember { mutableStateOf<String?>(null) }
     var fechaFinalizacionError by remember { mutableStateOf<String?>(null) }
@@ -49,28 +69,33 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
     var mostrarSeleccionFechaInicio by remember { mutableStateOf(false) }
     var mostrarSeleccionFechaFinalizacion by remember { mutableStateOf(false) }
 
+    // Observar el estado del ViewModel
+    val apiError by ligasViewModel.error.collectAsState()
+    val isLoading by ligasViewModel.loading.collectAsState()
+
+
     // Diálogo para seleccionar la fecha de inicio
     if (mostrarSeleccionFechaInicio) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis()
-        )
+        val initialDateMillis = fechaInicioMillis ?: getTodayMillis()
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
+
         DatePickerDialog(
             onDismissRequest = { mostrarSeleccionFechaInicio = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val selectedDateMillis = datePickerState.selectedDateMillis
-                        if (selectedDateMillis != null) {
-                            val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            fechaInicioLiga = formatter.format(Date(selectedDateMillis))
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            fechaInicioMillis = millis // Guardamos los milisegundos
                             fechaInicioError = null
                         }
                         mostrarSeleccionFechaInicio = false
                     }
-                ) {
-                    Text("Aceptar")
-                }
-            }
+                ) { Text("Aceptar", color = PrimaryOrange) }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarSeleccionFechaInicio = false }) { Text("Cancelar", color = Color.White) }
+            },
+            colors = DatePickerDefaults.colors(containerColor = DarkGrey)
         ) {
             DatePicker(state = datePickerState)
         }
@@ -78,26 +103,26 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
 
     // Diálogo para seleccionar la fecha de finalización
     if (mostrarSeleccionFechaFinalizacion) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = System.currentTimeMillis()
-        )
+        val initialDateMillis = fechaFinMillis ?: getTodayMillis()
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
+
         DatePickerDialog(
             onDismissRequest = { mostrarSeleccionFechaFinalizacion = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val selectedDateMillis = datePickerState.selectedDateMillis
-                        if (selectedDateMillis != null) {
-                            val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            fechaFinalizacionLiga = formatter.format(Date(selectedDateMillis))
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            fechaFinMillis = millis // Guardamos los milisegundos
                             fechaFinalizacionError = null
                         }
                         mostrarSeleccionFechaFinalizacion = false
                     }
-                ) {
-                    Text("Aceptar")
-                }
-            }
+                ) { Text("Aceptar", color = PrimaryOrange) }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarSeleccionFechaFinalizacion = false }) { Text("Cancelar", color = Color.White) }
+            },
+            colors = DatePickerDefaults.colors(containerColor = DarkGrey)
         ) {
             DatePicker(state = datePickerState)
         }
@@ -115,7 +140,6 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        // Botón para volver
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -143,12 +167,13 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Campo de texto para el nombre de la liga
+        // Campo Nombre
         OutlinedTextField(
             value = nombreLiga,
             onValueChange = {
                 nombreLiga = it
                 nombreError = null
+                ligasViewModel.clearError()
             },
             label = { Text("Nombre de la liga", color = LightGrey) },
             modifier = Modifier
@@ -156,128 +181,197 @@ fun CrearLigaScreen(navController: NavController, mainViewModel: MainViewModel) 
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                focusedContainerColor = DarkGrey, unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey, focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange, focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, disabledTextColor = Color.White
             ),
             isError = nombreError != null,
-            supportingText = {
-                nombreError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            }
+            supportingText = { nombreError?.let { Text(it, color = Color.Red, fontSize = 12.sp) } },
+            singleLine = true
         )
 
-        // Campo de texto para la fecha de inicio (con selector)
+        // Campo del Año (informativo, basado en fecha de inicio)
+        OutlinedTextField(
+            value = anioLiga,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Año de la liga", color = LightGrey) },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = DarkGrey, unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey, focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange, focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, disabledTextColor = Color.White
+            ),
+        )
+
+
+        // Campo Fecha de inicio
         OutlinedTextField(
             value = fechaInicioLiga,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Fecha de inicio", color = LightGrey) },
+            label = { Text("Fecha de inicio (dd/MM/yyyy)", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = interactionSource
-                ) { mostrarSeleccionFechaInicio = true },
+                .clickable { mostrarSeleccionFechaInicio = true },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                disabledTextColor = Color.White
+                focusedContainerColor = DarkGrey, unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey, focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange, focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, disabledTextColor = Color.White
             ),
             isError = fechaInicioError != null,
-            supportingText = {
-                fechaInicioError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
+            supportingText = { fechaInicioError?.let { Text(it, color = Color.Red, fontSize = 12.sp) } },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Seleccionar fecha de inicio de la liga",
                     tint = LightGrey,
-                    modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = interactionSource
-                    ) { mostrarSeleccionFechaInicio = true }
+                    modifier = Modifier.clickable { mostrarSeleccionFechaInicio = true }
                 )
             }
         )
 
-        // Campo de texto para la fecha de finalización (con selector)
+        // Campo Fecha de finalización
         OutlinedTextField(
             value = fechaFinalizacionLiga,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Fecha de finalización", color = LightGrey) },
+            label = { Text("Fecha de finalización (dd/MM/yyyy)", color = LightGrey) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = interactionSource
-                ) { mostrarSeleccionFechaFinalizacion = true },
+                .clickable { mostrarSeleccionFechaFinalizacion = true },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkGrey,
-                unfocusedContainerColor = DarkGrey,
-                unfocusedBorderColor = DarkGrey,
-                focusedBorderColor = PrimaryOrange,
-                cursorColor = PrimaryOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                disabledTextColor = Color.White
+                focusedContainerColor = DarkGrey, unfocusedContainerColor = DarkGrey,
+                unfocusedBorderColor = DarkGrey, focusedBorderColor = PrimaryOrange,
+                cursorColor = PrimaryOrange, focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, disabledTextColor = Color.White
             ),
             isError = fechaFinalizacionError != null,
-            supportingText = {
-                fechaFinalizacionError?.let {
-                    Text(it, color = Color.Red, fontSize = 12.sp)
-                }
-            },
+            supportingText = { fechaFinalizacionError?.let { Text(it, color = Color.Red, fontSize = 12.sp) } },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Seleccionar fecha de finalización de la liga",
                     tint = LightGrey,
-                    modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = interactionSource
-                    ) { mostrarSeleccionFechaFinalizacion = true }
+                    modifier = Modifier.clickable { mostrarSeleccionFechaFinalizacion = true }
                 )
             }
         )
 
-        // Botón para guardar los cambios
+        // Mensaje de error de la API
+        apiError?.let { msg ->
+            Text(
+                text = "Error API: $msg",
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Botón para guardar la liga
         Button(
             onClick = {
+                // 1. Limpiar y validar errores
+                ligasViewModel.clearError()
                 nombreError = if (nombreLiga.isBlank()) "El nombre es obligatorio" else null
                 fechaInicioError = if (fechaInicioLiga.isBlank()) "La fecha de inicio es obligatoria" else null
                 fechaFinalizacionError = if (fechaFinalizacionLiga.isBlank()) "La fecha de finalización es obligatoria" else null
 
                 if (nombreError == null && fechaInicioError == null && fechaFinalizacionError == null) {
-                    println("Liga creada: Nombre='$nombreLiga', Fecha Inicio='$fechaInicioLiga', Fecha Fin='$fechaFinalizacionLiga'")
-                    navController.popBackStack()
+                    val anio = anioLiga.toIntOrNull() ?: Calendar.getInstance().get(Calendar.YEAR)
+
+                    // 2. Convertir a formato API (YYYY-MM-DD)
+                    val inicioApiDate = fechaInicioMillis?.let { convertMillisToApiDate(it) } ?: ""
+                    val finApiDate = fechaFinMillis?.let { convertMillisToApiDate(it) } ?: ""
+
+                    // 3. Crear modelo de datos
+                    val createModel = CrearLigaModel(
+                        nombre = nombreLiga,
+                        // ¡Formato simple YYYY-MM-DD para java.sql.Date!
+                        fechaInicio = inicioApiDate,
+                        fechaFin = finApiDate,
+                        anio = anio
+                    )
+
+                    // 4. Enviar a la API
+                    ligasViewModel.crearLiga(createModel) {
+                        navController.popBackStack()
+                    }
                 }
             },
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp),
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Guardar Liga", color = Color.White, fontWeight = FontWeight.Bold)
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("Guardar Liga", color = Color.White, fontWeight = FontWeight.Bold)
+            }
         }
     }
+}
+
+// --------------------------- UTILIDADES DE FECHA CORREGIDAS ---------------------------
+
+private val UI_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+/**
+ * Convierte milisegundos (Long del DatePicker) al formato "dd/MM/yyyy" para la UI.
+ * CORRECCIÓN: Usa la zona horaria del sistema para mostrar la fecha correcta en la UI.
+ */
+private fun convertMillisToUIDate(millis: Long): String {
+    return Instant.ofEpochMilli(millis)
+        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN CLAVE: Usar la zona del usuario.
+        .toLocalDate()
+        .format(UI_DATE_FORMATTER)
+}
+
+/**
+ * Convierte milisegundos (Long del DatePicker) al formato "YYYY-MM-DD" para la API.
+ * 🚀 SOLUCIÓN FORZADA: Agrega .plusDays(1) para compensar el desfase al guardar
+ * en una base de datos/API que no respeta la zona horaria del cliente.
+ */
+private fun convertMillisToApiDate(millis: Long): String {
+    return Instant.ofEpochMilli(millis)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+        .plusDays(1) // 👈 ¡ESTO ASEGURA QUE SE ENVÍE EL DÍA CORRECTO!
+        .toString() // LocalDate.toString() devuelve YYYY-MM-DD
+}
+
+/**
+ * Obtiene el año a partir de milisegundos.
+ * CORREGIDO: Usa la zona horaria del sistema.
+ */
+private fun getYearFromMillis(millis: Long): Int {
+    return Instant.ofEpochMilli(millis)
+        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN
+        .get(ChronoField.YEAR)
+}
+
+/**
+ * Obtiene los milisegundos de la medianoche de hoy (Local) para el valor inicial del DatePicker.
+ * CORREGIDO: Usa la zona horaria del sistema para inicializar el calendario correctamente.
+ */
+private fun getTodayMillis(): Long {
+    return Instant.now()
+        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN
+        .toLocalDate()
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
 }
