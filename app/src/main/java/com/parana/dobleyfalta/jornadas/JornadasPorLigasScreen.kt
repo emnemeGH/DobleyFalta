@@ -3,7 +3,6 @@ package com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,12 +25,17 @@ import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+// 🚨 NUEVA IMPORTACIÓN NECESARIA PARA ELIMINAR JORNADA
+import com.parana.dobleyfalta.retrofit.models.jornadas.JornadaModel
+// 🚨 IMPORTACIÓN NECESARIA PARA LA LÓGICA DE ELIMINACIÓN DE JORNADAS
+import com.parana.dobleyfalta.retrofit.viewmodels.JornadasViewModel
+
 
 val DarkBlue = Color(0xFF102B4E)
 val PrimaryOrange = Color(0xFFFF6600)
 val DarkGrey = Color(0xFF1A375E)
 val LightGrey = Color(0xFFA0B3C4)
-val RedDelete = Color(0xFFE53935) // Nuevo color para el botón de borrar
+val RedDelete = Color(0xFFE53935)
 
 fun formatearFecha(fecha: String?): String {
     if (fecha.isNullOrEmpty()) return "-"
@@ -49,26 +53,37 @@ fun formatearFecha(fecha: String?): String {
 fun JornadasPorLigaScreen(navController: NavController) {
 
     val ligasViewModel: LigasViewModel = viewModel()
+    // 🚨 ASUMO QUE TAMBIÉN NECESITAS UN VIEWMODEL PARA JORNADAS PARA LA LÓGICA DE ELIMINACIÓN
+    val jornadasViewModel: JornadasViewModel = viewModel()
+
     val ligas by ligasViewModel.ligas.collectAsState()
     val loading by ligasViewModel.loading.collectAsState()
-    val error by ligasViewModel.error.collectAsState()
+    // Si la eliminación de jornada afecta el error, considera un error global o del JornadasViewModel
+    val errorLiga by ligasViewModel.error.collectAsState()
+    val errorJornada by jornadasViewModel.error.collectAsState()
 
     var selectedLiga by remember { mutableStateOf<LigaModel?>(null) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 🚨 ESTADOS PARA EL DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN
-    var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
+    // 🚨 ESTADOS PARA EL DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN DE LIGA
+    var mostrarConfirmacionBorradoLiga by remember { mutableStateOf(false) }
     var ligaAEliminar by remember { mutableStateOf<LigaModel?>(null) }
+
+    // 🚨 NUEVOS ESTADOS PARA EL DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN DE JORNADA
+    var mostrarConfirmacionBorradoJornada by remember { mutableStateOf(false) }
+    var jornadaAEliminar by remember { mutableStateOf<JornadaModel?>(null) }
+
     var mostrarDialogoError by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         ligasViewModel.cargarLigas()
     }
 
-    // 🚨 EFECTO PARA MOSTRAR EL DIÁLOGO DE ERROR DEL VIEWMODEL
-    LaunchedEffect(error) {
-        if (error != null && error!!.isNotEmpty()) {
+    // EFECTO PARA MOSTRAR EL DIÁLOGO DE ERROR DEL VIEWMODEL
+    LaunchedEffect(errorLiga, errorJornada) {
+        val currentError = errorLiga ?: errorJornada // Prioriza el error de liga si ambos están presentes, o toma el de jornada
+        if (currentError != null && currentError.isNotEmpty()) {
             mostrarDialogoError = true
         }
     }
@@ -129,19 +144,23 @@ fun JornadasPorLigaScreen(navController: NavController) {
                     )
                 }
 
-                // 🚨 SE MODIFICA PARA QUE EL ERROR SEA MOSTRADO EN EL DIÁLOGO DE ABAJO
-                error != null && !mostrarDialogoError -> {
+                // La lógica de error se mueve al diálogo de abajo
+                (errorLiga != null || errorJornada != null) && !mostrarDialogoError -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error al cargar las ligas.",
+                            text = "Error al cargar/operar. Intenta recargar las ligas.",
                             color = Color.White
                         )
                         Spacer(Modifier.height(8.dp))
                         Button(
-                            onClick = { ligasViewModel.cargarLigas() },
+                            onClick = {
+                                ligasViewModel.cargarLigas()
+                                ligasViewModel.clearError()
+                                jornadasViewModel.clearError()
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = PrimaryOrange,
                                 contentColor = Color.White
@@ -192,7 +211,7 @@ fun JornadasPorLigaScreen(navController: NavController) {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(-10.dp)
                                     ) {
-                                        // 1. Botón Editar
+                                        // 1. Botón Editar Liga
                                         IconButton(
                                             onClick = {
                                                 navController.navigate("editar_liga/${liga.idLiga}")
@@ -206,17 +225,17 @@ fun JornadasPorLigaScreen(navController: NavController) {
                                             )
                                         }
 
-                                        // 2. Botón Borrar 🚨 CAMBIO AQUÍ
+                                        // 2. Botón Borrar Liga
                                         IconButton(
                                             onClick = {
-                                                ligaAEliminar = liga // Prepara la liga para borrar
-                                                mostrarConfirmacionBorrado = true // Muestra el diálogo
+                                                ligaAEliminar = liga
+                                                mostrarConfirmacionBorradoLiga = true
                                             }
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
                                                 contentDescription = "Eliminar Liga",
-                                                tint = Color.Red,
+                                                tint = RedDelete,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
@@ -233,21 +252,24 @@ fun JornadasPorLigaScreen(navController: NavController) {
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // ... Contenido de jornadas (Sin cambios) ...
+                        // Titulo de la lista de Jornadas
+                        Text(
+                            text = "Jornadas de ${selectedLiga?.nombre ?: "Liga"}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+
                         LazyColumn(
                             modifier = Modifier
-                                .weight(1f)
-                                .padding(top = 8.dp),
+                                .weight(1f),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(selectedLiga?.jornadas ?: emptyList()) { jornada ->
                                 Card(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            val ligaId = selectedLiga?.idLiga ?: 0
-                                            navController.navigate("jornadas_screen/$ligaId/${jornada.numero}")
-                                        },
+                                        .fillMaxWidth(),
                                     colors = CardDefaults.cardColors(containerColor = DarkGrey),
                                     shape = RoundedCornerShape(16.dp),
                                     elevation = CardDefaults.cardElevation(4.dp)
@@ -260,24 +282,72 @@ fun JornadasPorLigaScreen(navController: NavController) {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
+                                        // Texto (clickable para ver partidos)
                                         Text(
                                             text = "Jornada Nº ${jornada.numero}",
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
-                                            fontSize = 18.sp
+                                            fontSize = 18.sp,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable {
+                                                    val ligaId = selectedLiga?.idLiga ?: 0
+                                                    navController.navigate("jornadas_screen/$ligaId/${jornada.numero}")
+                                                }
                                         )
 
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(
-                                                text = formatearFecha(jornada.fechaInicio.toString()),
-                                                color = LightGrey,
-                                                fontSize = 14.sp
-                                            )
-                                            Text(
-                                                text = formatearFecha(jornada.fechaFin.toString()),
-                                                color = LightGrey,
-                                                fontSize = 14.sp
-                                            )
+                                        // Contenedor de Fechas y Botones
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.End
+                                        ) {
+                                            // Fechas de inicio/fin de la jornada
+                                            Column(horizontalAlignment = Alignment.End) {
+                                                Text(
+                                                    text = formatearFecha(jornada.fechaInicio.toString()),
+                                                    color = LightGrey,
+                                                    fontSize = 14.sp
+                                                )
+                                                Text(
+                                                    text = formatearFecha(jornada.fechaFin.toString()),
+                                                    color = LightGrey,
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            // 1. Botón Editar Jornada
+                                            IconButton(
+                                                onClick = {
+                                                    // TODO: NAVEGACIÓN A EDITAR JORNADA
+                                                    navController.navigate("editar_jornada/${jornada.idJornada}")
+                                                },
+                                                modifier = Modifier.size(36.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Editar Jornada",
+                                                    tint = LightGrey,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
+
+                                            // 2. Botón Borrar Jornada 🚨 MODIFICADO PARA USAR EL DIÁLOGO
+                                            IconButton(
+                                                onClick = {
+                                                    jornadaAEliminar = jornada // Prepara la jornada
+                                                    mostrarConfirmacionBorradoJornada = true // Muestra el diálogo
+                                                },
+                                                modifier = Modifier.size(36.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Eliminar Jornada",
+                                                    tint = RedDelete,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -310,26 +380,27 @@ fun JornadasPorLigaScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.BottomCenter)
     )
 
-    // 🚨 NUEVO: Diálogo de confirmación de eliminación de Liga
-    if (mostrarConfirmacionBorrado && ligaAEliminar != null) {
+    // --- DIÁLOGOS DE CONFIRMACIÓN Y ERROR ---
+
+    // 🚨 Diálogo de confirmación de eliminación de Liga
+    if (mostrarConfirmacionBorradoLiga && ligaAEliminar != null) {
         val liga = ligaAEliminar!!
         AlertDialog(
-            onDismissRequest = { mostrarConfirmacionBorrado = false },
+            onDismissRequest = { mostrarConfirmacionBorradoLiga = false },
             title = {
                 Text(
-                    "Confirmar Eliminación",
+                    "Confirmar Eliminación de Liga",
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             },
-            text = { Text("¿Estás seguro de que quieres eliminar la liga **${liga.nombre}**?", color = LightGrey) },
+            text = { Text("¿Estás seguro de que quieres eliminar la liga **${liga.nombre}**? Esta acción eliminará todas sus jornadas y partidos.", color = LightGrey) },
             confirmButton = {
                 Button(
                     onClick = {
-                        mostrarConfirmacionBorrado = false
-                        ligaAEliminar = null // Limpiar estado temporalmente
+                        mostrarConfirmacionBorradoLiga = false
+                        ligaAEliminar = null
 
-                        // 🚨 LLAMADA A ELIMINAR LIGA CON MANEJO DE ÉXITO Y ERROR
                         ligasViewModel.eliminarLiga(
                             id = liga.idLiga,
                             onSuccess = {
@@ -340,14 +411,13 @@ fun JornadasPorLigaScreen(navController: NavController) {
                                     )
                                 }
                             }
-                            // El error se maneja automáticamente con el LaunchedEffect de arriba.
                         )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = RedDelete)
                 ) { Text("Borrar") }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarConfirmacionBorrado = false }) {
+                TextButton(onClick = { mostrarConfirmacionBorradoLiga = false }) {
                     Text("Cancelar", color = PrimaryOrange)
                 }
             },
@@ -356,12 +426,63 @@ fun JornadasPorLigaScreen(navController: NavController) {
         )
     }
 
-    // 🚨 NUEVO: Diálogo para mostrar errores de la operación de eliminación (o carga)
+    // 🚨 NUEVO: Diálogo de confirmación de eliminación de Jornada
+    if (mostrarConfirmacionBorradoJornada && jornadaAEliminar != null) {
+        val jornada = jornadaAEliminar!!
+        AlertDialog(
+            onDismissRequest = { mostrarConfirmacionBorradoJornada = false },
+            title = {
+                Text(
+                    "Confirmar Eliminación de Jornada",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            },
+            text = { Text("¿Estás seguro de que quieres eliminar la Jornada **Nº ${jornada.numero}**? Esto eliminará todos los partidos asociados.", color = LightGrey) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarConfirmacionBorradoJornada = false
+                        jornadaAEliminar = null
+
+                        // 🚨 LLAMADA A ELIMINAR JORNADA (DEBES TENER ESTA FUNCIÓN EN TU VIEWMODEL)
+                        jornadasViewModel.eliminarJornada(
+                            id = jornada.idJornada,
+                            onSuccess = {
+                                // Forzar la recarga de ligas para actualizar la lista de jornadas
+                                ligasViewModel.cargarLigas()
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Jornada Nº ${jornada.numero} eliminada con éxito.",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                            // El error se maneja en el LaunchedEffect principal.
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = RedDelete)
+                ) { Text("Borrar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarConfirmacionBorradoJornada = false }) {
+                    Text("Cancelar", color = PrimaryOrange)
+                }
+            },
+            containerColor = DarkGrey,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+
+    // Diálogo para mostrar errores
     if (mostrarDialogoError) {
+        val errorMsg = errorLiga ?: errorJornada ?: "Error desconocido."
         AlertDialog(
             onDismissRequest = {
                 mostrarDialogoError = false
-                ligasViewModel.clearError() // Asegúrate de tener esta función en tu ViewModel
+                ligasViewModel.clearError()
+                jornadasViewModel.clearError()
             },
             title = {
                 Text(
@@ -370,12 +491,13 @@ fun JornadasPorLigaScreen(navController: NavController) {
                     color = Color.White
                 )
             },
-            text = { Text(error ?: "Error desconocido.", color = LightGrey) },
+            text = { Text(errorMsg, color = LightGrey) },
             confirmButton = {
                 Button(
                     onClick = {
                         mostrarDialogoError = false
                         ligasViewModel.clearError()
+                        jornadasViewModel.clearError()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                 ) { Text("Aceptar") }

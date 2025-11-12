@@ -28,7 +28,6 @@ import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
-import com.parana.dobleyfalta.jornadas.empleado.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
@@ -36,6 +35,7 @@ import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
 import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
+import com.parana.dobleyfalta.jornadas.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
 import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
@@ -145,8 +145,20 @@ fun AppNavHost(
             CrearJornadaScreen(navController, mainViewModel)
         }
 
-        composable ("editar_jornada"){
-            EditarJornadaScreen(navController, mainViewModel)
+        composable(
+            // 1. Define la ruta que acepta el argumento 'id'
+            route = "editar_jornada/{id}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType } // 2. Especifica que es un entero
+            )
+        ) { backStackEntry ->
+
+            // 3. Extrae el argumento. El '0' es un valor por defecto si falla (aunque con NavType.IntType no debería ser null)
+            val idJornada = backStackEntry.arguments?.getInt("id") ?: 0
+
+            // 4. Llama a la pantalla correctamente, pasándole el ID.
+            // NOTA: El MainViewModel ya no es necesario aquí.
+            EditarJornadaScreen(navController = navController, idJornada = idJornada)
         }
 
         composable(
