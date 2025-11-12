@@ -15,11 +15,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.parana.dobleyfalta.retrofit.RetrofitInitializer
 import com.parana.dobleyfalta.ui.theme.DobleYFaltaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        RetrofitInitializer.initAll(applicationContext)
+
         setContent {
             val mainViewModel: MainViewModel = viewModel()
             DobleYFaltaTheme {
