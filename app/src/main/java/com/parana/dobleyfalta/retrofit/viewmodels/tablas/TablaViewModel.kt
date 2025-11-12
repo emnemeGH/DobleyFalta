@@ -8,7 +8,7 @@ import com.parana.dobleyfalta.retrofit.models.tablas.TablaDTOModel
 import com.parana.dobleyfalta.retrofit.repositories.TablasRepository
 import kotlinx.coroutines.launch
 
-class MostrarTablaModel : ViewModel() {
+class TablaViewModel : ViewModel() {
 
     private val repository = TablasRepository()
 
@@ -18,7 +18,7 @@ class MostrarTablaModel : ViewModel() {
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
 
-    fun cargarTabla(idLiga: Int) {
+    fun cargarTablaPorLiga(idLiga: Int) {
         viewModelScope.launch {
             try {
                 val resultado = repository.obtenerTablaPorLiga(idLiga)
@@ -28,4 +28,5 @@ class MostrarTablaModel : ViewModel() {
             }
         }
     }
+
 }

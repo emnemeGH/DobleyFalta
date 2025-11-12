@@ -7,7 +7,7 @@ import retrofit2.http.Path
 
 interface TablasApiService {
 
-    @GET("api/tabla/{idLiga}")
+    @GET("api/tablas/liga/{idLiga}")
     suspend fun getTablaPorLiga(@Path("idLiga") idLiga: Int): List<TablaDTOModel>
 
 }

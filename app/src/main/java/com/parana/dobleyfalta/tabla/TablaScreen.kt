@@ -18,7 +18,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,15 +35,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.noticias.LightGrey
+import com.parana.dobleyfalta.retrofit.models.tablas.TablaDTOModel
+import com.parana.dobleyfalta.retrofit.viewmodels.tablas.TablaViewModel
 
 data class EquipoTabla(
-    val id: Int,
     val posicion: Int,
     val nombre: String,
-    val escudoUrl: Int,
+    val escudoUrl: String,
     val puntos: Int,
     val pj: Int,
     val pg: Int,
@@ -47,6 +54,20 @@ data class EquipoTabla(
     val pc: Int,
 )
 
+fun TablaDTOModel.toEquipoTabla(): EquipoTabla {
+    return EquipoTabla(
+        posicion = puesto,
+        escudoUrl = logo,
+        nombre = equipo,
+        puntos = puntos,
+        pj = pj,
+        pg = pg,
+        pp = pp,
+        pf = pf,
+        pc = pc
+    )
+}
+/*
 val equiposTabla = listOf(
     EquipoTabla(1, 1, "Paracao", R.drawable.escudo_paracao, 53, 38, 15, 23, 3018, 3125),
     EquipoTabla(2, 2, "Rowing", R.drawable.escudo_rowing, 52, 38, 14, 24, 3237, 3348),
@@ -54,14 +75,24 @@ val equiposTabla = listOf(
     EquipoTabla(4, 4, "Ciclista", R.drawable.escudo_rowing, 48,38, 10, 28, 2723, 3099),
     EquipoTabla(5, 5, "Quique", R.drawable.escudo_cae, 44, 28, 6, 32, 2724, 3216)
 )
-
+*/
 @Composable
-fun TablaScreen (navController: NavController ){
+fun TablaScreen (navController: NavController){
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val White = colorResource(id = R.color.white)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
+
+    val viewModel = remember { TablaViewModel() }
+    val tablas by viewModel.tabla.observeAsState(emptyList())
+    val error by viewModel.error.observeAsState()
+
+    /*
+    if (error != null) {
+        Text( text=error ?: "Error desconocido", color = MaterialTheme.colorScheme.error)
+    }
+    */
 
     Column(
         modifier = Modifier
@@ -91,10 +122,10 @@ fun TablaScreen (navController: NavController ){
                 .padding(bottom = 10.dp),
             textAlign = TextAlign.Center
         )
-
+        /*
         TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
         TablaLiga(nombreLiga = "LIGA B", equipos = equiposTabla)
-
+        */
         Spacer(modifier = Modifier.height(80.dp))
 
     }
@@ -161,7 +192,7 @@ fun TablaLiga(nombreLiga: String, equipos: List<EquipoTabla>) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(207.dp)
+                        .height(407.dp)
                 ) {
                     items(equipos) { equipo ->
                         EquipoFila(equipo)
@@ -183,8 +214,8 @@ fun EquipoFila(equipo: EquipoTabla) {
     ) {
         CeldaEquipo(equipo.posicion.toString(), Modifier.width(56.dp) .padding(start = 10.dp))
         Row(modifier = Modifier.width(160.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = equipo.escudoUrl),
+            AsyncImage(
+                model= equipo.escudoUrl,
                 contentDescription = equipo.nombre,
                 modifier = Modifier.size(24.dp)
             )
