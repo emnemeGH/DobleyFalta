@@ -84,15 +84,50 @@ fun TablaScreen (navController: NavController){
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
 
+    val ligasViewModel: LigasViewModel = viewModel()
+    val ligas by ligasViewModel.ligas.collectAsState()
+    val loadingLigas by ligasViewModel.loading.collectAsState()
+    val errorLigas by ligasViewModel.error.collectAsState()
+
+    LaunchedEffect(Unit) {
+        ligasViewModel.cargarLigas()
+    }
+
+
+
     val viewModel = remember { TablaViewModel() }
     val tablas by viewModel.tabla.observeAsState(emptyList())
     val error by viewModel.error.observeAsState()
 
-    /*
-    if (error != null) {
-        Text( text=error ?: "Error desconocido", color = MaterialTheme.colorScheme.error)
+    LaunchedEffect(ligas) {
+        if (ligas.isNotEmpty()) {
+            ligas.forEach { liga ->
+                tablasViewModel.cargarTablaPorLiga(liga.id)
+            }
+        }
     }
-    */
+
+    if(error != null){
+        Text(
+            text = error ?: "Error desconocido",
+            color = Color.Red,
+            modifier = Modifier.padding(16.dp)
+        )
+    } else {
+        val equipos = tablas.map { dto ->
+            EquipoTabla(
+                posicion = dto.puesto,
+                escudoUrl = dto.logo,
+                nombre = dto.equipo,
+                puntos = dto.puntos,
+                pj = dto.pj,
+                pg = dto.pg,
+                pp = dto.pp,
+                pf = dto.pf,
+                pc = dto.pc
+            )
+            TablaLiga(nombre = nombreLiga, equipos = equipos)
+    }
 
     Column(
         modifier = Modifier
@@ -122,10 +157,43 @@ fun TablaScreen (navController: NavController){
                 .padding(bottom = 10.dp),
             textAlign = TextAlign.Center
         )
+
+
+        //TablaLiga(nombreLiga = nombreLiga, equipos = equipos)
+
         /*
         TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
         TablaLiga(nombreLiga = "LIGA B", equipos = equiposTabla)
         */
+
+        when {
+            loadingLigas || loadingTablas -> {
+                Text(text = "Cargando tablas...", color = Color.White)
+            }
+            errorLigas != null -> {
+                Text(text = errorLigas ?: "", color = Color.Red)
+            }
+            errorTablas != null -> {
+                Text(text = errorTablas ?: "", color = Color.Red)
+            }
+            else -> {
+                ligas.forEach { liga ->
+                    val equiposDto = tablas[liga.id]
+                    if (equiposDto != null) {
+                        val equipos = equiposDto.map { it.toEquipoTabla() }
+                        TablaLiga(nombreLiga = liga.nombre, equipos = equipos)
+                    } else {
+                        Text(
+                            text = "No se pudo cargar la tabla de ${liga.nombre}",
+                            color = Color.White,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+
+
+
         Spacer(modifier = Modifier.height(80.dp))
 
     }
@@ -213,14 +281,20 @@ fun EquipoFila(equipo: EquipoTabla) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         CeldaEquipo(equipo.posicion.toString(), Modifier.width(56.dp) .padding(start = 10.dp))
+
         Row(modifier = Modifier.width(160.dp), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model= equipo.escudoUrl,
                 contentDescription = equipo.nombre,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
+                placeholder = painterResource(R.drawable.placeholder_logo)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(equipo.nombre, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Color.Black)
+            Text(equipo.nombre,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
         CeldaEquipo(equipo.puntos.toString(), Modifier.width(60.dp))
         CeldaEquipo(equipo.pj.toString(), Modifier.width(50.dp))

@@ -12,19 +12,26 @@ class TablaViewModel : ViewModel() {
 
     private val repository = TablasRepository()
 
-    private val _tabla = MutableLiveData<List<TablaDTOModel>>()
-    val tabla: LiveData<List<TablaDTOModel>> get() = _tabla
+    private val _tablas = MutableStateFlow<Map<Int, List<TablaDTOModel>>>(emptyMap())
+    val tablas = _tablas.asStateFlow()
 
-    private val _error = MutableLiveData<String>()
-    val error: LiveData<String> get() = _error
+    private val _loading = MutableStateFlow(false)
+    val loading = _loading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
 
     fun cargarTablaPorLiga(idLiga: Int) {
         viewModelScope.launch {
             try {
-                val resultado = repository.obtenerTablaPorLiga(idLiga)
-                _tabla.value = resultado
+                _loading.value = true
+                val tabla = repository.obtenerTablaPorLiga(idLiga)
+                _tablas.value = _tablas.value + (idLiga to tabla)
             } catch (e: Exception) {
-                _error.value = "Error al obtener la tabla: ${e.message}"
+                _error.value = "Error al obtener tabla de la liga $idLiga: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _loading.value = false
             }
         }
     }
