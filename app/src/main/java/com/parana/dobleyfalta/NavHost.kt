@@ -26,7 +26,6 @@ import com.parana.dobleyfalta.equipos.empleado_equipos.CrearEquipoScreen
 import com.parana.dobleyfalta.equipos.empleado_equipos.EditarEquipoScreen
 import com.parana.dobleyfalta.noticias.DetalleNoticiasScreen
 import com.parana.dobleyfalta.noticias.NoticiasScreen
-import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.CrearLigaScreen
 import com.parana.dobleyfalta.jornadas.empleado.EditarLigasScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
@@ -38,6 +37,7 @@ import com.parana.dobleyfalta.home.HomeScreen
 import com.parana.dobleyfalta.jornadas.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScreen
 import com.parana.dobleyfalta.jornadas.JornadasScreen
+import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
 import com.parana.dobleyfalta.ui.screens.CrearPartidoScreen
 import com.parana.dobleyfalta.retrofit.models.auth.Rol
@@ -99,22 +99,18 @@ fun AppNavHost(
         composable("crear_liga") {
             CrearLigaScreen(navController)
         }
+
         composable(
-            // 1. Definimos la ruta con el argumento. ¡Importante el tipo!
-            route = "editar_liga/{idLiga}",
+            route = "crear_jornada/{idLiga}", // nombreLiga opcional
             arguments = listOf(
-                navArgument("idLiga") {
-                    type = NavType.IntType
-                }
+                navArgument("idLiga") { type = NavType.IntType }
             )
         ) { backStackEntry ->
-            // 2. Extraemos el argumento
             val idLiga = backStackEntry.arguments?.getInt("idLiga") ?: 0
 
-            // 3. Llamamos al Composable con el argumento extraído
-            EditarLigasScreen(
+            CrearJornadaScreen(
                 navController = navController,
-                idLiga = idLiga // Suponiendo que has renombrado el mainViewModel por ligasViewModel o usas Hilt/Koin
+                idLiga = idLiga
             )
         }
 
@@ -139,11 +135,6 @@ fun AppNavHost(
         }
 
 
-
-
-        composable("crear_jornada") {
-            CrearJornadaScreen(navController, mainViewModel)
-        }
 
         composable(
             // 1. Define la ruta que acepta el argumento 'id'
