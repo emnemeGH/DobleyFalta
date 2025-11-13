@@ -1,18 +1,14 @@
 package com.parana.dobleyfalta.retrofit.models.partidos
 
 import com.google.gson.annotations.SerializedName
-import java.time.LocalDateTime
 
 data class CrearPartidoModel(
-    // ✅ 1. ¡ID SIMPLE RESUELTO! Mapea a 'idJornada' del DTO en el backend
     @SerializedName("idJornada")
     val idJornada: Int,
 
-    // ✅ 2. Solución para el campo NOT NULL
     @SerializedName("estadoPartido")
-    val estadoPartido: String = "proximo",
+    val estadoPartido: String,
 
-    // El resto de campos (asegurando camelCase para el DTO)
     @SerializedName("idEquipoLocal")
     val idEquipoLocal: Int,
 
@@ -23,8 +19,8 @@ data class CrearPartidoModel(
     val fecha: String,
 
     @SerializedName("puntosLocal")
-    val puntosLocal: Int = 0,
+    val puntosLocal: Int,
 
     @SerializedName("puntosVisitante")
-    val puntosVisitante: Int = 0
+    val puntosVisitante: Int
 )

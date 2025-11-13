@@ -37,7 +37,6 @@ fun CrearPartidoScreen(
     crearPartidoViewModel: CrearPartidoViewModel = viewModel(),
     equiposViewModel: EquiposViewModel = viewModel()
 ) {
-    // 💡 DEFINICIÓN DE COLORES Y ESTILOS
     val DarkBlue = colorResource(id = R.color.darkBlue)
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
     val CardBackground = Color(0xFF1A375E)
@@ -47,23 +46,36 @@ fun CrearPartidoScreen(
     val equipos by equiposViewModel.equipos.collectAsState()
     val partidoCreado by crearPartidoViewModel.partidoCreado.collectAsState()
 
+    val opcionesEstado = listOf(
+        "Próximo" to "proximo",
+        "En vivo" to "en_vivo",
+        "Terminado" to "terminado"
+    )
+
+    val textoMostrado = opcionesEstado.find { it.second == estado }?.first ?: "Próximo"
+
     val context = LocalContext.current
 
     var equipoLocalSeleccionado by remember { mutableStateOf<Int?>(null) }
     var equipoVisitanteSeleccionado by remember { mutableStateOf<Int?>(null) }
     var fechaSeleccionada by remember { mutableStateOf("") }
 
-    // 💡 Estados de error para los campos
+    // Campos nuevos
+    var puntosLocal by remember { mutableStateOf("0") }
+    var puntosVisitante by remember { mutableStateOf("0") }
+    var estadoPartidoTexto by remember { mutableStateOf("") }
+
+    // Errores
     var errorLocal by remember { mutableStateOf<String?>(null) }
     var errorVisitante by remember { mutableStateOf<String?>(null) }
     var errorFecha by remember { mutableStateOf<String?>(null) }
 
     var expandirLocal by remember { mutableStateOf(false) }
     var expandirVisitante by remember { mutableStateOf(false) }
+    var expandirEstado by remember { mutableStateOf(false) }
 
     val nombreLocal = equipos.find { it.idEquipo == equipoLocalSeleccionado }?.nombre ?: ""
     val nombreVisitante = equipos.find { it.idEquipo == equipoVisitanteSeleccionado }?.nombre ?: ""
-
 
     // Cargar equipos una sola vez
     LaunchedEffect(Unit) { equiposViewModel.cargarEquipos() }
@@ -71,18 +83,14 @@ fun CrearPartidoScreen(
     // Cuando el partido se crea correctamente
     LaunchedEffect(estado) {
         if (estado == "ok" && partidoCreado != null) {
-            // 🔥 CLAVE: Se envía el 'partidoCreado' (PartidoModel Parcelable), que es lo que
-            // la JornadasScreen corregida espera recibir.
             navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.set("nuevo_partido", partidoCreado)
-
-            navController.popBackStack() // vuelve a JornadasScreen
+            navController.popBackStack()
         }
     }
 
     Scaffold(
-        // 💡 ESTILOS PARA EL TOP BAR
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -108,7 +116,6 @@ fun CrearPartidoScreen(
                 )
             )
         },
-        // 💡 ESTILOS PARA EL CONTENIDO DEL SCAFFOLD
         containerColor = DarkBlue
     ) { padding ->
         Column(
@@ -121,7 +128,9 @@ fun CrearPartidoScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // Equipo local (El código del dropdown sigue igual y es funcional)
+            // ----------------------------
+            // Equipo Local
+            // ----------------------------
             ExposedDropdownMenuBox(
                 expanded = expandirLocal,
                 onExpandedChange = { expandirLocal = !expandirLocal },
@@ -140,13 +149,11 @@ fun CrearPartidoScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardBackground,
                         unfocusedContainerColor = CardBackground,
-                        unfocusedBorderColor = CardBackground,
                         focusedBorderColor = PrimaryOrange,
+                        unfocusedBorderColor = CardBackground,
                         cursorColor = PrimaryOrange,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.White,
-                        disabledContainerColor = CardBackground,
                     ),
                     isError = errorLocal != null,
                     supportingText = {
@@ -162,7 +169,8 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
+                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado)
+                                        LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
@@ -178,7 +186,27 @@ fun CrearPartidoScreen(
                 }
             }
 
-            // Equipo visitante (El código del dropdown sigue igual y es funcional)
+            // 💡 Campo de puntaje local
+            OutlinedTextField(
+                value = puntosLocal,
+                onValueChange = { puntosLocal = it.filter { c -> c.isDigit() } },
+                label = { Text("Puntos Local", color = LightGrey) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = CardBackground,
+                    unfocusedContainerColor = CardBackground,
+                    focusedBorderColor = PrimaryOrange,
+                    unfocusedBorderColor = CardBackground,
+                    cursorColor = PrimaryOrange,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                )
+            )
+
+            // ----------------------------
+            // Equipo Visitante
+            // ----------------------------
             ExposedDropdownMenuBox(
                 expanded = expandirVisitante,
                 onExpandedChange = { expandirVisitante = !expandirVisitante },
@@ -197,13 +225,11 @@ fun CrearPartidoScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardBackground,
                         unfocusedContainerColor = CardBackground,
-                        unfocusedBorderColor = CardBackground,
                         focusedBorderColor = PrimaryOrange,
+                        unfocusedBorderColor = CardBackground,
                         cursorColor = PrimaryOrange,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.White,
-                        disabledContainerColor = CardBackground,
                     ),
                     isError = errorVisitante != null,
                     supportingText = {
@@ -219,7 +245,8 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    color = if (equipo.idEquipo == equipoLocalSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
+                                    color = if (equipo.idEquipo == equipoLocalSeleccionado)
+                                        LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
@@ -235,29 +262,34 @@ fun CrearPartidoScreen(
                 }
             }
 
-            // Fecha y hora (El selector de fecha/hora es funcional)
+            // 💡 Campo de puntaje visitante
             OutlinedTextField(
-                value = fechaSeleccionada,
-                onValueChange = { /* Solo lectura */ },
-                label = { Text("Fecha y hora", color = LightGrey) },
+                value = puntosVisitante,
+                onValueChange = { puntosVisitante = it.filter { c -> c.isDigit() } },
+                label = { Text("Puntos Visitante", color = LightGrey) },
                 modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = CardBackground,
                     unfocusedContainerColor = CardBackground,
-                    unfocusedBorderColor = CardBackground,
                     focusedBorderColor = PrimaryOrange,
+                    unfocusedBorderColor = CardBackground,
                     cursorColor = PrimaryOrange,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    disabledTextColor = Color.White,
-                    disabledContainerColor = CardBackground,
-                ),
-                isError = errorFecha != null,
-                supportingText = {
-                    errorFecha?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
-                },
+                )
+            )
+
+            // ----------------------------
+            // Fecha y hora
+            // ----------------------------
+            OutlinedTextField(
+                value = fechaSeleccionada,
+                onValueChange = {},
+                label = { Text("Fecha y hora", color = LightGrey) },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                shape = RoundedCornerShape(12.dp),
                 trailingIcon = {
                     IconButton(onClick = {
                         val cal = Calendar.getInstance()
@@ -282,40 +314,74 @@ fun CrearPartidoScreen(
                             cal.get(Calendar.DAY_OF_MONTH)
                         ).show()
                     }) {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = "Seleccionar fecha",
-                            tint = PrimaryOrange
+                        Icon(Icons.Default.DateRange, contentDescription = null, tint = PrimaryOrange)
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = CardBackground,
+                    unfocusedContainerColor = CardBackground,
+                    focusedBorderColor = PrimaryOrange,
+                    unfocusedBorderColor = CardBackground,
+                    cursorColor = PrimaryOrange,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                )
+            )
+
+            // 💡 Campo de estado del partido
+            ExposedDropdownMenuBox(
+                expanded = expandirEstado,
+                onExpandedChange = { expandirEstado = !expandirEstado },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val estadoActual by crearPartidoViewModel.estadoPartido.collectAsState()
+
+                OutlinedTextField(
+                    value = opcionesEstado.find { it.second == estadoActual }?.first ?: "Próximo",
+                    onValueChange = {},
+                    label = { Text("Estado del partido", color = LightGrey) },
+                    modifier = Modifier
+                        .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
+                        .fillMaxWidth(),
+                    readOnly = true,
+                    shape = RoundedCornerShape(12.dp),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandirEstado) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = CardBackground,
+                        unfocusedContainerColor = CardBackground,
+                        focusedBorderColor = PrimaryOrange,
+                        unfocusedBorderColor = CardBackground,
+                        cursorColor = PrimaryOrange,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                    )
+                )
+
+                DropdownMenu(
+                    expanded = expandirEstado,
+                    onDismissRequest = { expandirEstado = false }
+                ) {
+                    opcionesEstado.forEach { (texto, valor) ->
+                        DropdownMenuItem(
+                            text = { Text(texto) },
+                            onClick = {
+                                crearPartidoViewModel.cambiarEstado(valor)
+                                expandirEstado = false
+                            }
                         )
                     }
                 }
-            )
-
-            // Mensaje de error general del ViewModel
-            estado?.let { message ->
-                if (message.startsWith("error")) {
-                    Text(
-                        text = message.substringAfter("error: ").trim(),
-                        color = Color.Red,
-                        fontSize = 14.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Botón guardar
+            // ----------------------------
+            // Botón Guardar
+            // ----------------------------
             Button(
                 onClick = {
-                    // Lógica de Validación (limpiamos y validamos al hacer clic)
                     var esValido = true
                     errorLocal = null
                     errorVisitante = null
                     errorFecha = null
-
-                    // 💡 AJUSTE DE LIMPIEZA: Limpiar el error general del ViewModel.
-                    // Asumiendo que tu ViewModel tiene una función clearError().
                     crearPartidoViewModel.clearError()
 
                     if (equipoLocalSeleccionado == null) {
@@ -330,10 +396,9 @@ fun CrearPartidoScreen(
                         errorFecha = "Selecciona fecha y hora."
                         esValido = false
                     }
-                    if (equipoLocalSeleccionado != null && equipoLocalSeleccionado == equipoVisitanteSeleccionado) {
+                    if (equipoLocalSeleccionado == equipoVisitanteSeleccionado) {
                         errorLocal = "Los equipos deben ser distintos."
                         errorVisitante = "Los equipos deben ser distintos."
-                        crearPartidoViewModel.setError("Los equipos local y visitante deben ser distintos.")
                         esValido = false
                     }
 
@@ -342,7 +407,10 @@ fun CrearPartidoScreen(
                             idJornada = jornadaId,
                             idEquipoLocal = equipoLocalSeleccionado!!,
                             idEquipoVisitante = equipoVisitanteSeleccionado!!,
-                            fecha = fechaSeleccionada
+                            fecha = fechaSeleccionada,
+                            puntosLocal = puntosLocal.toIntOrNull() ?: 0,
+                            puntosVisitante = puntosVisitante.toIntOrNull() ?: 0,
+                            estadoPartido = estadoPartidoTexto.ifEmpty { "Pendiente" }
                         )
                         crearPartidoViewModel.crearPartido(partido)
                     }
@@ -350,16 +418,10 @@ fun CrearPartidoScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                // 💡 ESTILOS DEL BOTÓN
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(
-                    "Guardar Partido",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+                Text("Guardar Partido", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
         }
     }

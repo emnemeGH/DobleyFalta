@@ -13,8 +13,8 @@ import kotlinx.coroutines.launch
 // 💡 Inyectamos el PartidosRepository. Usamos un valor por defecto para CompositionLocalProvider si es necesario.
 class CrearPartidoViewModel( private val repository: PartidosRepository = PartidosRepository() ) : ViewModel() {
 
-    private val _estadoPartido = MutableStateFlow<String?>(null)
-    val estadoPartido: StateFlow<String?> = _estadoPartido
+    private val _estadoPartido = MutableStateFlow("proximo") // valor inicial
+    val estadoPartido: StateFlow<String> = _estadoPartido
 
     // 💡 Cambiamos el tipo a PartidoModel, ya que es lo que devuelve la API y el repositorio.
     private val _partidoCreado = MutableStateFlow<PartidoModel?>(null)
@@ -25,13 +25,15 @@ class CrearPartidoViewModel( private val repository: PartidosRepository = Partid
 
     fun setError(mensaje: String?) {
         _error.value = mensaje
-        _estadoPartido.value = if (mensaje == null) null else "error"
     }
 
     // Función para limpiar solo el estado de error de la API (no el error del campo)
     fun clearError() {
-        _estadoPartido.value = null
         _error.value = null
+    }
+
+    fun cambiarEstado(nuevoEstado: String) {
+        _estadoPartido.value = nuevoEstado
     }
 
     fun crearPartido(partido: CrearPartidoModel, onSuccess: (() -> Unit)? = null) {
