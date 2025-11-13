@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parana.dobleyfalta.retrofit.models.equipos.EquipoModel
+import com.parana.dobleyfalta.retrofit.models.partidos.EditarPartidoModel
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
 import com.parana.dobleyfalta.retrofit.repositories.EquiposRepository
 import com.parana.dobleyfalta.retrofit.repositories.PartidosRepository
@@ -195,6 +196,85 @@ class PartidosViewModel : ViewModel() {
                 _error.value = "Error al conectar para guardar el partido $partidoId: ${e.message}"
                 e.printStackTrace()
                 onComplete(false)
+            }
+        }
+    }
+
+    fun updatePartido(
+        partidoId: Int,
+        idJornada: Int,
+        estadoPartido: String,
+        idEquipoLocal: Int,
+        idEquipoVisitante: Int,
+        fecha: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch { // Uso de Coroutines para tarea asíncrona
+            _loading.value = true
+            _error.value = null
+            try {
+                // 1. Crear el modelo de datos para la solicitud PUT
+                val partidoUpdate = EditarPartidoModel(
+                    idJornada = idJornada,
+                    estadoPartido = estadoPartido,
+                    idEquipoLocal = idEquipoLocal,
+                    idEquipoVisitante = idEquipoVisitante,
+                    fecha = fecha
+                )
+
+                // 2. Llamada al Repositorio (Capa de Datos)
+                val response = repository.editarPartido(partidoId, partidoUpdate)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val partidoModelActualizado = response.body()!!
+
+                    // 3. Asegurar la caché de equipos y mapear el resultado
+                    if (equipos.isEmpty()) {
+                        equipos = equiposRepository.obtenerEquipos()
+                    }
+
+                    // Recreamos el DTO actualizado con los nombres/logos de equipo
+                    val equipoLocal = equipos.find { it.idEquipo == partidoModelActualizado.idEquipoLocal }
+                    val equipoVisitante = equipos.find { it.idEquipo == partidoModelActualizado.idEquipoVisitante }
+
+                    val partidoDTOActualizado = PartidoDTOModel(
+                        idPartido = partidoModelActualizado.idPartido,
+                        fecha = partidoModelActualizado.fecha,
+                        puntosLocal = partidoModelActualizado.puntosLocal,
+                        puntosVisitante = partidoModelActualizado.puntosVisitante,
+                        jornadaId = partidoModelActualizado.jornada?.idJornada ?: 0,
+                        jornadaNumero = partidoModelActualizado.jornada?.numero ?: 0,
+                        estadoPartido = partidoModelActualizado.estadoPartido,
+                        equipoLocalId = partidoModelActualizado.idEquipoLocal ?: 0,
+                        equipoVisitanteId = partidoModelActualizado.idEquipoVisitante ?: 0,
+                        equipoLocalNombre = equipoLocal?.nombre,
+                        equipoVisitanteNombre = equipoVisitante?.nombre,
+                        logoLocal = equipoLocal?.logo,
+                        logoVisitante = equipoVisitante?.logo
+                    )
+
+                    // 4. Actualizar el StateFlow (Single Source of Truth) para refrescar la UI
+                    val listaActual = _partidosDTO.value.toMutableList()
+                    val index = listaActual.indexOfFirst { it.idPartido == partidoId }
+
+                    if (index != -1) {
+                        listaActual[index] = partidoDTOActualizado
+                        _partidosDTO.value = listaActual // Emitir la nueva lista inmutable
+                    }
+
+                    onComplete(true) // Notificar éxito
+
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Error al editar el partido."
+                    _error.value = "Error al editar el partido. Código: ${response.code()}: $errorMsg"
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de conexión al editar el partido $partidoId: ${e.message}"
+                Log.e("PartidosViewModel", "Error al editar partido", e)
+                onComplete(false)
+            } finally {
+                _loading.value = false
             }
         }
     }

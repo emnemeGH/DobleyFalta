@@ -3,6 +3,7 @@ package com.parana.dobleyfalta.retrofit.repositories
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import com.parana.dobleyfalta.retrofit.clients.RetrofitClientPartidos
 import com.parana.dobleyfalta.retrofit.models.partidos.CrearPartidoModel
+import com.parana.dobleyfalta.retrofit.models.partidos.EditarPartidoModel
 import com.parana.dobleyfalta.retrofit.models.partidos.MarcadorUpdateRequest
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.EquipoType
 import retrofit2.Response
@@ -53,6 +54,10 @@ class PartidosRepository {
             e.printStackTrace()
             false
         }
+    }
+
+    suspend fun editarPartido(idPartido: Int, partido: EditarPartidoModel): Response<PartidoModel> {
+        return api.editarPartido(idPartido, partido)
     }
 
 }

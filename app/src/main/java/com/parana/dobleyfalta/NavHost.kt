@@ -41,6 +41,7 @@ import com.parana.dobleyfalta.jornadas.empleado.CrearJornadaScreen
 import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
 import com.parana.dobleyfalta.ui.screens.CrearPartidoScreen
 import com.parana.dobleyfalta.retrofit.models.auth.Rol
+import com.parana.dobleyfalta.ui.screens.EditarPartidoScreen
 
 @Composable
 fun AppNavHost(
@@ -99,6 +100,17 @@ fun AppNavHost(
         composable("crear_liga") {
             CrearLigaScreen(navController)
         }
+
+        composable(
+            route = "editar_liga/{idLiga}", // 👈 el argumento se indica con {}
+            arguments = listOf(
+                navArgument("idLiga") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val idLiga = backStackEntry.arguments?.getInt("idLiga") ?: 0
+            EditarLigasScreen(navController = navController, idLiga = idLiga)
+        }
+
 
         composable(
             route = "crear_jornada/{idLiga}", // nombreLiga opcional
@@ -161,15 +173,19 @@ fun AppNavHost(
         }
 
 
-//        composable("editar_partido") { backStackEntry ->
-//            val partido = navController.previousBackStackEntry
-//                ?.savedStateHandle
-//                ?.get<Partido>("partido")
-//
-//            partido?.let {
-//                EditarPartidosScreen(navController, mainViewModel, it)
-//            }
-//        }
+        composable(
+            route = "editar_partido/{partidoId}", // Asegurarse que el nombre del parámetro coincide
+            arguments = listOf(navArgument("partidoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val partidoId = backStackEntry.arguments?.getInt("partidoId") ?: 0
+            EditarPartidoScreen(
+                navController = navController,
+                partidoId = partidoId
+            )
+        }
+
+
+
         composable(
             route = "marcador_partido/{idPartido}",
             arguments = listOf(navArgument("idPartido") { type = NavType.IntType })

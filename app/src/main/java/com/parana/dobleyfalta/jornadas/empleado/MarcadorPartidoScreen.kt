@@ -3,6 +3,7 @@ package com.parana.dobleyfalta.jornadas.empleado
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -145,6 +146,16 @@ fun MarcadorPartidoScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Editar partido",
+                color = PrimaryOrange,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable {
+                    navController.navigate("editar_partido/${partidoDTO.idPartido}")
+                }
+            )
         }
     }
 }
@@ -276,36 +287,6 @@ fun MarcadorBasquetbol(
                 modifier = Modifier.size(80.dp).clip(CircleShape),
                 contentScale = ContentScale.Fit
             )
-        }
-
-        Spacer(Modifier.height(40.dp))
-
-    }
-}
-
-// --------------------------------------------------------------------------------
-
-@Composable
-fun CuartosVisualizer(nombreEquipo: String, currentQuarter: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            nombreEquipo,
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Row {
-            for (i in 1..4) {
-                val isCurrent = i == currentQuarter
-                Text(
-                    text = "Q$i 0",
-                    color = if (isCurrent) PrimaryOrange else LightGrey,
-                    fontWeight = if (isCurrent) FontWeight.ExtraBold else FontWeight.Normal,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                if (i < 4) Text("|", color = LightGrey, fontSize = 16.sp)
-            }
         }
     }
 }
