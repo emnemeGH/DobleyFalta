@@ -162,7 +162,7 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.Black
+                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
@@ -219,7 +219,7 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    color = if (equipo.idEquipo == equipoLocalSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.Black
+                                    color = if (equipo.idEquipo == equipoLocalSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
