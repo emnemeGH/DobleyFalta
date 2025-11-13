@@ -116,7 +116,21 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
             .fillMaxWidth()
             .height(190.dp)
         ){
-            PartidosCarousel(partidos = partidos)
+            when {
+                loading -> {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(DarkGrey, shape = RoundedCornerShape(16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryOrange)
+                    }
+                }
+                else -> {
+                    PartidosCarousel(partidos = partidos)
+                }
+            }
         }
 
         //SECCIÓN DE TABLA DE POSICIONES
@@ -469,7 +483,14 @@ fun TablaHome(idLiga: Int, nombreLiga: String) {
     val equipos = tablas[idLiga]?.map { it.toEquipoTabla() } ?: emptyList()
 
     when {
-        loading -> Text("Cargando tabla de $nombreLiga...", color = Color.White)
+        loading -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DarkGrey, shape = RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = PrimaryOrange)
+        }
         error != null -> Text("Error: $error", color = Color.Red)
         equipos.isEmpty() -> Text("No hay datos disponibles para $nombreLiga", color = Color.White)
         else -> TablaLiga(nombreLiga = nombreLiga, equipos = equipos)
