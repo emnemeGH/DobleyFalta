@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -35,8 +36,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.home.NoticiaMiniCard
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.auth.Rol
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
 import kotlinx.coroutines.launch
@@ -79,6 +82,10 @@ fun NoticiasScreen(navController: NavController) {
     var cargando by remember { mutableStateOf(true) }
     var errorCarga by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+    val rolUsuario = sessionManager.getRolUsuario()
+
     LaunchedEffect(Unit) {
         scope.launch {
             try {
@@ -102,36 +109,36 @@ fun NoticiasScreen(navController: NavController) {
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-
             Text(
                 text = "Noticias Destacadas",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
-
-            Spacer(modifier = Modifier.weight(0.65f))
-
-            Button(
-                onClick = { navController.navigate("crear_noticia") },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-                shape = RoundedCornerShape(24.dp),
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_add),
-                    contentDescription = "Crear Noticia",
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.White
-                )
+            
+            if (rolUsuario == Rol.Empleado) {
+                Button(
+                    onClick = { navController.navigate("crear_noticia") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                    shape = RoundedCornerShape(24.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.CenterEnd)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "Crear Noticia",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.White
+                    )
+                }
             }
         }
 
@@ -166,7 +173,8 @@ fun NoticiasScreen(navController: NavController) {
                                 noticiaABorrar = noticia
                                 mostrarConfirmacionBorrado = true
                             },
-                            alEditarClick = { navController.navigate("editar_noticia/${noticia.idNoticia}") }
+                            alEditarClick = { navController.navigate("editar_noticia/${noticia.idNoticia}") },
+                            rolUsuario = rolUsuario
                         )
                     }
                 }
@@ -194,7 +202,8 @@ fun NoticiasScreen(navController: NavController) {
                                 try {
                                     val exito = repository.eliminarNoticia(noticia.idNoticia)
                                     if (exito) {
-                                        listaNoticias = listaNoticias.filter { it.idNoticia != noticia.idNoticia }
+                                        listaNoticias =
+                                            listaNoticias.filter { it.idNoticia != noticia.idNoticia }
                                     }
                                 } catch (e: Exception) {
                                     e.printStackTrace()
@@ -223,7 +232,8 @@ fun NoticiaDestacadaCardApi(
     noticia: NoticiaApiModel,
     alHacerClick: () -> Unit,
     alBorrarClick: () -> Unit,
-    alEditarClick: () -> Unit
+    alEditarClick: () -> Unit,
+    rolUsuario: Rol?
 ) {
     Card(
         modifier = Modifier
@@ -263,49 +273,51 @@ fun NoticiaDestacadaCardApi(
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    IconButton(
-                        onClick = { alEditarClick() },
+                if (rolUsuario == Rol.Empleado) {
+                    Row(
                         modifier = Modifier
-                            .size(36.dp)
-                            .testTag("editarNoticia")
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Box(
+                        IconButton(
+                            onClick = { alEditarClick() },
                             modifier = Modifier
-                                .size(32.dp)
-                                .background(color = Color(0x44111111), shape = CircleShape),
-                            contentAlignment = Alignment.Center
+                                .size(36.dp)
+                                .testTag("editarNoticia")
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_edit),
-                                contentDescription = "Editar noticia",
-                                tint = colorResource(id = R.color.blue_edit),
-                                modifier = Modifier.size(18.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(color = Color(0x44111111), shape = CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_edit),
+                                    contentDescription = "Editar noticia",
+                                    tint = colorResource(id = R.color.blue_edit),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
-                    }
 
-                    IconButton(
-                        onClick = { alBorrarClick() },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(color = Color(0x44111111), shape = CircleShape),
-                            contentAlignment = Alignment.Center
+                        IconButton(
+                            onClick = { alBorrarClick() },
+                            modifier = Modifier.size(36.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_delete),
-                                contentDescription = "Eliminar noticia",
-                                tint = colorResource(id = R.color.red_delete),
-                                modifier = Modifier.size(18.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(color = Color(0x44111111), shape = CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_delete),
+                                    contentDescription = "Eliminar noticia",
+                                    tint = colorResource(id = R.color.red_delete),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }

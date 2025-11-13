@@ -32,7 +32,7 @@ import com.parana.dobleyfalta.noticias.empleado_noticia.CrearNoticiaScreen
 import com.parana.dobleyfalta.noticias.empleado_noticia.EditarNoticiaScreen
 import com.parana.dobleyfalta.tienda.TiendaScreen
 import com.parana.dobleyfalta.carrito.CarritoScreen
-//import com.parana.dobleyfalta.tabla.TablaScreen
+import com.parana.dobleyfalta.tabla.TablaScreen
 import com.parana.dobleyfalta.home.HomeScreen
 import com.parana.dobleyfalta.jornadas.EditarJornadaScreen
 import com.parana.dobleyfalta.jornadas.JornadasPorLigaScreen.JornadasPorLigaScreen
@@ -235,8 +235,8 @@ fun AppNavHost(
             val id = backStackEntry.arguments?.getInt("idEquipo") ?: 0
             EditarEquipoScreen(navController = navController, idEquipo = id)
         }
-//        composable("tabla") {
-//            TablaScreen(navController = navController)
-//        }
+        composable("tabla") {
+            TablaScreen(navController = navController)
+        }
     }
 }
