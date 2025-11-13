@@ -2,10 +2,11 @@ package com.parana.dobleyfalta.retrofit.viewmodels.tablas
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.LiveData
+
 import com.parana.dobleyfalta.retrofit.models.tablas.TablaDTOModel
 import com.parana.dobleyfalta.retrofit.repositories.TablasRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TablaViewModel : ViewModel() {

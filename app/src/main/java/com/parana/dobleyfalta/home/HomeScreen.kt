@@ -43,8 +43,8 @@ import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
-import com.parana.dobleyfalta.tabla.TablaLiga
-import com.parana.dobleyfalta.tabla.equiposTabla
+//import com.parana.dobleyfalta.tabla.TablaLiga
+//import com.parana.dobleyfalta.tabla.equiposTabla
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -142,12 +142,12 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
                 modifier = Modifier.clickable { navController.navigate("tabla")}
             )
         }
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(240.dp)
-        ){
-            TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
-        }
+//        Box(modifier = Modifier
+//            .fillMaxWidth()
+//            .height(240.dp)
+//        ){
+//            TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
+//        }
 
         //SECCIÓN DE NOTICIAS
         Row(

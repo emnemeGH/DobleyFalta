@@ -28,7 +28,7 @@ class AppInstrumentedTest {
 
         Thread.sleep(2000)
 
-        composeTestRule.onNodeWithText("Email").performTextInput("em@gm.com")
+        composeTestRule.onNodeWithText("Email").performTextInput("c@c.com")
 
         composeTestRule.onNodeWithText("Contraseña").performTextInput("123456")
 
