@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import java.time.format.DateTimeFormatter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.MainViewModel
@@ -42,28 +44,20 @@ import com.parana.dobleyfalta.jornadas.PrimaryOrange
 import com.parana.dobleyfalta.noticias.getFechaPublicacionFormateada
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 import com.parana.dobleyfalta.retrofit.models.noticia.NoticiaApiModel
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
 import com.parana.dobleyfalta.retrofit.repositories.NoticiasRepository
+import com.parana.dobleyfalta.retrofit.viewmodels.ligas.LigasViewModel
+import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
+import com.parana.dobleyfalta.retrofit.viewmodels.tablas.TablaViewModel
+import com.parana.dobleyfalta.tabla.TablaLiga
+import com.parana.dobleyfalta.tabla.toEquipoTabla
 //import com.parana.dobleyfalta.tabla.TablaLiga
 //import com.parana.dobleyfalta.tabla.equiposTabla
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class Partido(
-    val id: Int,
-    val equipo1: String,
-    val equipo2: String,
-    val escudo1: Int,
-    val escudo2: Int,
-    val score1: Int?,
-    val score2: Int?,
-    val status: String, // e.g., "Terminado", "Próximo", "En curso"
-    val liga: String,
-    val quarterScores1: List<Int>,
-    val quarterScores2: List<Int>,
-    val fecha: String,
-    val hora: String,
-    val estadio: String)
+
 
 
 @Composable
@@ -74,6 +68,14 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
     val White = colorResource(id = R.color.white)
     val DarkGrey = Color(0xFF1A375E)
     val LightGrey = Color(0xFFA0B3C4)
+
+    val partidosViewModel: PartidosViewModel = viewModel()
+    val partidos by partidosViewModel.partidosDTO.collectAsState()
+    val loading by partidosViewModel.loading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        partidosViewModel.cargarTodosLosPartidos() // método que llame al backend
+    }
 
     Column(
         modifier = Modifier
@@ -112,9 +114,9 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
         }
         Box(modifier = Modifier
             .fillMaxWidth()
-            .height(170.dp)
+            .height(190.dp)
         ){
-            PartidosCarousel()
+            PartidosCarousel(partidos = partidos)
         }
 
         //SECCIÓN DE TABLA DE POSICIONES
@@ -142,12 +144,12 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
                 modifier = Modifier.clickable { navController.navigate("tabla")}
             )
         }
-//        Box(modifier = Modifier
-//            .fillMaxWidth()
-//            .height(240.dp)
-//        ){
-//            TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
-//        }
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+        ){
+            TablaHome(idLiga = 1, nombreLiga = "LIGA A")
+        }
 
         //SECCIÓN DE NOTICIAS
         Row(
@@ -186,23 +188,42 @@ fun HomeScreen(navController: NavController, mainViewModel: MainViewModel){
 }
 
 @Composable
-fun PartidosCarousel() {
+fun PartidosCarousel(partidos: List<PartidoDTOModel>) {
+    val partidosProximos = partidos.filter { it.estadoPartido == "proximo" }
+    if (partidosProximos.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No hay próximos partidos", color = Color.White)
+        }
+        return
+    }
+
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { partidosProximos.size })
 
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize()
     ) { page ->
-        PartidoCardHome(partidosProximos[page])
+        PartidoCardHome(partido = partidosProximos[page])
     }
 }
 
 @Composable
-fun PartidoCardHome(partido: Partido) {
+fun PartidoCardHome(partido: PartidoDTOModel) {
     val cardBackgroundColor = DarkGrey
     val textLightColor = LightGrey
     val textStrongColor = Color.White
     val winnerScoreColor = PrimaryOrange
+
+    val fechaHora = partido.fecha?.let {
+        try {
+            LocalDateTime.parse(it)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    val fechaTexto = fechaHora?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: ""
+    val horaTexto = fechaHora?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: ""
 
     Card(
         modifier = Modifier
@@ -218,9 +239,9 @@ fun PartidoCardHome(partido: Partido) {
                     .fillMaxWidth()
                     .height(40.dp)
                     .background(
-                        color = when (partido.status) {
-                            "Próximo" -> PrimaryOrange
-                            "Terminado" -> DarkGrey
+                        color = when (partido.estadoPartido) {
+                            "proximo" -> PrimaryOrange
+                            "terminado" -> DarkGrey
                             "En Vivo" -> LiveGreen
                             else -> PrimaryOrange
                         },
@@ -237,7 +258,7 @@ fun PartidoCardHome(partido: Partido) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = partido.status,
+                    text = partido.estadoPartido.toString(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -254,9 +275,9 @@ fun PartidoCardHome(partido: Partido) {
             ) {
                 // Equipo 1
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.escudo_rowing),
-                        contentDescription = partido.equipo1,
+                    AsyncImage(
+                        model = "${BASE_URL}${partido.logoLocal}",
+                        contentDescription = partido.equipoLocalNombre,
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape),
@@ -264,7 +285,7 @@ fun PartidoCardHome(partido: Partido) {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = partido.equipo1,
+                        text = partido.equipoLocalNombre ?: "Local",
                         color = textStrongColor,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -276,23 +297,21 @@ fun PartidoCardHome(partido: Partido) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("VS", color = PrimaryOrange, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(partido.fecha, color = textLightColor, fontSize = 14.sp)
-                    Text(partido.hora, color = textLightColor, fontSize = 14.sp)
+                    Text(fechaTexto, color = textLightColor, fontSize = 14.sp)
+                    Text(horaTexto, color = textLightColor, fontSize = 14.sp)
                 }
 
                 // Equipo 2
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.escudo_cae),
-                        contentDescription = partido.equipo2,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape),
+                    AsyncImage(
+                        model = "${BASE_URL}${partido.logoVisitante}",
+                        contentDescription = partido.equipoVisitanteNombre,
+                        modifier = Modifier.size(60.dp).clip(CircleShape),
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = partido.equipo2,
+                        text = partido.equipoVisitanteNombre ?: "Visitante",
                         color = textStrongColor,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -303,41 +322,6 @@ fun PartidoCardHome(partido: Partido) {
         }
     }
 }
-
-val partidosProximos = listOf(
-    Partido(
-        id = 1,
-        equipo1 = "ROWING",
-        equipo2 = "CAE",
-        escudo1 = R.drawable.escudo_rowing,
-        escudo2 = R.drawable.escudo_cae,
-        score1 = 0,
-        score2 = 0,
-        status = "Próximo",
-        liga = "FEDERACION DE BALONCESTO",
-        quarterScores1 = emptyList(),
-        quarterScores2 = emptyList(),
-        fecha = "22/09/2025",
-        hora = "21:30",
-        estadio = "EL GIGANTE DE CALLE LAS HERAS"
-    ),
-    Partido(
-        id = 2,
-        equipo1 = "CICLISTA",
-        equipo2 = "OLIMPIA",
-        escudo1 = R.drawable.escudo_ciclista,
-        escudo2 = R.drawable.escudo_olimpia,
-        score1 = 0,
-        score2 = 0,
-        status = "Próximo",
-        liga = "LIGA REGIONAL",
-        quarterScores1 = emptyList(),
-        quarterScores2 = emptyList(),
-        fecha = "25/09/2025",
-        hora = "20:00",
-        estadio = "ESTADIO CENTRAL"
-    )
-)
 
 @Composable
 fun NoticiasSection(navController: NavController) {
@@ -467,5 +451,27 @@ fun NoticiaMiniCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun TablaHome(idLiga: Int, nombreLiga: String) {
+    val tablasViewModel: TablaViewModel = viewModel()
+    val tablas by tablasViewModel.tablas.collectAsState()
+    val loading by tablasViewModel.loading.collectAsState()
+    val error by tablasViewModel.error.collectAsState()
+
+    // Carga la tabla solo una vez (cuando entra a la pantalla)
+    LaunchedEffect(idLiga) {
+        tablasViewModel.cargarTablaPorLiga(idLiga)
+    }
+
+    val equipos = tablas[idLiga]?.map { it.toEquipoTabla() } ?: emptyList()
+
+    when {
+        loading -> Text("Cargando tabla de $nombreLiga...", color = Color.White)
+        error != null -> Text("Error: $error", color = Color.Red)
+        equipos.isEmpty() -> Text("No hay datos disponibles para $nombreLiga", color = Color.White)
+        else -> TablaLiga(nombreLiga = nombreLiga, equipos = equipos)
     }
 }
