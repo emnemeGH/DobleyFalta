@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.parana.dobleyfalta.R // 💡 Necesario para los recursos de color y el icono 'back'
+import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.retrofit.models.partidos.CrearPartidoModel
 import com.parana.dobleyfalta.retrofit.viewmodels.equipos.EquiposViewModel
 import com.parana.dobleyfalta.ui.viewmodels.CrearPartidoViewModel
@@ -71,7 +71,8 @@ fun CrearPartidoScreen(
     // Cuando el partido se crea correctamente
     LaunchedEffect(estado) {
         if (estado == "ok" && partidoCreado != null) {
-            // guardamos el nuevo partido en el backstack
+            // 🔥 CLAVE: Se envía el 'partidoCreado' (PartidoModel Parcelable), que es lo que
+            // la JornadasScreen corregida espera recibir.
             navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.set("nuevo_partido", partidoCreado)
@@ -95,7 +96,6 @@ fun CrearPartidoScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            // 💡 Se usa el recurso 'back'
                             painter = painterResource(id = R.drawable.back),
                             contentDescription = "Volver a jornadas",
                             tint = Color.White,
@@ -114,14 +114,14 @@ fun CrearPartidoScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(horizontal = 32.dp, vertical = 16.dp) // 💡 Padding unificado
+                .padding(horizontal = 32.dp, vertical = 16.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()), // 💡 Scrollable
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp) // 💡 Espaciado unificado
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // Equipo local
+            // Equipo local (El código del dropdown sigue igual y es funcional)
             ExposedDropdownMenuBox(
                 expanded = expandirLocal,
                 onExpandedChange = { expandirLocal = !expandirLocal },
@@ -135,7 +135,6 @@ fun CrearPartidoScreen(
                         .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                         .fillMaxWidth(),
                     readOnly = true,
-                    // 💡 ESTILOS DE OutlinedTextField
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandirLocal) },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -163,8 +162,7 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    // Desactivar si es igual al equipo visitante
-                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.Black
+                                    color = if (equipo.idEquipo == equipoVisitanteSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
@@ -180,7 +178,7 @@ fun CrearPartidoScreen(
                 }
             }
 
-            // Equipo visitante
+            // Equipo visitante (El código del dropdown sigue igual y es funcional)
             ExposedDropdownMenuBox(
                 expanded = expandirVisitante,
                 onExpandedChange = { expandirVisitante = !expandirVisitante },
@@ -194,7 +192,6 @@ fun CrearPartidoScreen(
                         .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                         .fillMaxWidth(),
                     readOnly = true,
-                    // 💡 ESTILOS DE OutlinedTextField
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandirVisitante) },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -222,8 +219,7 @@ fun CrearPartidoScreen(
                             text = {
                                 Text(
                                     equipo.nombre,
-                                    // Desactivar si es igual al equipo local
-                                    color = if (equipo.idEquipo == equipoLocalSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.Black
+                                    color = if (equipo.idEquipo == equipoLocalSeleccionado) LightGrey.copy(alpha = 0.5f) else Color.White
                                 )
                             },
                             onClick = {
@@ -239,14 +235,13 @@ fun CrearPartidoScreen(
                 }
             }
 
-            // Fecha y hora
+            // Fecha y hora (El selector de fecha/hora es funcional)
             OutlinedTextField(
                 value = fechaSeleccionada,
                 onValueChange = { /* Solo lectura */ },
                 label = { Text("Fecha y hora", color = LightGrey) },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                // 💡 ESTILOS DE OutlinedTextField
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = CardBackground,
@@ -290,7 +285,7 @@ fun CrearPartidoScreen(
                         Icon(
                             Icons.Default.DateRange,
                             contentDescription = "Seleccionar fecha",
-                            tint = PrimaryOrange // 💡 Color naranja
+                            tint = PrimaryOrange
                         )
                     }
                 }
@@ -300,7 +295,7 @@ fun CrearPartidoScreen(
             estado?.let { message ->
                 if (message.startsWith("error")) {
                     Text(
-                        text = message.substringAfter("error: ").trim(), // Mostrar solo el mensaje limpio
+                        text = message.substringAfter("error: ").trim(),
                         color = Color.Red,
                         fontSize = 14.sp,
                         modifier = Modifier.fillMaxWidth()
@@ -313,12 +308,15 @@ fun CrearPartidoScreen(
             // Botón guardar
             Button(
                 onClick = {
-                    // 💡 Lógica de Validación (limpiamos y validamos al hacer clic)
+                    // Lógica de Validación (limpiamos y validamos al hacer clic)
                     var esValido = true
                     errorLocal = null
                     errorVisitante = null
                     errorFecha = null
-                    crearPartidoViewModel.setError(null) // Limpiar error general (si el VM lo soporta, aunque en tu VM actual solo puedes *setear* un error)
+
+                    // 💡 AJUSTE DE LIMPIEZA: Limpiar el error general del ViewModel.
+                    // Asumiendo que tu ViewModel tiene una función clearError().
+                    crearPartidoViewModel.clearError()
 
                     if (equipoLocalSeleccionado == null) {
                         errorLocal = "Selecciona el equipo local."

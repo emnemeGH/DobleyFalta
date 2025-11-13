@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -26,7 +27,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.SessionManager
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.auth.Rol
 import com.parana.dobleyfalta.retrofit.models.equipos.EquipoModel
 import com.parana.dobleyfalta.retrofit.viewmodels.equipos.EquiposViewModel
 
@@ -45,6 +48,10 @@ fun EquiposScreen(navController: NavController) {
 
     var mostrarConfirmacionBorrado by remember { mutableStateOf(false) }
     var equipoAEliminar by remember { mutableStateOf<EquipoModel?>(null) }
+
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+    val rolUsuario = sessionManager.getRolUsuario()
 
     LaunchedEffect(Unit) {
         viewModel.cargarEquipos()
@@ -69,19 +76,21 @@ fun EquiposScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp
             )
-            Button(
-                onClick = { navController.navigate("crear_equipo") },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-                shape = CircleShape,
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_add),
-                    contentDescription = "Agregar Equipo",
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.White
-                )
+            if (rolUsuario == Rol.Empleado) {
+                Button(
+                    onClick = { navController.navigate("crear_equipo") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "Agregar Equipo",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                }
             }
         }
 
@@ -123,7 +132,8 @@ fun EquiposScreen(navController: NavController) {
                             },
                             alHacerClick = {
                                 navController.navigate("detalles/${equipo.idEquipo}")
-                            }
+                            },
+                            rolUsuario = rolUsuario
                         )
                     }
                 }
@@ -175,7 +185,8 @@ fun EquipoCard(
     equipo: EquipoModel,
     alEditarClick: () -> Unit,
     alBorrarClick: () -> Unit,
-    alHacerClick: () -> Unit
+    alHacerClick: () -> Unit,
+    rolUsuario: Rol?
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackground),
@@ -206,31 +217,34 @@ fun EquipoCard(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            if (rolUsuario == Rol.Empleado) {
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(
-                    onClick = alEditarClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_edit),
-                        contentDescription = "Editar equipo",
-                        tint = colorResource(id = R.color.blue_edit),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                Spacer(modifier = Modifier.height(10.dp))
 
-                IconButton(
-                    onClick = alBorrarClick,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_delete),
-                        contentDescription = "Eliminar equipo",
-                        tint = colorResource(id = R.color.red_delete),
-                        modifier = Modifier.size(20.dp)
-                    )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = alEditarClick,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_edit),
+                            contentDescription = "Editar equipo",
+                            tint = colorResource(id = R.color.blue_edit),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = alBorrarClick,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_delete),
+                            contentDescription = "Eliminar equipo",
+                            tint = colorResource(id = R.color.red_delete),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ import com.parana.dobleyfalta.retrofit.repositories.JornadasRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException // 🚨 Importante: Añadimos esta importación
 
 class JornadasViewModel : ViewModel() {
 
@@ -18,7 +19,7 @@ class JornadasViewModel : ViewModel() {
     val jornadas = _jornadas.asStateFlow()
 
     // Jornada actual seleccionada
-     val _jornadaActual = MutableStateFlow(1)
+    val _jornadaActual = MutableStateFlow(1)
     val jornadaActual = _jornadaActual.asStateFlow()
 
     // Max jornada disponible
@@ -28,6 +29,9 @@ class JornadasViewModel : ViewModel() {
     private val _loading = MutableStateFlow(false)
     val loading = _loading.asStateFlow()
 
+    private val _jornadaAEditar = MutableStateFlow<JornadaModel?>(null)
+    val jornadaAEditar = _jornadaAEditar.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
@@ -36,7 +40,7 @@ class JornadasViewModel : ViewModel() {
     }
 
     // RENOMBRAR Y MODIFICAR: Reemplazamos 'obtenerJornadas()' por una función que requiere idLiga
-    fun cargarJornadasDeLiga(idLiga: Int) { // 👈 Ahora requiere el ID de la Liga
+    fun cargarJornadasDeLiga(idLiga: Int) {
         viewModelScope.launch {
             try {
                 _loading.value = true
@@ -90,7 +94,7 @@ class JornadasViewModel : ViewModel() {
                 _loading.value = true
                 val response = repository.crearJornada(jornada)
                 if (response.isSuccessful) {
-                    //obtenerJornadas() // refrescar lista y maxJornada
+                    _error.value = null // Limpiar error en caso de éxito
                     onSuccess()
                 } else {
                     _error.value = "Error al crear jornada (${response.code()})"
@@ -109,7 +113,7 @@ class JornadasViewModel : ViewModel() {
                 _loading.value = true
                 val response = repository.editarJornada(id, jornada)
                 if (response.isSuccessful) {
-                    //obtenerJornadas()
+                    _error.value = null // Limpiar error en caso de éxito
                     onSuccess()
                 } else {
                     _error.value = "Error al editar jornada (${response.code()})"
@@ -122,15 +126,53 @@ class JornadasViewModel : ViewModel() {
         }
     }
 
+    // 🚨 FUNCIÓN CORREGIDA PARA MANEJAR ERRORES DE RED Y DATOS INCOMPLETOS
+    fun cargarJornadaParaEditar(id: Int) {
+        viewModelScope.launch {
+            try {
+                _loading.value = true
+                _error.value = null // Limpiar error antes de la nueva carga
+
+                val jornada = repository.obtenerJornadaPorId(id)
+                _jornadaAEditar.value = jornada
+
+                // 🚨 Nueva lógica de validación de datos: si la jornada llega, pero la liga es nula
+                if (jornada != null && jornada.liga?.idLiga == null) {
+                    _error.value = "La jornada existe, pero le falta la Liga asociada (Error de datos en el servidor)."
+                    _jornadaAEditar.value = null // Forzamos un estado nulo para bloquear el formulario
+                }
+
+            } catch (e: HttpException) {
+                // 🚨 Captura específica de errores HTTP (como el 503)
+                val errorMessage = when (e.code()) {
+                    503 -> "Error 503: Servidor no disponible. Verifique su API."
+                    404 -> "Error 404: Jornada no encontrada."
+                    else -> "Error HTTP ${e.code()}: ${e.message()}"
+                }
+                _error.value = errorMessage
+                _jornadaAEditar.value = null // Vaciamos el estado para no mostrar datos parciales/erróneos
+            } catch (e: Exception) {
+                // Captura de otros errores (deserialización, IO, timeout, etc.)
+                _error.value = "Error de conexión o datos: ${e.message}"
+                _jornadaAEditar.value = null
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // ✅ MODIFICADO: Lógica de éxito mejorada
     fun eliminarJornada(id: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
                 _loading.value = true
                 val ok = repository.eliminarJornada(id)
                 if (ok) {
-                    //obtenerJornadas()
+                    _error.value = null // Limpiar error en caso de éxito
                     onSuccess()
-                } else _error.value = "Error al eliminar jornada"
+                } else {
+                    _error.value = "Error al eliminar jornada. Puede que la jornada no exista o haya un conflicto."
+                }
             } catch (e: Exception) {
                 _error.value = "Error de conexión: ${e.message}"
             } finally {

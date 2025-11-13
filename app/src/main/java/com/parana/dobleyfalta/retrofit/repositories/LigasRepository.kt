@@ -14,6 +14,10 @@ class LigasRepository {
         return api.getLigas()
     }
 
+    suspend fun getLigaPorId(id: Int): LigaModel {
+        return api.getLigaPorId(id)
+    }
+
     suspend fun crearLiga(liga: CrearLigaModel): Response<LigaModel> {
         return api.crearLiga(liga)
     }
@@ -22,8 +26,7 @@ class LigasRepository {
         return api.actualizarLiga(id, liga)
     }
 
-    suspend fun eliminarLiga(id: Int): Boolean {
-        val response = api.eliminarLiga(id)
-        return response.isSuccessful
+    suspend fun eliminarLiga(id: Int): Response<Unit> {
+        return api.eliminarLiga(id)
     }
 }
