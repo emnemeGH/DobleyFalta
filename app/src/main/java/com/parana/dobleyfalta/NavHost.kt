@@ -42,6 +42,8 @@ import com.parana.dobleyfalta.jornadas.empleado.MarcadorPartidoScreen
 import com.parana.dobleyfalta.ui.screens.CrearPartidoScreen
 import com.parana.dobleyfalta.retrofit.models.auth.Rol
 import com.parana.dobleyfalta.ui.screens.EditarPartidoScreen
+import com.parana.dobleyfalta.tienda.DetalleProductoScreen
+import com.parana.dobleyfalta.tienda.empleado_tienda.CrearProductoScreen
 
 @Composable
 fun AppNavHost(
@@ -233,11 +235,20 @@ fun AppNavHost(
         composable("tienda") {
             TiendaScreen(navController = navController)
         }
-        /*composable("detalle_producto/{productId}") {
+        composable("detalle_producto/{productoId}",
+            arguments = listOf(navArgument("productoId") { type = NavType.IntType })
+        ) {
             backStackEntry ->
-            val productoId = backStackEntry.arguments?.getInt("productoId")
-            DetalleProductoScreen(navController = navController, product = productoId ?:0)
-        }*/
+            val productoId = backStackEntry.arguments?.getInt("productoId")?:0
+            DetalleProductoScreen(
+                navController = navController,
+                productId =productoId ?: 0,
+                onAddToCart = {idProducto -> println("Producto agregado: $idProducto")}
+            )
+        }
+        composable("crear_producto") {
+            CrearProductoScreen(navController)
+        }
         composable("carrito") {
             CarritoScreen(navController = navController)
         }

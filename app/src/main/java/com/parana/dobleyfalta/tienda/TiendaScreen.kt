@@ -7,8 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,28 +26,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.parana.dobleyfalta.DarkBlue
 import com.parana.dobleyfalta.DarkGrey
 import com.parana.dobleyfalta.R
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.productos.ProductoModel
+import com.parana.dobleyfalta.retrofit.viewmodels.productos.ProductosViewModel
 
 // Modelo de producto
-data class Product(
-    val id: Int,
-    val name: String,
-    val price: Double,
-    val image: Int, // drawable local
-    val inStock: Boolean,
-    val popularity: Int,
-    val categoria: String
-)
+//data class Producto(
+//    val id: Int,
+//    val nombre: String,
+//    val precio: Double,
+//    val imagen: String,
+//    val inStock: Boolean,
+//    val popularity: Int,
+//    val categoria: String
+//)
 
 // Mock de productos
-val products = listOf(
-    Product(1, "Pelota ", 29.999, R.drawable.pelota_basquet, true, 95, "Pelotas"),
-    Product(2, "Buzo", 79.999, R.drawable.buzo, false, 88, "Indumentaria"),
-    Product(3, "Remera", 34.999, R.drawable.remera, true, 92, "Indumentaria")
-)
+//val productos = listOf(
+//    Producto(1, "Pelota ", 29.999, "R.drawable.pelota_basquet", true, 95, "Pelotas"),
+//    Producto(2, "Buzo", 79.999, "R.drawable.buzo", false, 88, "Indumentaria"),
+//    Producto(3, "Remera", 34.999, "R.drawable.remera", true, 92, "Indumentaria")
+//)
 
 @Composable
 fun TiendaScreen(navController: NavController) {
@@ -57,18 +63,28 @@ fun TiendaScreen(navController: NavController) {
     val White = colorResource(id = R.color.white)
     val DarkGrey = Color(0xFF1A375E)
 
+    val productosViewModel: ProductosViewModel = viewModel()
+    val productos by productosViewModel.productos.collectAsState()
+    val error by productosViewModel.error.collectAsState()
+    val loading by productosViewModel.loading.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
-    var cart by remember { mutableStateOf(listOf<Int>()) }
+    var carrito by remember { mutableStateOf(listOf<Int>()) }
     var showFilters by remember { mutableStateOf(false) }
 
-    val filteredProducts = products.filter {
-        it.name.lowercase().contains(searchQuery.lowercase())
+    // 🚀 Cargar productos al entrar
+    LaunchedEffect(Unit) {
+        productosViewModel.cargarProductos()
     }
+
+    val filteredProducts = productos.filter {
+        it.nombre.lowercase().contains(searchQuery.lowercase())
+    }
+
     var selectedCategoria by remember { mutableStateOf("Mostrar todo") }
     var selectedTamaño by remember { mutableStateOf("Mostrar todo") }
 
-    val sortedProducts = filteredProducts.sortedByDescending { it.popularity }
+    //val sortedProducts = filteredProducts.sortedByDescending { it.precio }
 
     Column(
         modifier = Modifier
@@ -91,13 +107,26 @@ fun TiendaScreen(navController: NavController) {
             )
 
             Column {
-                Text("Tienda Online", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = White, textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
-                Text("Merch original de la liga", fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center, modifier = Modifier.width(250.dp))
+                Text(
+                    "Tienda Online",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.width(250.dp)
+                )
+                Text(
+                    "Merch original de la liga",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.width(250.dp)
+                )
             }
 
             Box(
                 modifier = Modifier.size(65.dp)
-            ){
+            ) {
                 IconButton(onClick = {
                     navController.navigate("carrito") // 🔥 Navega a pantalla del carrito
                 }) {
@@ -108,7 +137,7 @@ fun TiendaScreen(navController: NavController) {
                         modifier = Modifier.size(40.dp)
                     )
                 }
-                if (cart.isNotEmpty()){
+                if (carrito.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .padding(0.dp)
@@ -120,12 +149,32 @@ fun TiendaScreen(navController: NavController) {
                             modifier = Modifier.size(26.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(cart.size.toString(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                                Text(
+                                    carrito.size.toString(),
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp
+                                )
                             }
                         }
                     }
                 }
             }
+        }
+        Button(
+            onClick = { navController.navigate("crear_producto") },
+            colors = ButtonDefaults.buttonColors(containerColor = com.parana.dobleyfalta.noticias.PrimaryOrange),
+            shape = RoundedCornerShape(24.dp),
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier
+                .size(36.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "Crear Producto",
+                modifier = Modifier.size(16.dp),
+                tint = Color.White
+            )
         }
 
         // Barra de búsqueda y filtro
@@ -140,7 +189,13 @@ fun TiendaScreen(navController: NavController) {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text("Buscar productos", color = Color.White) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryOrange)},
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = PrimaryOrange
+                    )
+                },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryOrange,
@@ -152,7 +207,8 @@ fun TiendaScreen(navController: NavController) {
                 )
             )
             IconButton(onClick = { showFilters = !showFilters }) {
-                Icon(painter = painterResource(id = R.drawable.filter_list),
+                Icon(
+                    painter = painterResource(id = R.drawable.filter_list),
                     contentDescription = "Filtro",
                     tint = PrimaryOrange,
                     modifier = Modifier.size(35.dp)
@@ -171,48 +227,115 @@ fun TiendaScreen(navController: NavController) {
         }
 
         // Lista de productos
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.padding(8.dp),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            item(span = { GridItemSpan(this.maxLineSpan)}) {
-                Text("Productos",color = White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(12.dp))}
-            items(sortedProducts ) { product ->
-                ProductCard(product, onAddToCart = {cart = cart + it}, navController = navController)
+//        LazyVerticalGrid(
+//            columns = GridCells.Fixed(2),
+//            modifier = Modifier.padding(8.dp),
+//            contentPadding = PaddingValues(bottom = 80.dp)
+//        ) {
+//            item(span = { GridItemSpan(this.maxLineSpan)}) {
+//                Text("Productos",color = White,
+//                    fontSize = 20.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.padding(12.dp))}
+//            items(sortedProducts ) { product ->
+//                ProductCard(product, onAddToCart = {carrito = carrito + it}, navController = navController)
+//            }
+//        }
+
+        when {
+
+            loading -> {
+                Dialog(onDismissRequest = {}) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.White, shape = RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = com.parana.dobleyfalta.equipos.PrimaryOrange)
+                    }
+                }
+            }
+
+            productos.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = PrimaryOrange)
+                }
+            }
+
+            error != null -> {
+                Text(
+                    text = error ?: "Error desconocido",
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            else -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.padding(8.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    item(span = { GridItemSpan(this.maxLineSpan) }) {
+                        Text(
+                            "Productos",
+                            color = White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+
+                    items(productos.sortedBy { it.nombre }) { producto ->
+                        ProductoCard(
+                            producto = producto,
+                            onAddToCart = { carrito = carrito + it },
+                            alHacerClick = { navController.navigate("detalle_producto/${producto.idProducto}") },
+                            navController = navController
+                        )
+                    }
+
+                }
             }
         }
     }
 }
 
 @Composable
-fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: NavController) {
+fun ProductoCard(
+    producto: ProductoModel,
+    onAddToCart: (Int) -> Unit,
+    alHacerClick: () -> Unit,
+    navController: NavController
+) {
     val PrimaryOrange = colorResource(id = R.color.primaryOrange)
 
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth(),
-            //.clickable { navController.navigate("tienda")},
+        onClick = alHacerClick,
         colors = CardDefaults.cardColors(containerColor = DarkGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
             Box {
-                Image(
-                    painter = painterResource(id = product.image),
-                    contentDescription = product.name,
+                AsyncImage(
+//                    model = "${BASE_URL}${producto.imagen}",
+                    model = producto.imagen,
+                    contentDescription = producto.nombre,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
                         .padding(bottom = 8.dp)
                 )
-                if (!product.inStock) {
+                if (!producto.inStock) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -225,7 +348,7 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
             }
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
-                    product.name,
+                    producto.nombre,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = Color.White,
@@ -233,17 +356,20 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
                     modifier = Modifier.padding(bottom = 2.dp)
                 )
                 Text(
-                    "$${product.price}",
+                    "$${producto.precio}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 5.dp)
                 )
 
-                val stockColor = if (product.inStock) Color(0xFF4CAF50) else Color(0xFFF44336)
-                val stockText = if (product.inStock) "En Stock" else "Agotado"
+                val stockColor = if (producto.inStock) Color(0xFF4CAF50) else Color(0xFFF44336)
+                val stockText = if (producto.inStock) "En Stock" else "Agotado"
 
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
@@ -255,15 +381,19 @@ fun ProductCard(product: Product, onAddToCart: (Int) -> Unit, navController: Nav
                 }
 
                 Button(
-                    onClick = { onAddToCart(product.id) },
-                    enabled = product.inStock,
+                    onClick = { onAddToCart(producto.idProducto) },
+                    enabled = producto.inStock,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                 ) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        if (product.inStock) "Agregar al carrito" else "Notificarme",
+                        if (producto.inStock) "Agregar al carrito" else "Notificarme",
                         fontSize = 12.sp
                     )
                 }
@@ -324,7 +454,7 @@ fun DropdownFilter(
             value = selected,
             onValueChange = {},
             readOnly = true,
-            label = { Text(label, color = Color.White)},
+            label = { Text(label, color = Color.White) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth(),
