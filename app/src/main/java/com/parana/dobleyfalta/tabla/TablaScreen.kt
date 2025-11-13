@@ -61,6 +61,7 @@ package com.parana.dobleyfalta.tabla
 //        pc = pc
 //    )
 //}
+//
 ///*
 //val equiposTabla = listOf(
 //    EquipoTabla(1, 1, "Paracao", R.drawable.escudo_paracao, 53, 38, 15, 23, 3018, 3125),
@@ -71,7 +72,7 @@ package com.parana.dobleyfalta.tabla
 //)
 //*/
 //@Composable
-//fun TablaScreen (navController: NavController){
+//fun TablaScreen(navController: NavController) {
 //    val DarkBlue = colorResource(id = R.color.darkBlue)
 //    val PrimaryOrange = colorResource(id = R.color.primaryOrange)
 //    val White = colorResource(id = R.color.white)
@@ -90,7 +91,8 @@ package com.parana.dobleyfalta.tabla
 //
 //    val tablasViewModel: TablaViewModel = viewModel()
 //    val tablas by tablasViewModel.tablas.collectAsState()
-//    val error by tablasViewModel.error.collectAsState()
+//    val errorTablas by tablasViewModel.error.collectAsState()
+//    val loadingTablas by tablasViewModel.loading.collectAsState()
 //
 //    LaunchedEffect(ligas) {
 //        if (ligas.isNotEmpty()) {
@@ -100,9 +102,9 @@ package com.parana.dobleyfalta.tabla
 //        }
 //    }
 //
-//    if(error != null){
+//    if (errorTablas != null) {
 //        Text(
-//            text = error ?: "Error desconocido",
+//            text = errorTablas ?: "Error desconocido",
 //            color = Color.Red,
 //            modifier = Modifier.padding(16.dp)
 //        )
@@ -119,79 +121,80 @@ package com.parana.dobleyfalta.tabla
 //                pf = dto.pf,
 //                pc = dto.pc
 //            )
-//            TablaLiga(nombre = nombreLiga, equipos = equipos)
-//    }
+//        }
+//        TablaLiga(nombreLiga = ligas.nombre, equipos = equipos)
 //
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(DarkBlue)
-//            .padding(16.dp)
-//            .verticalScroll(rememberScrollState())
-//    ) {
-//
-//        Text(
-//            text = "TABLA DE POSICIONES TORNEO",
-//            fontWeight = FontWeight.Bold,
-//            fontSize = 20.sp,
-//            color = White,
+//        Column(
 //            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(top = 15.dp, bottom = 8.dp),
-//            textAlign = TextAlign.Center
-//        )
+//                .fillMaxSize()
+//                .background(DarkBlue)
+//                .padding(16.dp)
+//                .verticalScroll(rememberScrollState())
+//        ) {
 //
-//        Text(
-//            text = "Desliza la tabla para ver más información",
-//            fontSize = 13.sp,
-//            color = White,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(bottom = 10.dp),
-//            textAlign = TextAlign.Center
-//        )
+//            Text(
+//                text = "TABLA DE POSICIONES TORNEO",
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 20.sp,
+//                color = White,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 15.dp, bottom = 8.dp),
+//                textAlign = TextAlign.Center
+//            )
+//
+//            Text(
+//                text = "Desliza la tabla para ver más información",
+//                fontSize = 13.sp,
+//                color = White,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom = 10.dp),
+//                textAlign = TextAlign.Center
+//            )
 //
 //
-//        //TablaLiga(nombreLiga = nombreLiga, equipos = equipos)
+//            //TablaLiga(nombreLiga = nombreLiga, equipos = equipos)
 //
-//        /*
-//        TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
-//        TablaLiga(nombreLiga = "LIGA B", equipos = equiposTabla)
-//        */
+//            /*
+//            TablaLiga(nombreLiga = "LIGA A", equipos = equiposTabla)
+//            TablaLiga(nombreLiga = "LIGA B", equipos = equiposTabla)
+//            */
 //
-//        when {
-//            loadingLigas || loadingTablas -> {
-//                Text(text = "Cargando tablas...", color = Color.White)
-//            }
-//            errorLigas != null -> {
-//                Text(text = errorLigas ?: "", color = Color.Red)
-//            }
-//            errorTablas != null -> {
-//                Text(text = errorTablas ?: "", color = Color.Red)
-//            }
-//            else -> {
-//                ligas.forEach { liga ->
-//                    val equiposDto = tablas[liga.idLiga]
-//                    if (equiposDto != null) {
-//                        val equipos = equiposDto.map { it.toEquipoTabla() }
-//                        TablaLiga(nombreLiga = liga.nombre, equipos = equipos)
-//                    } else {
-//                        Text(
-//                            text = "No se pudo cargar la tabla de ${liga.nombre}",
-//                            color = Color.White,
-//                            modifier = Modifier.padding(vertical = 8.dp)
-//                        )
-//                    }
+//            when {
+//                loadingLigas || loadingTablas -> {
+//                    Text(text = "Cargando tablas...", color = Color.White)
 //                }
+//
+//                errorLigas != null -> {
+//                    Text(text = errorLigas ?: "", color = Color.Red)
+//                }
+//
+//                errorTablas != null -> {
+//                    Text(text = errorTablas ?: "", color = Color.Red)
+//                }
+//
+//                else -> {
+//                    ligas.forEach { liga ->
+//                        val equiposDto = tablas[liga.idLiga]
+//                        if (equiposDto != null) {
+//                            val equipos = equiposDto.map { it.toEquipoTabla() }
+//                            TablaLiga(nombreLiga = liga.nombre, equipos = equipos)
+//                        } else {
+//                            Text(
+//                                text = "No se pudo cargar la tabla de ${liga.nombre}",
+//                                color = Color.White,
+//                                modifier = Modifier.padding(vertical = 8.dp)
+//                            )
+//                        }
+//                    }
+//                    Spacer(modifier = Modifier.height(80.dp))
+//                }
+//
 //            }
-//
-//
-//
-//        Spacer(modifier = Modifier.height(80.dp))
-//
+//        }
 //    }
 //}
-//
 //
 //@Composable
 //fun TablaHeader(text: String, modifier: Modifier) {
@@ -199,7 +202,9 @@ package com.parana.dobleyfalta.tabla
 //        text = text,
 //        color = Color.White,
 //        fontWeight = FontWeight.Bold,
-//        modifier = modifier.padding(4.dp) .fillMaxWidth(),
+//        modifier = modifier
+//            .padding(4.dp)
+//            .fillMaxWidth(),
 //        fontSize = 14.sp
 //    )
 //}
@@ -273,17 +278,25 @@ package com.parana.dobleyfalta.tabla
 //            .padding(vertical = 8.dp),
 //        verticalAlignment = Alignment.CenterVertically
 //    ) {
-//        CeldaEquipo(equipo.posicion.toString(), Modifier.width(56.dp) .padding(start = 10.dp))
+//        CeldaEquipo(
+//            equipo.posicion.toString(), Modifier
+//                .width(56.dp)
+//                .padding(start = 10.dp)
+//        )
 //
-//        Row(modifier = Modifier.width(160.dp), verticalAlignment = Alignment.CenterVertically) {
+//        Row(
+//            modifier = Modifier.width(160.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
 //            AsyncImage(
-//                model= equipo.escudoUrl,
+//                model = equipo.escudoUrl,
 //                contentDescription = equipo.nombre,
 //                modifier = Modifier.size(24.dp),
 //                placeholder = painterResource(R.drawable.placeholder_logo)
 //            )
 //            Spacer(modifier = Modifier.width(8.dp))
-//            Text(equipo.nombre,
+//            Text(
+//                equipo.nombre,
 //                fontWeight = FontWeight.SemiBold,
 //                fontSize = 14.sp,
 //                color = Color.Black
