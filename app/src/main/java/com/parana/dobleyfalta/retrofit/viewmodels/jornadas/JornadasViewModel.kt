@@ -131,28 +131,20 @@ class JornadasViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _loading.value = true
-                _error.value = null // Limpiar error antes de la nueva carga
+                _error.value = null
 
                 val jornada = repository.obtenerJornadaPorId(id)
-                _jornadaAEditar.value = jornada
-
-                // 🚨 Nueva lógica de validación de datos: si la jornada llega, pero la liga es nula
-                if (jornada != null && jornada.liga?.idLiga == null) {
-                    _error.value = "La jornada existe, pero le falta la Liga asociada (Error de datos en el servidor)."
-                    _jornadaAEditar.value = null // Forzamos un estado nulo para bloquear el formulario
-                }
+                _jornadaAEditar.value = jornada // ahora liga debe estar presente
 
             } catch (e: HttpException) {
-                // 🚨 Captura específica de errores HTTP (como el 503)
                 val errorMessage = when (e.code()) {
                     503 -> "Error 503: Servidor no disponible. Verifique su API."
                     404 -> "Error 404: Jornada no encontrada."
                     else -> "Error HTTP ${e.code()}: ${e.message()}"
                 }
                 _error.value = errorMessage
-                _jornadaAEditar.value = null // Vaciamos el estado para no mostrar datos parciales/erróneos
+                _jornadaAEditar.value = null
             } catch (e: Exception) {
-                // Captura de otros errores (deserialización, IO, timeout, etc.)
                 _error.value = "Error de conexión o datos: ${e.message}"
                 _jornadaAEditar.value = null
             } finally {
@@ -160,6 +152,7 @@ class JornadasViewModel : ViewModel() {
             }
         }
     }
+
 
     // ✅ MODIFICADO: Lógica de éxito mejorada
     fun eliminarJornada(id: Int, onSuccess: () -> Unit) {

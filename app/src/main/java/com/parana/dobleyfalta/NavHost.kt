@@ -149,20 +149,17 @@ fun AppNavHost(
 
 
         composable(
-            // 1. Define la ruta que acepta el argumento 'id'
-            route = "editar_jornada/{id}",
+            route = "editar_jornada/{idJornada}/{idLiga}",
             arguments = listOf(
-                navArgument("id") { type = NavType.IntType } // 2. Especifica que es un entero
+                navArgument("idJornada") { type = NavType.IntType },
+                navArgument("idLiga") { type = NavType.IntType }
             )
         ) { backStackEntry ->
-
-            // 3. Extrae el argumento. El '0' es un valor por defecto si falla (aunque con NavType.IntType no debería ser null)
-            val idJornada = backStackEntry.arguments?.getInt("id") ?: 0
-
-            // 4. Llama a la pantalla correctamente, pasándole el ID.
-            // NOTA: El MainViewModel ya no es necesario aquí.
-            EditarJornadaScreen(navController = navController, idJornada = idJornada)
+            val idJornada = backStackEntry.arguments?.getInt("idJornada") ?: 0
+            val idLiga = backStackEntry.arguments?.getInt("idLiga")
+            EditarJornadaScreen(navController, idJornada, idLiga)
         }
+
 
         composable(
             route = "crear_partido/{jornadaId}",

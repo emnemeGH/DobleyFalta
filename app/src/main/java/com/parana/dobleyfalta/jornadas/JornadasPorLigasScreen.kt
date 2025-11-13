@@ -352,7 +352,7 @@ fun JornadasPorLigaScreen(navController: NavController) {
 
                                             if (rolUsuario == Rol.Empleado) {
                                                 IconButton(
-                                                    onClick = { navController.navigate("editar_jornada/${jornada.idJornada}") },
+                                                    onClick = { navController.navigate("editar_jornada/${jornada.idJornada}/${selectedLiga?.idLiga}") },
                                                     modifier = Modifier.size(36.dp)
                                                 ) {
                                                     Icon(
