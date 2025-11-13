@@ -410,7 +410,7 @@ fun CrearPartidoScreen(
                             fecha = fechaSeleccionada,
                             puntosLocal = puntosLocal.toIntOrNull() ?: 0,
                             puntosVisitante = puntosVisitante.toIntOrNull() ?: 0,
-                            estadoPartido = estadoPartidoTexto.ifEmpty { "proximo" }
+                            estadoPartido = estado.ifEmpty { "proximo" }
                         )
                         crearPartidoViewModel.crearPartido(partido)
                     }
