@@ -1,12 +1,10 @@
 package com.parana.dobleyfalta.jornadas.empleado
 
-// Se eliminó androidx.annotation.DrawableRes
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,35 +20,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.parana.dobleyfalta.PrimaryOrange
 import com.parana.dobleyfalta.R
 import com.parana.dobleyfalta.jornadas.LightGrey
-import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
+import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
+import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel // Asegúrate de tener este import
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.EquipoType
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
 
-// Asumo que estos colores están accesibles en el scope de la aplicación
+// Definiciones de colores (asumo que están en un archivo de tema o extensiones)
 val DarkBlue = Color(0xFF102B4E)
 val LiveGreen = Color(0xFF50C878)
 val ButtonColor = Color(0xFF584988)
 
-
 @Composable
 fun MarcadorPartidoScreen(
     navController: NavController,
-    idPartido: Int, // Recibimos solo el ID por navegación
+    idPartido: Int,
     partidosViewModel: PartidosViewModel = viewModel()
 ) {
-    // 1. CARGA DE DATOS
-    val partidosList by partidosViewModel.partidosDTO.collectAsState()
-    val partidoDTO = partidosList.find { it.idPartido == idPartido }
+    val context = LocalContext.current
 
-    if (partidoDTO == null) {
-        LaunchedEffect(Unit) {
-            if (partidosList.isEmpty()) {
-                partidosViewModel.cargarTodosLosPartidos()
-            }
+    // 1️⃣ Carga de datos y estado reactivo (StateFlow)
+    val partidosList by partidosViewModel.partidosDTO.collectAsState()
+
+    // Obtiene el partido del StateFlow. Se recompone automáticamente si cambia.
+    val partidoDTO: PartidoDTOModel? = remember(partidosList) {
+        partidosList.find { it.idPartido == idPartido }
+    }
+
+    // 💡 Estado para controlar la UI durante el guardado (evita doble-click)
+    var isSaving by remember { mutableStateOf(false) }
+
+    // Carga inicial (Si la lista está vacía, la carga)
+    LaunchedEffect(Unit) {
+        if (partidosList.isEmpty()) {
+            partidosViewModel.cargarTodosLosPartidos()
         }
+    }
+
+    // ❌ Estado de carga o error
+    if (partidoDTO == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -61,97 +73,98 @@ fun MarcadorPartidoScreen(
         return
     }
 
-    // 2. ESTADOS LOCALES
-    var scoreLocal by remember { mutableStateOf(partidoDTO.puntosLocal ?: 0) }
-    var scoreVisitante by remember { mutableStateOf(partidoDTO.puntosVisitante ?: 0) }
+    // 2️⃣ Estado local para lógica NO de puntaje
+    var currentQuarter by remember { mutableStateOf(1) }
 
-    // Estado local para el efecto visual de los cuartos
-    var currentQuarter by remember { mutableStateOf(1) } // Q1, Q2, Q3, Q4
+    // 💡 Usamos los puntajes directamente desde el DTO, que está en el StateFlow.
+    val scoreLocal = partidoDTO.puntosLocal ?: 0
+    val scoreVisitante = partidoDTO.puntosVisitante ?: 0
 
-    // 3. Sincronización
-    LaunchedEffect(partidoDTO) {
-        scoreLocal = partidoDTO.puntosLocal ?: 0
-        scoreVisitante = partidoDTO.puntosVisitante ?: 0
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBlue)
-    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = DarkBlue // Establece el fondo principal
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Botón para volver
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(0.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.back), // Asumiendo R.drawable.back
-                        contentDescription = "Volver",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-            }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Marcador de Baloncesto con el diseño solicitado
+            // 🔹 Marcador y botones +1/-1
             MarcadorBasquetbol(
                 partidoDTO = partidoDTO,
                 scoreLocal = scoreLocal,
                 scoreVisitante = scoreVisitante,
-                currentQuarter = currentQuarter,
-                onScoreChange = { equipo, nuevoPunto ->
-                    val isLocal = equipo == EquipoType.LOCAL
-                    if (isLocal) {
-                        scoreLocal = nuevoPunto
-                    } else {
-                        scoreVisitante = nuevoPunto
-                    }
-                    // Llamada en tiempo real al ViewModel para actualizar la DB
-                    partidosViewModel.actualizarPuntuacion(
-                        partidoDTO.idPartido,
-                        equipo,
-                        nuevoPunto
+
+                onScoreChange = { equipo, incremento ->
+                    partidosViewModel.actualizarPuntuacionIncremental(
+                        partidoId = idPartido,
+                        equipo = equipo,
+                        incremento = incremento
                     )
-                },
-                onNextQuarter = {
-                    currentQuarter = if (currentQuarter < 4) currentQuarter + 1 else 4
                 }
             )
+
+            Spacer(Modifier.height(32.dp))
+
+            // 🔹 BOTÓN GUARDAR PARTIDO
+            Button(
+                // Envía el puntaje TOTAL actual del DTO en memoria
+                onClick = {
+                    isSaving = true
+                    partidosViewModel.guardarPartido(
+                        partidoDTO.idPartido,
+                        scoreLocal,
+                        scoreVisitante
+                    ) { exito ->
+                        isSaving = false
+                    }
+                },
+                enabled = !isSaving, // Deshabilita durante el guardado
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+            ) {
+                if (isSaving) {
+                    // Muestra el progreso mientras se envía la data al backend
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(30.dp),
+                        color = Color.White,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Text(
+                        text = "Guardar Marcador Final",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            }
         }
     }
 }
 
-// ===============================================
-// 🎯 COMPONENTE DE ESTILO DE MARCADOR
-// ===============================================
+// --------------------------------------------------------------------------------
 
 @Composable
 fun MarcadorBasquetbol(
     partidoDTO: PartidoDTOModel,
     scoreLocal: Int,
     scoreVisitante: Int,
-    currentQuarter: Int,
-    onScoreChange: (EquipoType, Int) -> Unit,
-    onNextQuarter: () -> Unit
+    onScoreChange: (EquipoType, Int) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, bottom = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. Header "En vivo"
+        // ... (Header) ...
         Text(
             "En vivo",
             modifier = Modifier
@@ -163,20 +176,20 @@ fun MarcadorBasquetbol(
             textAlign = TextAlign.Center
         )
 
-        // 2. Marcador 0 - 0 (Parte principal)
+        Spacer(Modifier.height(8.dp))
+
+        // Marcador principal (lee el puntaje del StateFlow/ViewModel)
         Text(
             "$scoreLocal - $scoreVisitante",
-            fontSize = 70.sp, // Tamaño más grande como en la imagen
+            fontSize = 70.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(top = 8.dp)
+            color = Color.White
         )
 
-        // 3. Nombres de Equipos
+        // ... (Nombres de equipos) ...
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             Text(
                 partidoDTO.equipoLocalNombre ?: "LOCAL",
@@ -198,7 +211,7 @@ fun MarcadorBasquetbol(
 
         Spacer(Modifier.height(16.dp))
 
-        // 4. Logos y Botones (+1 / -1)
+        // Logos y botones de puntaje
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -206,138 +219,72 @@ fun MarcadorBasquetbol(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Logo Local
-            // 🛑 Reemplazar con tu lógica de carga de logo (ej: AsyncImage o tu función de recurso)
-            Image(
-                painter = painterResource(id = R.drawable.logo_transparent), // Placeholder temporal
+            AsyncImage(
+                model = "${BASE_URL}${partidoDTO.logoLocal}",
                 contentDescription = partidoDTO.equipoLocalNombre,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape),
+                modifier = Modifier.size(80.dp).clip(CircleShape),
                 contentScale = ContentScale.Fit
             )
 
-            // Controles Centrales (+1 / -1)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Fila de botones +1
+                // Fila de +1
                 Row {
-                    // Botón +1 Local
                     Button(
-                        onClick = { onScoreChange(EquipoType.LOCAL, scoreLocal + 1) },
+                        onClick = { onScoreChange(EquipoType.LOCAL, 1) }, // Envia incremento +1
                         colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
-                        modifier = Modifier.size(50.dp, 40.dp), // Ajustado para ser más ancho que alto
+                        modifier = Modifier.size(50.dp, 40.dp),
                         contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(
-                            text = "+1",
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold // Requerido: Texto blanco y bold
-                        )
-                    }
+                    ) { Text("+1", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold) }
+
                     Spacer(Modifier.width(16.dp))
-                    // Botón +1 Visitante
+
                     Button(
-                        onClick = { onScoreChange(EquipoType.VISITANTE, scoreVisitante + 1) },
+                        onClick = { onScoreChange(EquipoType.VISITANTE, 1) }, // Envia incremento +1
                         colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
-                        modifier = Modifier.size(50.dp, 40.dp), // Ajustado para ser más ancho que alto
+                        modifier = Modifier.size(50.dp, 40.dp),
                         contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(
-                            text = "+1",
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold )
-                    }
+                    ) { Text("+1", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold) }
                 }
+
                 Spacer(Modifier.height(16.dp))
-                // Fila de botones -1
+
+                // Fila de -1
                 Row {
-                    // Botón -1 Local
                     Button(
-                        onClick = { if (scoreLocal > 0) onScoreChange(EquipoType.LOCAL, scoreLocal - 1) },
+                        onClick = { onScoreChange(EquipoType.LOCAL, -1) }, // Envia decremento -1
                         enabled = scoreLocal > 0,
                         colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
-                        modifier = Modifier.size(50.dp, 40.dp), // Ajustado para ser más ancho que alto
+                        modifier = Modifier.size(50.dp, 40.dp),
                         contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text (
-                        text = "-1",
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold // Requerido: Texto blanco y bold
-                    ) }
+                    ) { Text("-1", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold) }
+
                     Spacer(Modifier.width(16.dp))
-                    // Botón -1 Visitante
+
                     Button(
-                        onClick = { if (scoreVisitante > 0) onScoreChange(EquipoType.VISITANTE, scoreVisitante - 1) },
+                        onClick = { onScoreChange(EquipoType.VISITANTE, -1) }, // Envia decremento -1
                         enabled = scoreVisitante > 0,
                         colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
-                        modifier = Modifier.size(50.dp, 40.dp), // Ajustado para ser más ancho que alto
+                        modifier = Modifier.size(50.dp, 40.dp),
                         contentPadding = PaddingValues(0.dp)
-                    ) { Text (
-                        text = "-1",
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold // Requerido: Texto blanco y bold
-                    ) }
+                    ) { Text("-1", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold) }
                 }
             }
 
-            // Logo Visitante
-            // 🛑 Reemplazar con tu lógica de carga de logo (ej: AsyncImage o tu función de recurso)
-            Image(
-                painter = painterResource(id = R.drawable.logo_transparent), // Placeholder temporal
+            AsyncImage(
+                model = "${BASE_URL}${partidoDTO.logoVisitante}",
                 contentDescription = partidoDTO.equipoVisitanteNombre,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape),
+                modifier = Modifier.size(80.dp).clip(CircleShape),
                 contentScale = ContentScale.Fit
             )
         }
 
         Spacer(Modifier.height(40.dp))
 
-        // 5. Visualización de Cuartos (Efecto Visual)
-        CuartosVisualizer(
-            nombreEquipo = partidoDTO.equipoLocalNombre ?: "LOCAL",
-            currentQuarter = currentQuarter
-        )
-        Spacer(Modifier.height(8.dp))
-        CuartosVisualizer(
-            nombreEquipo = partidoDTO.equipoVisitanteNombre ?: "VISITANTE",
-            currentQuarter = currentQuarter
-        )
-        Spacer(Modifier.height(32.dp))
-
-        // 6. Botón Siguiente Cuarto
-        Button(
-            onClick = onNextQuarter,
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-            modifier = Modifier
-                .width(200.dp)
-                .height(50.dp)
-        ) {
-            Text(
-                text = if (currentQuarter < 4) "Siguiente cuarto" else "Partido finalizado",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        // 7. Indicador de Cuarto Actual
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Cuarto actual: Q$currentQuarter",
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }
 
-// ===============================================
-// 🧩 COMPONENTE DE CUARTOS (Solo Visual)
-// ===============================================
+// --------------------------------------------------------------------------------
+
 @Composable
 fun CuartosVisualizer(nombreEquipo: String, currentQuarter: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -349,19 +296,15 @@ fun CuartosVisualizer(nombreEquipo: String, currentQuarter: Int) {
         )
         Row {
             for (i in 1..4) {
-                // Simulación de puntajes de cuartos (si no se almacenan, se ponen en 0)
                 val isCurrent = i == currentQuarter
                 Text(
                     text = "Q$i 0",
-                    color = if (isCurrent) PrimaryOrange else LightGrey, // Resaltar el cuarto actual
+                    color = if (isCurrent) PrimaryOrange else LightGrey,
                     fontWeight = if (isCurrent) FontWeight.ExtraBold else FontWeight.Normal,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                // Separador
-                if (i < 4) {
-                    Text("|", color = LightGrey, fontSize = 16.sp)
-                }
+                if (i < 4) Text("|", color = LightGrey, fontSize = 16.sp)
             }
         }
     }

@@ -36,26 +36,31 @@ class PartidosRepository {
         return response.isSuccessful
     }
 
-    suspend fun actualizarPuntuacion(
+    suspend fun actualizarPuntuacionBackend(
         partidoId: Int,
-        equipo: EquipoType,
-        nuevoPunto: Int
+        equipo: EquipoType, // Acepta el Enum
+        puntos: Int
     ): Boolean {
-        val equipoString = when (equipo) {
-            EquipoType.LOCAL -> "LOCAL"
-            EquipoType.VISITANTE -> "VISITANTE"
+        return try {
+            // Conversión segura del Enum a String ("LOCAL" o "VISITANTE") para el backend
+            val equipoString = when (equipo) {
+                EquipoType.LOCAL -> "LOCAL"
+                EquipoType.VISITANTE -> "VISITANTE"
+            }
+
+            // Creamos el body con el String
+            val request = MarcadorUpdateRequest(
+                equipo = equipoString, // <-- Usa el String
+                puntos = puntos
+            )
+
+            // Llamada al endpoint
+            val response = api.actualizarPuntaje(partidoId, request)
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
-
-        val requestBody = MarcadorUpdateRequest(
-            equipo = equipoString,
-            puntos = nuevoPunto
-        )
-
-        // Llama a la nueva función del servicio
-        val response = api.actualizarPuntaje(partidoId, requestBody)
-
-        // Devuelve true si la llamada fue exitosa (código de respuesta 2xx)
-        return response.isSuccessful
     }
 
 }

@@ -131,39 +131,70 @@ class PartidosViewModel : ViewModel() {
 
     fun clearError() { _error.value = null }
 
-    fun actualizarPuntuacion(
+    fun actualizarPuntuacionIncremental(
         partidoId: Int,
         equipo: EquipoType,
-        nuevoPunto: Int
+        incremento: Int
     ) {
+        // Obtenemos la lista actual
+        val listaActual = _partidosDTO.value.toMutableList()
+
+        // Buscamos el índice del partido
+        val index = listaActual.indexOfFirst { it.idPartido == partidoId }
+
+        if (index != -1) {
+            val partidoActual = listaActual[index]
+
+            // Calculamos el nuevo puntaje total
+            val nuevoPuntajeTotal = when (equipo) {
+                EquipoType.LOCAL -> (partidoActual.puntosLocal ?: 0) + incremento
+                EquipoType.VISITANTE -> (partidoActual.puntosVisitante ?: 0) + incremento
+            }
+
+            // Aseguramos que el puntaje no sea negativo
+            val puntajeFinal = maxOf(0, nuevoPuntajeTotal)
+
+            // Creamos una COPIA INMUTABLE con el nuevo puntaje
+            val partidoActualizado = when (equipo) {
+                EquipoType.LOCAL -> partidoActual.copy(puntosLocal = puntajeFinal)
+                EquipoType.VISITANTE -> partidoActual.copy(puntosVisitante = puntajeFinal)
+            }
+
+            // Reemplazamos el partido en la lista
+            listaActual[index] = partidoActualizado
+
+            // Emitimos la nueva lista al StateFlow, lo que actualiza la UI al instante
+            _partidosDTO.value = listaActual
+        }
+    }
+
+    fun guardarPartido(partidoId: Int, puntosLocal: Int, puntosVisitante: Int, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
-            _error.value = null
+            var exitoLocal = false
+            var exitoVisitante = false
+
             try {
-                // 1. Llama al repositorio para la actualización "en tiempo real"
-                val exito = repository.actualizarPuntuacion(
-                    partidoId = partidoId,
-                    equipo = equipo,
-                    nuevoPunto = nuevoPunto
+                // 💡 CORRECCIÓN: Usar EquipoType.LOCAL en lugar del String "LOCAL"
+                exitoLocal = repository.actualizarPuntuacionBackend(
+                    partidoId,
+                    EquipoType.LOCAL,
+                    puntosLocal
                 )
 
-                if (exito) {
-                    // 2. Actualización en la lista local para propagar el cambio a la UI
-                    _partidosDTO.value = _partidosDTO.value.map { p ->
-                        if (p.idPartido == partidoId) {
-                            when (equipo) {
-                                EquipoType.LOCAL -> p.copy(puntosLocal = nuevoPunto)
-                                EquipoType.VISITANTE -> p.copy(puntosVisitante = nuevoPunto)
-                            }
-                        } else {
-                            p
-                        }
-                    }
-                } else {
-                    _error.value = "Fallo la actualización de puntuación en el servidor."
-                }
+                // 💡 CORRECCIÓN: Usar EquipoType.VISITANTE en lugar del String "VISITANTE"
+                exitoVisitante = repository.actualizarPuntuacionBackend(
+                    partidoId,
+                    EquipoType.VISITANTE,
+                    puntosVisitante
+                )
+
+                // Informar a la UI si AMBAS fueron exitosas
+                onComplete(exitoLocal && exitoVisitante)
+
             } catch (e: Exception) {
-                _error.value = "Error de conexión al actualizar el marcador."
+                _error.value = "Error al conectar para guardar el partido $partidoId: ${e.message}"
                 e.printStackTrace()
+                onComplete(false)
             }
         }
     }
