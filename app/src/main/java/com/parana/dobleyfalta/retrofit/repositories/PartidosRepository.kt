@@ -15,20 +15,12 @@ class PartidosRepository {
         return api.getPartidos()
     }
 
-    suspend fun obtenerPartidoPorId(id: Int): PartidoModel {
-        return api.getPartidoPorId(id)
-    }
-
     suspend fun obtenerPartidosPorJornada(jornadaId: Int): List<PartidoModel> {
         return api.getPartidosPorJornada(jornadaId)
     }
 
     suspend fun crearPartido(partido: CrearPartidoModel): Response<PartidoModel> {
         return api.crearPartido(partido)
-    }
-
-    suspend fun actualizarPartido(id: Int, partido: CrearPartidoModel): Response<PartidoModel> {
-        return api.actualizarPartido(id, partido)
     }
 
     suspend fun eliminarPartido(id: Int): Boolean {
