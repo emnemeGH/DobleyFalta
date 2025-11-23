@@ -65,7 +65,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Estados para los diálogos
     var mostrarConfirmacionBorradoLiga by remember { mutableStateOf(false) }
     var ligaAEliminar by remember { mutableStateOf<LigaModel?>(null) }
     var mostrarConfirmacionBorradoJornada by remember { mutableStateOf(false) }
@@ -94,7 +93,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp)
     ) {
-        // --- Row de Título y Botones ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,7 +100,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Flecha atrás si hay liga seleccionada
             if (selectedLiga != null) {
                 IconButton(
                     onClick = { selectedLiga = null },
@@ -118,8 +115,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
             } else {
                 Spacer(modifier = Modifier.size(36.dp))
             }
-
-            // Título
             Text(
                 text = selectedLiga?.nombre ?: "Ligas",
                 color = Color.White,
@@ -128,7 +123,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
                 modifier = Modifier.weight(1f).wrapContentWidth(Alignment.CenterHorizontally)
             )
 
-            // Botón de acción (Agregar Liga o Jornada)
             if (rolUsuario == Rol.Empleado) {
                 if (selectedLiga == null) {
                     Button(
@@ -148,17 +142,15 @@ fun JornadasPorLigaScreen(navController: NavController) {
                 } else {
                     val idLigaValido = selectedLiga?.idLiga ?: 0
                     val isButtonEnabled = idLigaValido > 0
-                    // ✅ BOTÓN MODIFICADO: Enviar idLiga y nombreLiga
                     Button(
                         onClick = {
-                            // Al estar seguro de que está habilitado, ya sabemos que idLiga es válido.
                             val idLiga = selectedLiga!!.idLiga
                             navController.navigate("crear_jornada/$idLiga")
                         },
-                        enabled = isButtonEnabled, // <--- **LÍNEA AÑADIDA**
+                        enabled = isButtonEnabled,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PrimaryOrange,
-                            disabledContainerColor = DarkGrey // O el color que desees para deshabilitado
+                            disabledContainerColor = DarkGrey
                         ),
                         shape = RoundedCornerShape(24.dp),
                         contentPadding = PaddingValues(0.dp),
@@ -176,7 +168,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
                 Spacer(modifier = Modifier.size(36.dp))
             }
         }
-        // --- FIN Row Título y Botón ---
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -218,7 +209,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
                 }
 
                 selectedLiga == null -> {
-                    // Lista de Ligas
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -292,7 +282,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
                 }
 
                 else -> {
-                    // Lista de Jornadas
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -396,8 +385,6 @@ fun JornadasPorLigaScreen(navController: NavController) {
             .wrapContentSize(Alignment.BottomCenter)
     )
 
-    // --- Diálogos de confirmación de eliminación (Liga y Jornada) y errores ---
-    // Mantengo los mismos diálogos que ya tenías, solo actualizados para el flujo actual
     if (mostrarConfirmacionBorradoLiga && ligaAEliminar != null) {
         val liga = ligaAEliminar!!
         AlertDialog(

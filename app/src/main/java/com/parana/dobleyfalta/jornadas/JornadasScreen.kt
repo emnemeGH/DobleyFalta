@@ -28,7 +28,6 @@ import coil.compose.AsyncImage
 import com.parana.dobleyfalta.retrofit.viewmodels.JornadasViewModel
 import com.parana.dobleyfalta.retrofit.viewmodels.partidos.PartidosViewModel
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoDTOModel
-// 💡 CAMBIO CRÍTICO 1: Importar el modelo Parcelable para la navegación
 import com.parana.dobleyfalta.retrofit.models.partidos.PartidoModel
 import com.parana.dobleyfalta.R
 import java.time.LocalDateTime
@@ -43,7 +42,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import com.parana.dobleyfalta.retrofit.ApiConstants.BASE_URL
 
-// Colores del diseño deseado
 val DarkBlue = Color(0xFF102B4E)
 val PrimaryOrange = Color(0xFFFF6600)
 val DarkGrey = Color(0xFF1A375E)
@@ -82,7 +80,6 @@ fun JornadasScreen(
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
 
-    // 💡 CAMBIO CRÍTICO 2: Corregir el tipo de dato esperado. Debe ser PartidoModel (Parcelable).
     val nuevoPartidoFlow = savedStateHandle?.getStateFlow<PartidoModel?>("nuevo_partido", null)
     val nuevoPartido by nuevoPartidoFlow?.collectAsState() ?: remember { mutableStateOf(null) }
 
@@ -91,7 +88,6 @@ fun JornadasScreen(
         jornadasViewModel.setJornadaActual(jornadaId)
     }
 
-    // EFECTO CLAVE: Recargar partidos al cambiar la jornada
     LaunchedEffect(jornadaActual, jornadas) {
         val jornadaIdToLoad = jornadas.find { it.numero == jornadaActual }?.idJornada
 
@@ -101,20 +97,16 @@ fun JornadasScreen(
     }
 
 
-    // EFECTO CLAVE: Recargar partidos al recibir el nuevo partido desde CrearPartidoScreen
     LaunchedEffect(nuevoPartido) {
         if (nuevoPartido != null) {
-            // El PartidosViewModel debe recargar la lista de partidos de la jornada actual.
             val jornadaSeleccionada = jornadas.find { it.numero == jornadaActual }
             if (jornadaSeleccionada != null) {
                 partidosViewModel.cargarPartidos(jornadaSeleccionada.idJornada)
-                // Limpiar el savedStateHandle para que no se dispare de nuevo al girar la pantalla o re-componer.
                 savedStateHandle?.set("nuevo_partido", null)
             }
         }
     }
 
-    // MODIFICADO: Muestra el diálogo de error si el ViewModel reporta un error
     errorViewModel?.let { errorMsg ->
         if (errorMsg.isNotEmpty()) {
             mostrarDialogoError = true
@@ -144,7 +136,6 @@ fun JornadasScreen(
             val puedeRetroceder = jornadasList.isNotEmpty() && jornadaActual > minJornada
             val puedeAvanzar = jornadasList.isNotEmpty() && jornadaActual < maxJornada
 
-            // Botón Anterior
             IconButton(
                 onClick = {
                     if (puedeRetroceder) {
@@ -161,7 +152,6 @@ fun JornadasScreen(
                 )
             }
 
-            // Título de la Jornada
             Text(
                 text = "JORNADA $jornadaActual",
                 color = Color.White,
@@ -170,7 +160,6 @@ fun JornadasScreen(
                 textAlign = TextAlign.Center
             )
 
-            // Botón Siguiente
             IconButton(
                 onClick = {
                     if (puedeAvanzar) {
@@ -188,7 +177,6 @@ fun JornadasScreen(
             }
         }
 
-        // Lista de partidos
         val partidosDeJornada = partidosDTO
 
         LazyColumn(modifier = Modifier.weight(1f)) {
@@ -207,7 +195,6 @@ fun JornadasScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Botón agregar partido (solo para Empleados/Admin)
             if (canEditDelete) {
                 item {
                     Box(
@@ -241,7 +228,6 @@ fun JornadasScreen(
         }
     }
 
-    // Diálogo de confirmación de eliminación
     if (mostrarConfirmacionBorrado && partidoAEliminar != null) {
         val partido = partidoAEliminar!!
 
@@ -280,7 +266,6 @@ fun JornadasScreen(
         )
     }
 
-    // Diálogo para mostrar errores de la operación
     if (mostrarDialogoError) {
         AlertDialog(
             onDismissRequest = {
@@ -341,7 +326,6 @@ fun PartidoCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // Header estado partido
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -353,7 +337,6 @@ fun PartidoCard(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Logo del Silbato (a la izquierda)
                 Icon(
                     painter = painterResource(id = R.drawable.silbato_logo),
                     contentDescription = "Silbato logo",
@@ -363,7 +346,6 @@ fun PartidoCard(
                         .padding(end = 8.dp)
                 )
 
-                // Texto de estado
                 Text(
                     text = headerText,
                     color = Color.White,
@@ -371,9 +353,6 @@ fun PartidoCard(
                     fontSize = 20.sp
                 )
             }
-            // ----------------------------------------------------------------------
-
-            // Contenido principal: Equipos y Marcador
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -381,16 +360,15 @@ fun PartidoCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Equipo local
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
                     AsyncImage(
                         model = "${BASE_URL}${partido.logoLocal}",
-                        contentDescription = partido.equipoLocalNombre, // Usar el nombre del equipo
+                        contentDescription = partido.equipoLocalNombre,
                         modifier = Modifier
-                            .size(60.dp) // Tamaño adecuado para la tarjeta
+                            .size(60.dp)
                             .clip(CircleShape),
                         contentScale = ContentScale.Fit
                     )
@@ -404,7 +382,6 @@ fun PartidoCard(
                     )
                 }
 
-                // Score y liga
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(2f)
@@ -437,7 +414,6 @@ fun PartidoCard(
                     }
                 }
 
-                // Equipo visitante
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
@@ -460,7 +436,6 @@ fun PartidoCard(
                     )
                 }
             }
-            // *** PARTIDO PRÓXIMO/EN VIVO: Fecha/Hora a la derecha y Logo del estadio a la izquierda ***
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -468,7 +443,6 @@ fun PartidoCard(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Lado Central: Día, Fecha y Hora
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -487,7 +461,6 @@ fun PartidoCard(
                 }
             }
 
-            // CONTROL DE VISIBILIDAD DE BOTONES
             if (canEditDelete) {
                 Row(
                     modifier = Modifier
@@ -516,14 +489,13 @@ fun PartidoCard(
     }
 }
 
-// Se asume que el backend devuelve un formato como "2024-04-22 20:00:00"
 fun parseFecha(fechaHoraString: String?): Triple<String, String, String> {
     if (fechaHoraString.isNullOrEmpty()) {
         return Triple("Sin Día", "--/--/----", "--:--")
     }
 
     val possibleFormats = listOf(
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"), // ISO 8601 (común con Spring/Jackson)
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
     )
 
     val spanishLocale = Locale("es", "ES")
@@ -546,13 +518,11 @@ fun parseFecha(fechaHoraString: String?): Triple<String, String, String> {
 
         val isDateOnly = temporal is LocalDate
 
-        // Si solo es fecha, usamos medianoche (00:00) para el parseo, pero la hora debe ser vacía.
         val dateTime = if (temporal is LocalDateTime) temporal else (temporal as LocalDate).atStartOfDay()
 
         val dia = dateTime.dayOfWeek.getDisplayName(TextStyle.FULL, spanishLocale).replaceFirstChar { it.uppercase() }
         val fecha = dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
-        // Si solo recibimos la fecha (isDateOnly), la hora es desconocida.
         val horaStr = if (isDateOnly) "" else dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
 
         Triple(dia, fecha, horaStr)

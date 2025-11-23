@@ -55,9 +55,7 @@ fun CrearJornadaScreen(
       val apiError by jornadasViewModel.error.collectAsState()
       val isLoading by jornadasViewModel.loading.collectAsState()
 
-    // ------------------- Dialog Fecha Inicio CORREGIDO -------------------
       if (mostrarFechaInicio) {
-        // Usamos el estado inicial de la fecha actual seleccionada.
             val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = fechaInicioMillis ?: getTodayMillis()
         )
@@ -253,7 +251,6 @@ fun CrearJornadaScreen(
           }
 }
 
-// ------------------- Funciones de fecha (Sin cambios, son correctas) -------------------
 private val UI_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 private fun convertMillisToUIDate(millis: Long): String {
@@ -271,7 +268,6 @@ private fun convertMillisToApiDate(millis: Long): String {
 }
 
 private fun getTodayMillis(): Long {
-      // Obtiene el inicio del día actual en milisegundos para usar como valor inicial.
       return Instant.now().atZone(ZoneId.systemDefault())
         .toLocalDate().atStartOfDay(ZoneId.systemDefault())
         .toInstant().toEpochMilli()

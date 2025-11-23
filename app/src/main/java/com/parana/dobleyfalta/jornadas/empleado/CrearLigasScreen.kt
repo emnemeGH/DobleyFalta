@@ -33,7 +33,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
 import java.util.Calendar
 
-// --------------------------- COMPOSABLE DE PANTALLA ---------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -325,8 +324,6 @@ fun CrearLigaScreen(
     }
 }
 
-// --------------------------- UTILIDADES DE FECHA CORREGIDAS ---------------------------
-
 private val UI_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 /**
@@ -335,7 +332,7 @@ private val UI_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("
  */
 private fun convertMillisToUIDate(millis: Long): String {
     return Instant.ofEpochMilli(millis)
-        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN CLAVE: Usar la zona del usuario.
+        .atZone(ZoneId.systemDefault())
         .toLocalDate()
         .format(UI_DATE_FORMATTER)
 }
@@ -349,8 +346,8 @@ private fun convertMillisToApiDate(millis: Long): String {
     return Instant.ofEpochMilli(millis)
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
-        .plusDays(1) // 👈 ¡ESTO ASEGURA QUE SE ENVÍE EL DÍA CORRECTO!
-        .toString() // LocalDate.toString() devuelve YYYY-MM-DD
+        .plusDays(1)
+        .toString()
 }
 
 /**
@@ -359,7 +356,7 @@ private fun convertMillisToApiDate(millis: Long): String {
  */
 private fun getYearFromMillis(millis: Long): Int {
     return Instant.ofEpochMilli(millis)
-        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN
+        .atZone(ZoneId.systemDefault())
         .get(ChronoField.YEAR)
 }
 
@@ -369,7 +366,7 @@ private fun getYearFromMillis(millis: Long): Int {
  */
 private fun getTodayMillis(): Long {
     return Instant.now()
-        .atZone(ZoneId.systemDefault()) // 👈 CORRECCIÓN
+        .atZone(ZoneId.systemDefault())
         .toLocalDate()
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant()
